@@ -1,0 +1,26 @@
+# Example terraform.tfvars file for dev environment
+# Copy this file to terraform.tfvars and fill in the values
+
+# AWS Configuration
+aws_region = "us-east-1"
+
+# Hetzner Cloud Configuration
+hcloud_token = "your-hetzner-api-token-here"
+
+# Database Configuration  
+postgres_password = "secure-postgres-password"
+
+# MinIO Configuration
+minio_access_key = "minioadmin"
+minio_secret_key = "minioadmin"
+
+# IAM Roles (optional - for production)
+mlflow_iam_role_arn = ""
+hetzner_server_iam_role_arn = ""
+
+# DNS Configuration (optional)
+domain_name = ""
+
+# Budget Configuration
+monthly_budget = 15.00
+cost_alert_threshold = 80

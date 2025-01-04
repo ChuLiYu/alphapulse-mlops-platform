@@ -1,0 +1,25 @@
+# AlphaPulse Ansible Inventory - ${environment}
+# Generated: ${timestamp()}
+
+[${environment}_servers]
+${server_name} ansible_host=${public_ip} ansible_user=${ssh_user} private_ip=${private_ip}
+
+[${environment}_servers:vars]
+ansible_ssh_private_key_file=${ssh_private_key}
+ansible_python_interpreter=/usr/bin/python3
+environment=${environment}
+deployment_type=docker_compose
+
+# Service endpoints
+mage_ui_url=http://${public_ip}:6789
+mlflow_ui_url=http://${public_ip}:5001
+minio_console_url=http://${public_ip}:9001
+postgres_host=${private_ip}
+postgres_port=5432
+
+# Deployment information
+project_name=AlphaPulse
+infrastructure_provider=terraform
+cloud_provider=hetzner
+server_type=cpx21
+estimated_monthly_cost=9.50

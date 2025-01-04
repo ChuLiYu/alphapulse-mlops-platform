@@ -1,0 +1,257 @@
+#cloud-config
+# AlphaPulse Docker Compose Deployment
+# Environment: ${environment}
+
+package_update: true
+package_upgrade: true
+
+packages:
+  - docker.io
+  - docker-compose
+  - git
+  - curl
+  - wget
+  - htop
+  - postgresql-client
+  - python3-pip
+  - python3-venv
+  - awscli
+
+users:
+  - name: alphapulse
+    groups: docker
+    shell: /bin/bash
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    ssh-authorized-keys:
+      - ${ssh_key}
+
+write_files:
+  - path: /home/alphapulse/docker-compose.yml
+    content: |
+      version: '3.8'
+
+      services:
+        postgres:
+          image: postgres:15-alpine
+          container_name: alphapulse-postgres
+          restart: unless-stopped
+          environment:
+            POSTGRES_DB: alphapulse
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: ${postgres_password}
+          ports:
+            - "5432:5432"
+          volumes:
+            - postgres_data:/var/lib/postgresql/data
+          healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U postgres"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+
+        minio:
+          image: minio/minio:latest
+          container_name: alphapulse-minio
+          restart: unless-stopped
+          command: server /data --console-address ":9001"
+          environment:
+            MINIO_ROOT_USER: ${minio_access_key}
+            MINIO_ROOT_PASSWORD: ${minio_secret_key}
+          ports:
+            - "9000:9000"  # API
+            - "9001:9001"  # Console
+          volumes:
+            - minio_data:/data
+          healthcheck:
+            test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+            interval: 30s
+            timeout: 20s
+            retries: 3
+
+        mlflow:
+          build:
+            context: .
+            dockerfile: Dockerfile.mlflow
+          container_name: alphapulse-mlflow
+          restart: unless-stopped
+          environment:
+            MLFLOW_TRACKING_URI: ${mlflow_tracking_uri}
+            AWS_ACCESS_KEY_ID: ${aws_access_key_id}
+            AWS_SECRET_ACCESS_KEY: ${aws_secret_access_key}
+            AWS_S3_BUCKET: ${aws_s3_bucket}
+          ports:
+            - "5001:5000"
+          depends_on:
+            - minio
+          volumes:
+            - mlflow_artifacts:/mlflow/artifacts
+
+        airflow-webserver:
+          build:
+            context: .
+            dockerfile: Dockerfile.airflow
+          container_name: alphapulse-airflow-webserver
+          command: webserver
+          restart: always
+          environment:
+            - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+            - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://postgres:${postgres_password}@postgres:5432/airflow
+            - AIRFLOW__CORE__FERNET_KEY=${AIRFLOW_FERNET_KEY:-afrRCi0qTwZEvSfVJVGoNbkAWdiSqsXDq-ijdSaIs5g=}
+            - AIRFLOW__CORE__LOAD_EXAMPLES=False
+            - AIRFLOW__API__AUTH_BACKENDS=airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session
+            - AWS_ACCESS_KEY_ID=${minio_access_key}
+            - AWS_SECRET_ACCESS_KEY=${minio_secret_key}
+            - S3_ENDPOINT_URL=http://minio:9000
+          ports:
+            - "8080:8080"
+          depends_on:
+            - postgres
+            - minio
+            - airflow-init
+          volumes:
+            - ../airflow/dags:/opt/airflow/dags
+            - ../airflow/plugins:/opt/airflow/plugins
+            - ../airflow/config:/opt/airflow/config
+
+        airflow-scheduler:
+          build:
+            context: .
+            dockerfile: Dockerfile.airflow
+          container_name: alphapulse-airflow-scheduler
+          command: scheduler
+          restart: always
+          environment:
+            - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+            - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://postgres:${postgres_password}@postgres:5432/airflow
+            - AIRFLOW__CORE__FERNET_KEY=${AIRFLOW_FERNET_KEY:-afrRCi0qTwZEvSfVJVGoNbkAWdiSqsXDq-ijdSaIs5g=}
+            - AIRFLOW__CORE__LOAD_EXAMPLES=False
+            - AWS_ACCESS_KEY_ID=${minio_access_key}
+            - AWS_SECRET_ACCESS_KEY=${minio_secret_key}
+            - S3_ENDPOINT_URL=http://minio:9000
+          depends_on:
+            - postgres
+            - minio
+            - airflow-init
+          volumes:
+            - ../airflow/dags:/opt/airflow/dags
+            - ../airflow/plugins:/opt/airflow/plugins
+            - ../airflow/config:/opt/airflow/config
+
+        airflow-init:
+          build:
+            context: .
+            dockerfile: Dockerfile.airflow
+          container_name: alphapulse-airflow-init
+          command: bash -c "/opt/airflow/scripts/create_connections.sh"
+          environment:
+            - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+            - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://postgres:${postgres_password}@postgres:5432/airflow
+            - AIRFLOW__CORE__LOAD_EXAMPLES=False
+            - _AIRFLOW_DB_UPGRADE=true
+            - _AIRFLOW_WWW_USER_CREATE=true
+            - _AIRFLOW_WWW_USER_USERNAME=admin
+            - _AIRFLOW_WWW_USER_PASSWORD=admin
+          depends_on:
+            - postgres
+          volumes:
+            - ../infra/scripts:/opt/airflow/scripts
+
+      volumes:
+        postgres_data:
+        minio_data:
+        mlflow_artifacts:
+
+  - path: /home/alphapulse/.env
+    content: |
+      # AlphaPulse Environment Variables
+      ENVIRONMENT=${environment}
+      POSTGRES_PASSWORD=${postgres_password}
+      MINIO_ACCESS_KEY=${minio_access_key}
+      MINIO_SECRET_KEY=${minio_secret_key}
+      AWS_ACCESS_KEY_ID=${aws_access_key_id}
+      AWS_SECRET_ACCESS_KEY=${aws_secret_access_key}
+      AWS_S3_BUCKET=${aws_s3_bucket}
+      MLFLOW_TRACKING_URI=${mlflow_tracking_uri}
+
+  - path: /home/alphapulse/deploy.sh
+    permissions: "0755"
+    content: |
+      #!/bin/bash
+      echo "🚀 Deploying AlphaPulse (${environment})..."
+
+      cd /home/alphapulse
+
+      # Start Docker Compose
+      docker-compose up -d
+
+      # Wait for services to be ready
+      sleep 30
+
+      # Check service status
+      echo "📊 Service Status:"
+      docker-compose ps
+
+      # Create MinIO bucket
+      docker-compose exec minio mc mb local/alphapulse-artifacts || true
+
+      echo "✅ Deployment completed!"
+      echo ""
+      echo "🌐 Service URLs:"
+      echo "  Airflow UI: http://$(curl -s ifconfig.me):8080"
+      echo "  MLflow UI: http://$(curl -s ifconfig.me):5001"
+      echo "  MinIO Console: http://$(curl -s ifconfig.me):9001"
+      echo "  PostgreSQL: localhost:5432"
+
+  - path: /etc/systemd/system/alphapulse.service
+    content: |
+      [Unit]
+      Description=AlphaPulse MLOps Platform
+      After=docker.service
+      Requires=docker.service
+
+      [Service]
+      Type=oneshot
+      RemainAfterExit=yes
+      WorkingDirectory=/home/alphapulse
+      ExecStart=/bin/bash /home/alphapulse/deploy.sh
+      User=alphapulse
+      Group=alphapulse
+
+      [Install]
+      WantedBy=multi-user.target
+
+runcmd:
+  # Configure Docker to start on boot
+  - systemctl enable docker
+  - systemctl start docker
+
+  # Add user to docker group
+  - usermod -aG docker alphapulse
+
+  # Clone AlphaPulse repository (if needed)
+  - [
+      git,
+      clone,
+      "https://github.com/your-org/alphapulse-mlops-platform.git",
+      "/home/alphapulse/alphapulse",
+    ]
+
+  # Copy configuration files
+  - cp /home/alphapulse/docker-compose.yml /home/alphapulse/alphapulse/infra/docker-compose.yml
+  - cp /home/alphapulse/.env /home/alphapulse/alphapulse/.env.local
+
+  # Set permissions
+  - chown -R alphapulse:alphapulse /home/alphapulse
+
+  # Enable and start AlphaPulse service
+  - systemctl enable alphapulse.service
+  - systemctl start alphapulse.service
+
+  # Print deployment information
+  - echo "========================================="
+  - echo "AlphaPulse Deployment Complete!"
+  - echo "Environment: ${environment}"
+  - echo "Server IP: $(hostname -I | awk '{print $1}')"
+  - echo "========================================="
+
+final_message: "AlphaPulse deployment completed successfully! Services are starting..."

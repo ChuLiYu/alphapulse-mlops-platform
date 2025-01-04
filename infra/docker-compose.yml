@@ -1,0 +1,298 @@
+version: "3.9"
+
+networks:
+  alphapulse-network:
+    driver: bridge
+    name: alphapulse-network
+
+services:
+  # PostgreSQL database for both Airflow and MLflow
+  postgres:
+    image: postgres:15-alpine
+    container_name: alphapulse-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-alphapulse}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8"
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-databases.sh:/docker-entrypoint-initdb.d/00-init-databases.sh:ro
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/01-init-db.sql:ro
+    networks:
+      - alphapulse-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # MinIO for local S3-compatible storage
+  minio:
+    image: minio/minio:latest
+    container_name: alphapulse-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+    ports:
+      - "${MINIO_PORT:-9000}:9000" # API
+      - "${MINIO_CONSOLE_PORT:-9001}:9001" # Console
+    volumes:
+      - minio_data:/data
+    networks:
+      - alphapulse-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    restart: unless-stopped
+
+  # FastAPI Backend Application
+  fastapi:
+    build:
+      context: ..
+      dockerfile: infra/docker/Dockerfile.fastapi
+    container_name: alphapulse-fastapi
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-alphapulse}
+      AWS_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-minioadmin}
+      AWS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      S3_ENDPOINT_URL: http://minio:9000
+      DEBUG: ${DEBUG:-true}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      API_VERSION: ${API_VERSION:-v1}
+    ports:
+      - "${FASTAPI_PORT:-8000}:8000"
+    volumes:
+      - ../src:/app/src/src
+    networks:
+      - alphapulse-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # MLflow for experiment tracking
+  mlflow:
+    build:
+      context: ..
+      dockerfile: infra/docker/Dockerfile.mlflow
+    container_name: alphapulse-mlflow
+    command: >
+      mlflow server
+      --backend-store-uri postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/mlflow
+      --default-artifact-root s3://alphapulse/mlflow-artifacts
+      --host 0.0.0.0
+      --port 5000
+      --allowed-hosts "*"
+    environment:
+      AWS_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-minioadmin}
+      AWS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      MLFLOW_S3_ENDPOINT_URL: http://minio:9000
+    ports:
+      - "${MLFLOW_PORT:-5001}:5000"
+    networks:
+      - alphapulse-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Ollama for LLM inference (New Service)
+  ollama:
+    image: ollama/ollama:latest
+    container_name: alphapulse-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_models:/root/.ollama
+    networks:
+      - alphapulse-network
+    restart: unless-stopped
+    # Optional: Pre-pull the model if needed, or do it in the code
+
+  # Airflow Services
+  airflow-webserver:
+    build:
+      context: ..
+      dockerfile: infra/docker/Dockerfile.airflow
+    container_name: alphapulse-airflow-webserver
+    command: webserver
+    restart: always
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/airflow
+      - AIRFLOW__CORE__FERNET_KEY=${AIRFLOW_FERNET_KEY:-afrRCi0qTwZEvSfVJVGoNbkAWdiSqsXDq-ijdSaIs5g=}
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+      - AIRFLOW__API__AUTH_BACKENDS=airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session
+      - AWS_ACCESS_KEY_ID=${MINIO_ROOT_USER:-minioadmin}
+      - AWS_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD:-minioadmin}
+      - S3_ENDPOINT_URL=http://minio:9000
+      - MINIO_ENDPOINT=minio:9000
+      - OLLAMA_HOST=http://ollama:11434
+      - TRAINER_API_URL=http://trainer:8080
+      - PYTHONPATH=/opt/airflow/src:/opt/airflow/plugins
+    volumes:
+      - ../airflow/dags:/opt/airflow/dags
+      - ../airflow/plugins:/opt/airflow/plugins
+      - ../airflow/config:/opt/airflow/config
+      - ../src:/opt/airflow/src
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - alphapulse-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      airflow-init:
+        condition: service_completed_successfully
+
+  airflow-scheduler:
+    build:
+      context: ..
+      dockerfile: infra/docker/Dockerfile.airflow
+    container_name: alphapulse-airflow-scheduler
+    command: scheduler
+    restart: always
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/airflow
+      - AIRFLOW__CORE__FERNET_KEY=${AIRFLOW_FERNET_KEY:-afrRCi0qTwZEvSfVJVGoNbkAWdiSqsXDq-ijdSaIs5g=}
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+      - AWS_ACCESS_KEY_ID=${MINIO_ROOT_USER:-minioadmin}
+      - AWS_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD:-minioadmin}
+      - S3_ENDPOINT_URL=http://minio:9000
+      - MINIO_ENDPOINT=minio:9000
+      - OLLAMA_HOST=http://ollama:11434
+      - TRAINER_API_URL=http://trainer:8080
+      - PYTHONPATH=/opt/airflow/src:/opt/airflow/plugins
+    volumes:
+      - ../airflow/dags:/opt/airflow/dags
+      - ../airflow/plugins:/opt/airflow/plugins
+      - ../airflow/config:/opt/airflow/config
+      - ../src:/opt/airflow/src
+    networks:
+      - alphapulse-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      airflow-init:
+        condition: service_completed_successfully
+
+  airflow-init:
+    build:
+      context: ..
+      dockerfile: infra/docker/Dockerfile.airflow
+    container_name: alphapulse-airflow-init
+    command: bash -c "/opt/airflow/scripts/create_connections.sh"
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/airflow
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+      - _AIRFLOW_DB_UPGRADE=true
+      - _AIRFLOW_WWW_USER_CREATE=true
+      - _AIRFLOW_WWW_USER_USERNAME=${AIRFLOW_USERNAME:-admin}
+      - _AIRFLOW_WWW_USER_PASSWORD=${AIRFLOW_PASSWORD:-admin}
+    volumes:
+      - ../infra/scripts:/opt/airflow/scripts
+    networks:
+      - alphapulse-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # Training container for ML model training
+  trainer:
+    build:
+      context: ..
+      dockerfile: infra/docker/Dockerfile.trainer
+    container_name: alphapulse-trainer
+    command: python -m training.train_server
+    environment:
+      PYTHONPATH: /app/src:/app
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-alphapulse}
+      POSTGRES_CONNECT_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-alphapulse}
+      AWS_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-minioadmin}
+      AWS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      S3_ENDPOINT_URL: http://minio:9000
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+      MLFLOW_S3_ENDPOINT_URL: http://minio:9000
+    ports:
+      - "${TRAINER_PORT:-8181}:8080"
+    volumes:
+      - ../src:/app/src
+      - ../training:/app/training
+      - ../storage:/app/storage
+    networks:
+      - alphapulse-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      mlflow:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # MinIO client for bucket initialization
+  mc:
+    image: minio/mc:latest
+    container_name: alphapulse-mc
+    networks:
+      - alphapulse-network
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      until (/usr/bin/mc alias set alphapulse http://minio:9000 ${MINIO_ROOT_USER:-minioadmin} ${MINIO_ROOT_PASSWORD:-minioadmin}) do echo 'Waiting for MinIO...' && sleep 2; done;
+      /usr/bin/mc mb alphapulse/alphapulse --ignore-existing;
+      /usr/bin/mc mb alphapulse/mlflow-artifacts --ignore-existing;
+      /usr/bin/mc anonymous set download alphapulse/alphapulse;
+      echo 'MinIO buckets initialized successfully';
+      tail -f /dev/null
+      "
+    restart: on-failure
+
+volumes:
+  postgres_data:
+    driver: local
+  minio_data:
+    driver: local
+  ollama_models:
+    driver: local

@@ -1,0 +1,23 @@
+# AlphaPulse Server Information - ${environment}
+# Generated: ${timestamp()}
+
+Server Name: ${server_name}
+Public IP: ${public_ip}
+Private IP: ${private_ip}
+Server Type: ${server_type}
+Location: ${server_location}
+
+SSH Access:
+  ssh -i ${ssh_key_path} root@${public_ip}
+
+Service URLs:
+  Mage.ai UI: http://${public_ip}:6789
+  MLflow UI: http://${public_ip}:5001
+  MinIO Console: http://${public_ip}:9001
+  
+Cost Information:
+  Server: €9.50/month (Hetzner CPX21)
+  Floating IP: €0.00/month (included)
+  Volume: %{ if enable_data_volume }€${data_volume_size * 0.004}/month%{ else }Not enabled%{ endif }
+  
+Total Estimated Cost: €${9.50 + (enable_data_volume ? data_volume_size * 0.004 : 0)}/month

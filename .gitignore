@@ -1,0 +1,51 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# OS Files
+.DS_Store
+.DS_Store?
+._*
+
+# Environments & Secrets
+.env
+.env.local
+.venv/
+env/
+venv/
+*.secret
+*password*
+*key*
+
+# Terraform (Massive binaries are here)
+.terraform/
+**/.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl
+
+# Dynamic Storage (All runtime data moves here)
+storage/
+logs/
+mlflow/
+data/
+models/
+!storage/**/.gitkeep
+
+# Explicitly allow code directories even if they contain 'data' in path
+!src/**/data/**
+!scripts/**
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# AI Coding Tools
+.clinerules
+.cursorrules
+.rooignore
+.gemini/
+.clineroot
+# Private Security Zone
