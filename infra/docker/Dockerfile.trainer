@@ -1,0 +1,38 @@
+# Training Container for AlphaPulse ML Models
+# Separate from Mage ETL for cleaner dependency management
+FROM python:3.12-slim
+
+# Set working directory
+WORKDIR /app
+
+# Set PYTHONPATH to include src directory
+ENV PYTHONPATH=/app/src:/app:${PYTHONPATH}
+
+# Install system dependencies for ML libraries
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    curl \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy training requirements
+COPY training/requirements.txt /tmp/requirements.txt
+
+# Install training dependencies
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r /tmp/requirements.txt && \
+    rm /tmp/requirements.txt
+
+# Copy training scripts and source code
+# Note: src/ and training/ will be mounted via volumes for development
+# For production, you would copy them here
+
+# Health check: Verify critical training packages
+RUN python -c "import torch; import xgboost; import mlflow; import pandas; print('Training dependencies OK')"
+
+# Expose port for training API
+EXPOSE 8080
+
+# Default command (will be overridden by docker-compose)
+CMD ["python", "-m", "training.train_server"]
