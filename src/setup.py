@@ -1,0 +1,52 @@
+from setuptools import find_packages, setup
+
+setup(
+    name="alphapulse",
+    version="0.1.0",
+    description="AlphaPulse - High-Frequency Trading Sentiment Analysis Platform",
+    author="AlphaPulse Team",
+    author_email="team@alphapulse.ai",
+    packages=find_packages(),
+    install_requires=[
+        "fastapi>=0.104.0",
+        "uvicorn>=0.24.0",
+        "pydantic>=2.5.0",
+        "pydantic[email]>=2.5.0",
+        "sqlalchemy>=2.0.0",
+        "psycopg2-binary>=2.9.0",
+        "requests>=2.31.0",
+        "pandas>=2.0.0",
+        "numpy>=1.24.0",
+        "scikit-learn>=1.3.0",
+        "evidently>=0.4.0",  # ML monitoring and drift detection
+        "python-jose[cryptography]>=3.3.0",
+        "passlib[bcrypt]>=1.7.4",
+        "praw>=7.7.0",
+        "email-validator>=2.0.0",
+        "xgboost>=2.0.0",
+        "lightgbm>=4.1.0",
+        "catboost>=1.2.0",
+        "optuna>=3.5.0",
+        "mlflow>=2.10.0",
+        "joblib>=1.3.0",
+        "scipy>=1.11.0",  # For statistical tests
+        "psutil>=5.9.0",  # For system monitoring
+        "torch>=2.2.0",
+        "transformers>=4.38.0",
+        "langchain>=0.1.0",
+        "openai>=1.12.0",
+        "groq>=0.4.0",
+        "pandas-ta>=0.3.14b",
+        "python-dotenv>=1.0.0",
+        "loguru>=0.7.0",
+    ],
+    python_requires=">=3.12",
+    classifiers=[
+        "Development Status :: 3 - Alpha",
+        "Intended Audience :: Financial and Insurance Industry",
+        "Topic :: Office/Business :: Financial :: Investment",
+        "License :: Other/Proprietary License",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.12",
+    ],
+)
