@@ -38,40 +38,44 @@ resource "oci_core_security_list" "alphapulse_sl" {
     protocol    = "all"
   }
 
-  # SSH
+  # Ingress: SSH (22)
   ingress_security_rules {
-    protocol = "6"
-    source   = "0.0.0.0/0"
+    protocol    = "6" # TCP
+    source      = "0.0.0.0/0"
+    source_type = "CIDR_BLOCK"
     tcp_options {
       min = 22
       max = 22
     }
   }
 
-  # HTTP
+  # Ingress: HTTP (80)
   ingress_security_rules {
-    protocol = "6"
-    source   = "0.0.0.0/0"
+    protocol    = "6"
+    source      = "0.0.0.0/0"
+    source_type = "CIDR_BLOCK"
     tcp_options {
       min = 80
       max = 80
     }
   }
 
-  # HTTPS
+  # Ingress: HTTPS (443)
   ingress_security_rules {
-    protocol = "6"
-    source   = "0.0.0.0/0"
+    protocol    = "6"
+    source      = "0.0.0.0/0"
+    source_type = "CIDR_BLOCK"
     tcp_options {
       min = 443
       max = 443
     }
   }
   
-  # K3s API (Optional, restrict source IP in production if possible)
+  # Ingress: K3s API (6443)
   ingress_security_rules {
-    protocol = "6"
-    source   = "0.0.0.0/0"
+    protocol    = "6"
+    source      = "0.0.0.0/0"
+    source_type = "CIDR_BLOCK"
     tcp_options {
       min = 6443
       max = 6443
@@ -112,6 +116,7 @@ resource "oci_core_instance" "alphapulse_server" {
   create_vnic_details {
     subnet_id        = oci_core_subnet.alphapulse_subnet.id
     assign_public_ip = true
+    display_name     = "primary-vnic"
   }
 
   source_details {
@@ -121,12 +126,24 @@ resource "oci_core_instance" "alphapulse_server" {
 
   metadata = {
     ssh_authorized_keys = file(var.ssh_public_key_path)
-    user_data           = base64encode("#!/bin/bash\niptables -F\nfirewall-cmd --permanent --add-port=80/tcp\nfirewall-cmd --permanent --add-port=443/tcp\nfirewall-cmd --permanent --add-port=6443/tcp\nfirewall-cmd --reload")
+    # 這裡加入更強力的防火牆清理指令
+    user_data           = base64encode(<<EOF
+#!/bin/bash
+iptables -F
+iptables -X
+iptables -t nat -F
+iptables -t nat -X
+iptables -t mangle -F
+iptables -t mangle -X
+iptables -P INPUT ACCEPT
+iptables -P FORWARD ACCEPT
+iptables -P OUTPUT ACCEPT
+/sbin/netfilter-persistent save || true
+systemctl stop firewalld || true
+systemctl disable firewalld || true
+EOF
+    )
   }
-}
-
-data "oci_identity_availability_domains" "ads" {
-  compartment_id = var.compartment_id
 }
 
 output "server_public_ip" {

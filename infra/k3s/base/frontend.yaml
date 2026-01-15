@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: alphapulse-frontend
-        image: k3d-alphapulse-registry:5001/alphapulse-frontend:latest
+        image: ghcr.io/chuliyu/alphapulse-mlops-platform/frontend:latest
         ports:
         - containerPort: 80
 ---
@@ -25,6 +25,7 @@ metadata:
   name: alphapulse-frontend
   namespace: alphapulse
 spec:
+  type: LoadBalancer # 修正為 LoadBalancer 以讓外網存取
   selector:
     app: alphapulse-frontend
   ports:
