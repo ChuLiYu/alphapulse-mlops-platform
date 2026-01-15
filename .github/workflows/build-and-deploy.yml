@@ -32,7 +32,7 @@ jobs:
             file: infra/docker/Dockerfile.fastapi
             image: fastapi
           - service: frontend
-            context: frontend
+            context: .
             file: frontend/Dockerfile
             image: frontend
           - service: airflow
