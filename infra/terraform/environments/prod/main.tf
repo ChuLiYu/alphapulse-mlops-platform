@@ -1,6 +1,5 @@
 provider "oci" {
-  # The provider will automatically use:
-  # OCI_TENANCY_OCID, OCI_USER_OCID, OCI_FINGERPRINT, OCI_PRIVATE_KEY_PATH, OCI_REGION
+  # The provider will automatically use environment variables
 }
 
 # --- Networking ---
@@ -38,49 +37,31 @@ resource "oci_core_security_list" "alphapulse_sl" {
     protocol    = "all"
   }
 
-  # Ingress: SSH (22)
-  ingress_security_rules {
-    protocol    = "6" # TCP
-    source      = "0.0.0.0/0"
-    source_type = "CIDR_BLOCK"
-    tcp_options {
-      min = 22
-      max = 22
-    }
-  }
-
-  # Ingress: HTTP (80)
+  # SSH (22) - 建議之後改為你的特定 IP
   ingress_security_rules {
     protocol    = "6"
     source      = "0.0.0.0/0"
     source_type = "CIDR_BLOCK"
-    tcp_options {
-      min = 80
-      max = 80
-    }
+    tcp_options { min = 22; max = 22 }
   }
 
-  # Ingress: HTTPS (443)
+  # HTTP (80) - 全球開放
   ingress_security_rules {
     protocol    = "6"
     source      = "0.0.0.0/0"
     source_type = "CIDR_BLOCK"
-    tcp_options {
-      min = 443
-      max = 443
-    }
+    tcp_options { min = 80; max = 80 }
+  }
+
+  # HTTPS (443) - 全球開放
+  ingress_security_rules {
+    protocol    = "6"
+    source      = "0.0.0.0/0"
+    source_type = "CIDR_BLOCK"
+    tcp_options { min = 443; max = 443 }
   }
   
-  # Ingress: K3s API (6443)
-  ingress_security_rules {
-    protocol    = "6"
-    source      = "0.0.0.0/0"
-    source_type = "CIDR_BLOCK"
-    tcp_options {
-      min = 6443
-      max = 6443
-    }
-  }
+  # 注意：移除了 6443, 5000, 8080 等端口的外網開放
 }
 
 resource "oci_core_subnet" "alphapulse_subnet" {
@@ -116,7 +97,6 @@ resource "oci_core_instance" "alphapulse_server" {
   create_vnic_details {
     subnet_id        = oci_core_subnet.alphapulse_subnet.id
     assign_public_ip = true
-    display_name     = "primary-vnic"
   }
 
   source_details {
@@ -126,19 +106,14 @@ resource "oci_core_instance" "alphapulse_server" {
 
   metadata = {
     ssh_authorized_keys = file(var.ssh_public_key_path)
-    # 這裡加入更強力的防火牆清理指令
     user_data           = base64encode(<<EOF
 #!/bin/bash
+# 強化版防火牆清理，僅允許必要通訊
 iptables -F
 iptables -X
-iptables -t nat -F
-iptables -t nat -X
-iptables -t mangle -F
-iptables -t mangle -X
 iptables -P INPUT ACCEPT
 iptables -P FORWARD ACCEPT
 iptables -P OUTPUT ACCEPT
-/sbin/netfilter-persistent save || true
 systemctl stop firewalld || true
 systemctl disable firewalld || true
 EOF

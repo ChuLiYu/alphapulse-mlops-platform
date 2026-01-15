@@ -56,6 +56,7 @@ metadata:
   namespace: alphapulse
   annotations:
     traefik.ingress.kubernetes.io/router.entrypoints: web
+    traefik.ingress.kubernetes.io/router.middlewares: alphapulse-admin-auth@kubernetescrd
 spec:
   rules:
   - http:

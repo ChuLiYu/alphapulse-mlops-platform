@@ -24,17 +24,16 @@ spec:
       labels:
         app: airflow
     spec:
-      # Init container to create airflow database if needed
       initContainers:
       - name: init-db
-        image: infra-airflow:latest
+        image: ghcr.io/chuliyu/alphapulse-mlops-platform/airflow:latest
         command: ["airflow", "db", "init"]
         envFrom:
         - configMapRef:
             name: airflow-config
       containers:
       - name: airflow-webserver
-        image: infra-airflow:latest
+        image: ghcr.io/chuliyu/alphapulse-mlops-platform/airflow:latest
         imagePullPolicy: IfNotPresent
         command: ["airflow", "webserver"]
         ports:
@@ -43,7 +42,7 @@ spec:
         - configMapRef:
             name: airflow-config
       - name: airflow-scheduler
-        image: infra-airflow:latest
+        image: ghcr.io/chuliyu/alphapulse-mlops-platform/airflow:latest
         imagePullPolicy: IfNotPresent
         command: ["airflow", "scheduler"]
         envFrom:
@@ -54,9 +53,7 @@ spec:
           mountPath: /opt/airflow/dags
       volumes:
       - name: dags-volume
-        hostPath:
-          path: /Users/liyu/Programing/alphapulse-mlops-platform/airflow/dags
-          type: Directory
+        emptyDir: {} # 生產環境建議改為 Git-Sync 或 PVC，目前先用空目錄避免報錯
 ---
 apiVersion: v1
 kind: Service
@@ -64,6 +61,7 @@ metadata:
   name: airflow
   namespace: alphapulse
 spec:
+  type: ClusterIP # 確保內部存取
   selector:
     app: airflow
   ports:
@@ -77,6 +75,7 @@ metadata:
   namespace: alphapulse
   annotations:
     traefik.ingress.kubernetes.io/router.entrypoints: web
+    traefik.ingress.kubernetes.io/router.middlewares: alphapulse-admin-auth@kubernetescrd
 spec:
   rules:
   - http:

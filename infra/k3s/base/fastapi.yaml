@@ -43,6 +43,7 @@ metadata:
   name: fastapi
   namespace: alphapulse
 spec:
+  type: ClusterIP # 改為 ClusterIP
   selector:
     app: fastapi
   ports:
