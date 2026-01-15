@@ -6,6 +6,7 @@ on:
     paths:
       - 'airflow/**'
       - 'infra/docker/Dockerfile.airflow'
+      - '.github/workflows/build-airflow.yml'
   workflow_dispatch:
 
 env:

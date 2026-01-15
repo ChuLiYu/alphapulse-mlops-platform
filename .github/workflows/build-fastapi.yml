@@ -6,6 +6,7 @@ on:
     paths:
       - 'src/**'
       - 'infra/docker/Dockerfile.fastapi'
+      - '.github/workflows/build-fastapi.yml'
   workflow_dispatch:
 
 env:

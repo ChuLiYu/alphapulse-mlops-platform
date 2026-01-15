@@ -6,6 +6,7 @@ on:
     paths:
       - 'training/**'
       - 'infra/docker/Dockerfile.trainer'
+      - '.github/workflows/build-trainer.yml'
   workflow_dispatch:
 
 env:

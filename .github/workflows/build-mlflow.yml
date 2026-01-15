@@ -5,6 +5,7 @@ on:
     branches: [ "main" ]
     paths:
       - 'infra/docker/Dockerfile.mlflow'
+      - '.github/workflows/build-mlflow.yml'
   workflow_dispatch:
 
 env:
