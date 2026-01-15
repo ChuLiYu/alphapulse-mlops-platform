@@ -1,7 +1,7 @@
-import React from 'react';
-import { Box, Typography, Card, CardContent, Grid, Chip } from '@mui/material';
-import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
-import { ArrowUpRight, Activity, ShieldCheck } from 'lucide-react';
+import React, { useState } from 'react';
+import { Box, Typography, Card, CardContent, Grid, Chip, Button } from '@mui/material';
+import { ResponsiveContainer, AreaChart, Area, CartesianGrid, XAxis, YAxis, Tooltip } from 'recharts';
+import { ArrowUpRight, Activity, ShieldCheck, Lock, Unlock } from 'lucide-react';
 
 const mockPriceData = [
   { time: '00:00', price: 92000 },
@@ -14,24 +14,50 @@ const mockPriceData = [
 ];
 
 const Dashboard: React.FC = () => {
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [clickCount, setClickCount] = useState(0);
+
+  // Secret toggle: Click the title 5 times to enable Admin Mode
+  const handleTitleClick = () => {
+    const newCount = clickCount + 1;
+    if (newCount >= 5) {
+      setIsAdmin(!isAdmin);
+      setClickCount(0);
+    } else {
+      setClickCount(newCount);
+    }
+  };
+
   return (
     <Box>
       <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Box>
-          <Typography variant="h4" sx={{ mb: 1 }}>Market Overview</Typography>
-          <Typography variant="body2" color="text.secondary">Real-time trading insights and model performance.</Typography>
+        <Box onClick={handleTitleClick} sx={{ cursor: 'pointer' }}>
+          <Typography variant="h4" sx={{ mb: 1 }}>AlphaPulse Dashboard</Typography>
+          <Typography variant="body2" color="text.secondary">
+            {isAdmin ? "Administrator Management Console" : "Live Strategy Performance (Public View)"}
+          </Typography>
         </Box>
-        <Chip 
-          icon={<ShieldCheck size={16} />} 
-          label="System Healthy" 
-          color="success" 
-          variant="outlined" 
-          sx={{ borderRadius: 1 }}
-        />
+        <Box sx={{ display: 'flex', gap: 2 }}>
+          {isAdmin && (
+            <Chip 
+              icon={<Unlock size={16} />} 
+              label="Admin Mode Active" 
+              color="primary" 
+              variant="filled"
+            />
+          )}
+          <Chip 
+            icon={<ShieldCheck size={16} />} 
+            label="System Healthy" 
+            color="success" 
+            variant="outlined" 
+          />
+        </Box>
       </Box>
 
       <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12} md={3}>
+        {/* Public Metric: Price */}
+        <Grid item xs={12} md={isAdmin ? 3 : 6}>
           <Card>
             <CardContent>
               <Typography color="text.secondary" variant="caption" sx={{ fontWeight: 600, textTransform: 'uppercase' }}>BTC Price</Typography>
@@ -43,7 +69,9 @@ const Dashboard: React.FC = () => {
             </CardContent>
           </Card>
         </Grid>
-        <Grid item xs={12} md={3}>
+
+        {/* Public Metric: Signals */}
+        <Grid item xs={12} md={isAdmin ? 3 : 6}>
           <Card>
             <CardContent>
               <Typography color="text.secondary" variant="caption" sx={{ fontWeight: 600, textTransform: 'uppercase' }}>Active Signals</Typography>
@@ -55,35 +83,37 @@ const Dashboard: React.FC = () => {
             </CardContent>
           </Card>
         </Grid>
-        <Grid item xs={12} md={3}>
-          <Card>
-            <CardContent>
-              <Typography color="text.secondary" variant="caption" sx={{ fontWeight: 600, textTransform: 'uppercase' }}>CPU Load</Typography>
-              <Typography variant="h5" sx={{ my: 1 }}>45.2%</Typography>
-              <Box sx={{ display: 'flex', alignItems: 'center', color: 'warning.main' }}>
-                <Typography variant="body2">4 OCPUs Active</Typography>
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} md={3}>
-          <Card>
-            <CardContent>
-              <Typography color="text.secondary" variant="caption" sx={{ fontWeight: 600, textTransform: 'uppercase' }}>Memory</Typography>
-              <Typography variant="h5" sx={{ my: 1 }}>14.2 GB</Typography>
-              <Box sx={{ display: 'flex', alignItems: 'center', color: 'text.secondary' }}>
-                <Typography variant="body2">Total: 24 GB</Typography>
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
+
+        {/* Admin-only Metrics */}
+        {isAdmin && (
+          <>
+            <Grid item xs={12} md={3}>
+              <Card sx={{ bgcolor: 'rgba(63, 81, 181, 0.1)', border: '1px solid rgba(63, 81, 181, 0.3)' }}>
+                <CardContent>
+                  <Typography color="primary" variant="caption" sx={{ fontWeight: 600, textTransform: 'uppercase' }}>CPU Load (Internal)</Typography>
+                  <Typography variant="h5" sx={{ my: 1 }}>45.2%</Typography>
+                  <Typography variant="body2" color="text.secondary">Oracle ARM 4-Core</Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid item xs={12} md={3}>
+              <Card sx={{ bgcolor: 'rgba(63, 81, 181, 0.1)', border: '1px solid rgba(63, 81, 181, 0.3)' }}>
+                <CardContent>
+                  <Typography color="primary" variant="caption" sx={{ fontWeight: 600, textTransform: 'uppercase' }}>Memory (Internal)</Typography>
+                  <Typography variant="h5" sx={{ my: 1 }}>14.2 GB</Typography>
+                  <Typography variant="body2" color="text.secondary">Total: 24 GB</Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+          </>
+        )}
       </Grid>
 
       <Grid container spacing={3}>
         <Grid item xs={12} lg={8}>
           <Card sx={{ height: 400 }}>
             <CardContent sx={{ height: '100%' }}>
-              <Typography variant="h6" sx={{ mb: 2 }}>Price Trend (BTC-USD)</Typography>
+              <Typography variant="h6" sx={{ mb: 2 }}>Market Trend</Typography>
               <Box sx={{ height: 300, width: '100%' }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={mockPriceData}>
@@ -110,7 +140,10 @@ const Dashboard: React.FC = () => {
         <Grid item xs={12} lg={4}>
           <Card sx={{ height: 400 }}>
             <CardContent>
-              <Typography variant="h6" sx={{ mb: 2 }}>Recent Signals</Typography>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                <Typography variant="h6">Recent Signals</Typography>
+                {isAdmin && <Button size="small">Export CSV</Button>}
+              </Box>
               {[1, 2, 3, 4, 5].map((i) => (
                 <Box key={i} sx={{ display: 'flex', justifyContent: 'space-between', py: 1.5, borderBottom: i === 5 ? 'none' : '1px solid rgba(255,255,255,0.05)' }}>
                   <Box>
@@ -123,6 +156,14 @@ const Dashboard: React.FC = () => {
                   </Box>
                 </Box>
               ))}
+              {!isAdmin && (
+                <Box sx={{ mt: 3, p: 2, bgcolor: 'background.default', borderRadius: 2, textAlign: 'center' }}>
+                  <Lock size={20} style={{ opacity: 0.5 }} />
+                  <Typography variant="caption" display="block" color="text.secondary">
+                    Model weights and deep logs are restricted to platform owners.
+                  </Typography>
+                </Box>
+              )}
             </CardContent>
           </Card>
         </Grid>
