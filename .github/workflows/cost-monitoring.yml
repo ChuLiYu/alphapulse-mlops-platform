@@ -72,7 +72,7 @@ jobs:
         with:
           channel-id: "C12345678" # Replace with your Slack channel ID
           slack-message: |
-            ${{ steps.budget-check.outputs.ALERT == 'high' && '🚨' : '⚠️' }} Budget Alert for AlphaPulse
+            Budget Alert for AlphaPulse
             Current Cost: \$${{ steps.cost.outputs.TOTAL_COST }}
             Budget Usage: ${{ steps.cost.outputs.BUDGET_PERCENTAGE }}%
             Monthly Budget: \$${{ env.MONTHLY_BUDGET }}
