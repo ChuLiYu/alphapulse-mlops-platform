@@ -19,70 +19,70 @@ flowchart TD
     classDef compute fill:#E8F5E9,stroke:#2E7D32,stroke-width:2px,color:#1B5E20;
     classDef prod fill:#FFF3E0,stroke:#EF6C00,stroke-width:2px,color:#E65100;
     classDef storage fill:#F3E5F5,stroke:#7B1FA2,stroke-width:2px,color:#4A148C;
-    
-    %% --- Main Pipeline Stack (Left Column) ---
-    subgraph Main_Stack [ ]
+
+    %% --- 1. Subgraph Definitions (No Connections Yet) ---
+    subgraph Data_Hub ["1. Ingestion Layer"]
         direction TB
-        style Main_Stack fill:none,stroke:none
-
-        subgraph Data_Hub ["1. Data Ingestion Layer"]
-            direction TB
-            S1(Binance API)
-            S2(News Feeds)
-            FS[(Postgres Feature Store)]
-        end
-
-        subgraph MLOps_Engine ["2. Training Core"]
-            direction TB
-            T1{{Airflow Orchestrator}}
-            T2[[Iterative Trainer]]
-            T3{MLflow Registry}
-            T4>Optuna Tuner]
-        end
-
-        subgraph Prod_Cluster ["3. Production (Oracle ARM64)"]
-            direction TB
-            P1[FastAPI Service]
-            P2[MUI Dashboard]
-            P3([Inference Engine])
-        end
+        S1(Binance API)
+        S2(News Feeds)
+        FS[(Postgres Feature Store)]
     end
 
-    %% --- Storage Sidecar (Right Column) ---
-    subgraph Cloud_Tier ["☁️ Cloud Persistence"]
+    subgraph MLOps_Engine ["2. Training Core"]
+        direction TB
+        T1{{Airflow Orchestrator}}
+        T2[[Iterative Trainer]]
+        T3{MLflow Registry}
+        T4>Optuna Tuner]
+    end
+
+    subgraph Prod_Cluster ["3. Production (Oracle ARM64)"]
+        direction TB
+        P1[FastAPI Service]
+        P2[MUI Dashboard]
+        P3([Inference Engine])
+    end
+
+    subgraph Cloud_Tier ["4. Cloud Persistence"]
         direction TB
         ST1[(AWS S3)]
         ST2[(Cloudflare R2)]
     end
 
-    %% --- Routing & Connections ---
-    %% 1. Data Inflow
-    S1 & S2 ===>|Raw| FS
+    %% --- 2. Internal Connections (Short) ---
+    %% Data Hub Internal
+    S1 & S2 --> FS
     
-    %% 2. Feature Store to Training (Direct Down)
-    FS ===>|Stationary Features| T1
+    %% Training Internal
+    T1 --> T2
+    T2 <--> T4
+    T2 --> T3
     
-    %% 3. Training Loop
-    T1 -->|Trigger| T2
-    T2 <-->|Hyperparams| T4
-    T2 -->|Metrics| T3
+    %% Production Internal
+    P1 --> P3
+    P3 --> P2
     
-    %% 4. Model Promotion (Async)
-    T3 -.->|Register Model| P1
-    P1 -->|Request| P3
-    P3 -->|Prediction| P2
+    %% Storage Internal
+    ST1 === ST2
 
-    %% 5. Persistence Routing (To the Right - No Crossing)
+    %% --- 3. Cross-Layer Connections (Long - Drawn Last to stay on Top) ---
+    %% Main Flow
+    FS ==>|Feature Stream| T1
+    T3 -.->|Model Promote| P1
+    
+    %% Side Flows (Storage) - Using linkStyle to ensure visibility
     FS -.->|Backup| ST1
     T3 -.->|Artifacts| ST1
-    P1 -.->|Logs| ST2
-    ST1 ===|Sync| ST2
+    P1 -.->|Logs| ST1
 
     %% --- Styles ---
     class S1,S2,FS data
     class T1,T2,T3,T4 compute
     class P1,P2,P3 prod
     class ST1,ST2 storage
+    
+    %% Force thicker strokes for main flow
+    linkStyle 4,5,10,11 stroke-width:3px;
 ```
 
 ---
