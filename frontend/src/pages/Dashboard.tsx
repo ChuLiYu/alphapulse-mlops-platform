@@ -1,7 +1,7 @@
 import React from 'react';
 import { Box, Typography, Card, CardContent, Grid, Chip } from '@mui/material';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
-import { ArrowUpRight, ArrowDownRight, Activity, ShieldCheck } from 'lucide-react';
+import { ResponsiveContainer, AreaChart, Area, CartesianGrid, XAxis, YAxis, Tooltip } from 'recharts';
+import { ArrowUpRight, Activity, ShieldCheck } from 'lucide-react';
 
 const mockPriceData = [
   { time: '00:00', price: 92000 },
@@ -31,7 +31,7 @@ const Dashboard: React.FC = () => {
       </Box>
 
       <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid size={{ xs: 12, md: 3 }}>
+        <Grid item xs={12} md={3}>
           <Card>
             <CardContent>
               <Typography color="text.secondary" variant="caption" sx={{ fontWeight: 600, textTransform: 'uppercase' }}>BTC Price</Typography>
@@ -43,7 +43,7 @@ const Dashboard: React.FC = () => {
             </CardContent>
           </Card>
         </Grid>
-        <Grid size={{ xs: 12, md: 3 }}>
+        <Grid item xs={12} md={3}>
           <Card>
             <CardContent>
               <Typography color="text.secondary" variant="caption" sx={{ fontWeight: 600, textTransform: 'uppercase' }}>Active Signals</Typography>
@@ -55,7 +55,7 @@ const Dashboard: React.FC = () => {
             </CardContent>
           </Card>
         </Grid>
-        <Grid size={{ xs: 12, md: 3 }}>
+        <Grid item xs={12} md={3}>
           <Card>
             <CardContent>
               <Typography color="text.secondary" variant="caption" sx={{ fontWeight: 600, textTransform: 'uppercase' }}>CPU Load</Typography>
@@ -66,7 +66,7 @@ const Dashboard: React.FC = () => {
             </CardContent>
           </Card>
         </Grid>
-        <Grid size={{ xs: 12, md: 3 }}>
+        <Grid item xs={12} md={3}>
           <Card>
             <CardContent>
               <Typography color="text.secondary" variant="caption" sx={{ fontWeight: 600, textTransform: 'uppercase' }}>Memory</Typography>
@@ -80,7 +80,7 @@ const Dashboard: React.FC = () => {
       </Grid>
 
       <Grid container spacing={3}>
-        <Grid size={{ xs: 12, lg: 8 }}>
+        <Grid item xs={12} lg={8}>
           <Card sx={{ height: 400 }}>
             <CardContent sx={{ height: '100%' }}>
               <Typography variant="h6" sx={{ mb: 2 }}>Price Trend (BTC-USD)</Typography>
@@ -107,7 +107,7 @@ const Dashboard: React.FC = () => {
             </CardContent>
           </Card>
         </Grid>
-        <Grid size={{ xs: 12, lg: 4 }}>
+        <Grid item xs={12} lg={4}>
           <Card sx={{ height: 400 }}>
             <CardContent>
               <Typography variant="h6" sx={{ mb: 2 }}>Recent Signals</Typography>
