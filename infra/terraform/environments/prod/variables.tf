@@ -1,18 +1,16 @@
 # Resource Variables (Provided via TF_VAR_ environment variables)
-variable "compartment_id" {
-  description = "OCI Compartment ID"
-  type        = string
+variable "tenancy_ocid" {}
+variable "user_ocid" {}
+variable "fingerprint" {}
+variable "private_key_path" {
+  default = null
 }
-
-variable "region" {
-  description = "OCI Region"
-  type        = string
+variable "private_key" {
+  default = null
 }
-
-variable "availability_domain" {
-  description = "OCI Availability Domain"
-  type        = string
-}
+variable "region" {}
+variable "compartment_id" {}
+variable "availability_domain" {}
 
 # Network Configuration
 variable "vcn_cidr" {
@@ -37,5 +35,9 @@ variable "instance_memory_in_gbs" {
 }
 
 variable "ssh_public_key_path" {
-  default = "~/.ssh/id_rsa.pub"
+  default = null
 }
+variable "ssh_public_key" {
+  default = null
+}
+

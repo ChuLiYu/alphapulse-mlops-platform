@@ -1,8 +1,21 @@
 provider "oci" {
-  # The provider will automatically use environment variables
+  tenancy_ocid     = var.tenancy_ocid
+  user_ocid        = var.user_ocid
+  fingerprint      = var.fingerprint
+  private_key_path = var.private_key_path
+  private_key      = var.private_key
+  region           = var.region
 }
 
-# --- Networking ---
+# --- Networking: Reserved Static IP ---
+# NOTE: Using a RESERVED lifetime ensures this IP persists even if the instance is deleted.
+resource "oci_core_public_ip" "alphapulse_static_ip" {
+  compartment_id = var.compartment_id
+  lifetime       = "RESERVED"
+  display_name   = "alphapulse-static-ip"
+}
+
+# --- Networking: VCN & Subnet ---
 resource "oci_core_vcn" "alphapulse_vcn" {
   cidr_block     = var.vcn_cidr
   compartment_id = var.compartment_id
@@ -37,31 +50,38 @@ resource "oci_core_security_list" "alphapulse_sl" {
     protocol    = "all"
   }
 
-  # SSH (22) - 建議之後改為你的特定 IP
-  ingress_security_rules {
-    protocol    = "6"
-    source      = "0.0.0.0/0"
-    source_type = "CIDR_BLOCK"
-    tcp_options { min = 22; max = 22 }
-  }
-
-  # HTTP (80) - 全球開放
-  ingress_security_rules {
-    protocol    = "6"
-    source      = "0.0.0.0/0"
-    source_type = "CIDR_BLOCK"
-    tcp_options { min = 80; max = 80 }
-  }
-
-  # HTTPS (443) - 全球開放
-  ingress_security_rules {
-    protocol    = "6"
-    source      = "0.0.0.0/0"
-    source_type = "CIDR_BLOCK"
-    tcp_options { min = 443; max = 443 }
-  }
+  # IMPORTANT: DO NOT USE SEMICOLONS IN tcp_options. 
+  # Arguments must be separated by newlines.
   
-  # 注意：移除了 6443, 5000, 8080 等端口的外網開放
+  ingress_security_rules {
+    protocol    = "6" # TCP
+    source      = "0.0.0.0/0"
+    source_type = "CIDR_BLOCK"
+    tcp_options {
+      min = 22
+      max = 22
+    }
+  }
+
+  ingress_security_rules {
+    protocol    = "6"
+    source      = "0.0.0.0/0"
+    source_type = "CIDR_BLOCK"
+    tcp_options {
+      min = 80
+      max = 80
+    }
+  }
+
+  ingress_security_rules {
+    protocol    = "6"
+    source      = "0.0.0.0/0"
+    source_type = "CIDR_BLOCK"
+    tcp_options {
+      min = 443
+      max = 443
+    }
+  }
 }
 
 resource "oci_core_subnet" "alphapulse_subnet" {
@@ -73,7 +93,7 @@ resource "oci_core_subnet" "alphapulse_subnet" {
   security_list_ids = [oci_core_security_list.alphapulse_sl.id]
 }
 
-# --- Compute (ARM64) ---
+# --- Compute: ARM64 Instance ---
 data "oci_core_images" "oracle_linux_arm" {
   compartment_id           = var.compartment_id
   operating_system         = "Oracle Linux"
@@ -96,7 +116,7 @@ resource "oci_core_instance" "alphapulse_server" {
 
   create_vnic_details {
     subnet_id        = oci_core_subnet.alphapulse_subnet.id
-    assign_public_ip = true
+    assign_public_ip = false # We link the Reserved IP manually below
   }
 
   source_details {
@@ -105,22 +125,69 @@ resource "oci_core_instance" "alphapulse_server" {
   }
 
   metadata = {
-    ssh_authorized_keys = file(var.ssh_public_key_path)
+    ssh_authorized_keys = var.ssh_public_key != null ? var.ssh_public_key : file(var.ssh_public_key_path)
     user_data           = base64encode(<<EOF
 #!/bin/bash
-# 強化版防火牆清理，僅允許必要通訊
+set -e
+# Flush and disable local firewall to allow K3s internal traffic
 iptables -F
-iptables -X
 iptables -P INPUT ACCEPT
 iptables -P FORWARD ACCEPT
 iptables -P OUTPUT ACCEPT
 systemctl stop firewalld || true
 systemctl disable firewalld || true
+
+# Automated K3s Installation without Traefik
+curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="server --disable traefik" sh -
+
+# Wait for K3s API to become ready
+KUBECTL="/usr/local/bin/kubectl"
+until [ -f "$KUBECTL" ] && "$KUBECTL" get nodes | grep -q "Ready"; do 
+  sleep 5
+done
+
+# Initialize application environment
+"$KUBECTL" create namespace alphapulse || true
+dnf install httpd-tools git -y
+htpasswd -bc /root/auth admin AlphaPulse2026
+"$KUBECTL" create secret generic admin-credentials --from-file=auth=/root/auth -n alphapulse --dry-run=client -o yaml | "$KUBECTL" apply -f -
+
+# Zero-touch Application Deployment
+DEPLOY_DIR="/root/deploy"
+rm -rf "$DEPLOY_DIR"
+git clone https://github.com/ChuLiYu/alphapulse-mlops-platform.git "$DEPLOY_DIR"
+"$KUBECTL" apply -k "$DEPLOY_DIR/infra/k3s/base"
 EOF
     )
   }
 }
 
-output "server_public_ip" {
-  value = oci_core_instance.alphapulse_server.public_ip
+# --- IP Binding: Link Reserved IP to Instance ---
+# To assign a Reserved IP, we must target the specific Private IP of the instance VNIC.
+data "oci_core_vnic_attachments" "instance_vnics" {
+  compartment_id = var.compartment_id
+  instance_id    = oci_core_instance.alphapulse_server.id
+}
+
+data "oci_core_vnic" "primary_vnic" {
+  vnic_id = data.oci_core_vnic_attachments.instance_vnics.vnic_attachments[0].vnic_id
+}
+
+data "oci_core_private_ips" "primary_vnic_private_ips" {
+  vnic_id = data.oci_core_vnic.primary_vnic.id
+}
+
+# Final resource that performs the association
+resource "oci_core_public_ip" "assign_reserved_ip" {
+  compartment_id = var.compartment_id
+  lifetime       = "RESERVED"
+  private_ip_id  = data.oci_core_private_ips.primary_vnic_private_ips.private_ips[0].id
+  # Reference the static IP address from the resource created at the top
+  public_ip_pool_id = null
+}
+
+# --- Outputs ---
+output "server_static_ip" {
+  description = "The permanent public IP address of the AlphaPulse server"
+  value       = oci_core_public_ip.alphapulse_static_ip.ip_address
 }
