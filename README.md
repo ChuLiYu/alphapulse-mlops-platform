@@ -13,48 +13,64 @@ AlphaPulse is a **Zero-Cost, High-Performance MLOps Platform** built for quantit
 
 ```mermaid
 flowchart TD
-    %% --- Style Definitions ---
-    classDef data fill:#E3F2FD,stroke:#2196F3,stroke-width:2px,color:#0D47A1;
-    classDef compute fill:#E8F5E9,stroke:#4CAF50,stroke-width:2px,color:#1B5E20;
-    classDef prod fill:#FFF3E0,stroke:#FF9800,stroke-width:2px,color:#E65100;
-    classDef storage fill:#F3E5F5,stroke:#9C27B0,stroke-width:2px,color:#4A148C;
+    %% --- Global Style & Palette (Material Design) ---
+    %% Data: Blue - Trust & Information
+    classDef data fill:#E3F2FD,stroke:#1565C0,stroke-width:2px,color:#0D47A1;
+    %% Compute/ML: Green - Growth & Processing
+    classDef compute fill:#E8F5E9,stroke:#2E7D32,stroke-width:2px,color:#1B5E20;
+    %% Production: Orange - Action & Interface
+    classDef prod fill:#FFF3E0,stroke:#EF6C00,stroke-width:2px,color:#E65100;
+    %% Storage: Purple - Persistence & Cloud
+    classDef storage fill:#F3E5F5,stroke:#7B1FA2,stroke-width:2px,color:#4A148C;
 
-    %% --- Nodes ---
-    subgraph Data_Hub ["🌐 Data Ingestion & Feature Store"]
-        direction LR
-        S1[Binance API] -- "Market Data" --> FS[(Postgres SQL)]
-        S2[News/Social] -- "Sentiment" --> FS
-    end
-
-    subgraph MLOps_Engine ["🧠 MLOps Training Pipeline"]
+    %% --- Components ---
+    subgraph Data_Hub ["🌐 Data Ingestion Layer"]
         direction TB
-        T1[Airflow Orchestrator] --> T2[Iterative Trainer]
-        T2 -- "Exp Tracking" --> T3{MLflow Registry}
-        T2 -- "Optimize" --> T4[Optuna Tuner]
+        S1[Binance API]
+        S2[News Feeds]
+        FS[(Postgres Feature Store)]
     end
 
-    subgraph Prod_Cluster ["🚀 Production (Oracle ARM64 k3s)"]
+    subgraph MLOps_Engine ["🧠 Training Core"]
         direction TB
-        P1[FastAPI Service] --> P2[MUI Dashboard]
-        P1 -- "Predict" --> P3[/Inference Engine/]
+        T1{{Airflow Orchestrator}}
+        T2[[Iterative Trainer]]
+        T3{MLflow Registry}
+        T4>Optuna Tuner]
     end
 
-    subgraph Persistence ["☁️ Cloud Agnostic Persistence"]
+    subgraph Prod_Cluster ["🚀 Production (Oracle ARM64)"]
+        direction TB
+        P1[FastAPI Service]
+        P2[MUI Dashboard]
+        P3([Inference Engine])
+    end
+
+    subgraph Cloud_Tier ["☁️ Cloud Storage"]
         direction LR
-        ST1[(AWS S3)] --- ST2[(Cloudflare R2)]
+        ST1[(AWS S3)]
+        ST2[(Cloudflare R2)]
     end
 
-    %% --- Logic Flow ---
-    Data_Hub ==> T1
-    T3 -.->|Registered Model| P1
-    P3 --> ST1
-    T3 --> ST1
+    %% --- Connections ---
+    S1 & S2 -->|Raw Data| FS
+    FS ==>|Stationary Features| T1
+    T1 -->|Trigger| T2
+    T2 <-->|Hyperparams| T4
+    T2 -->|Log Metrics| T3
+    
+    T3 -.->|Promote Model| P1
+    P1 -->|Request| P3
+    P3 -->|Prediction| P2
+    
+    T3 & P1 -.->|Artifacts| ST1
+    ST1 === ST2
 
-    %% --- Apply Styles ---
-    class S1,S2,FS data;
-    class T1,T2,T3,T4 compute;
-    class P1,P2,P3,P2 prod;
-    class ST1,ST2 storage;
+    %% --- Styling Applications ---
+    class S1,S2,FS data
+    class T1,T2,T3,T4 compute
+    class P1,P2,P3 prod
+    class ST1,ST2 storage
 ```
 
 ---
