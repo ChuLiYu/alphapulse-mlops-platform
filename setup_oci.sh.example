@@ -1,0 +1,17 @@
+#!/bin/bash
+
+# AlphaPulse OCI Environment Setup
+# 使用方式: source setup_oci.sh
+
+# OCI 認證資訊 (由 Provider 自動讀取)
+export OCI_TENANCY_OCID="ocid1.tenancy.oc1..xxxx"
+export OCI_USER_OCID="ocid1.user.oc1..xxxx"
+export OCI_FINGERPRINT="xx:xx:xx:xx:xx:xx:xx:xx"
+export OCI_PRIVATE_KEY_PATH="/Users/liyu/.oci/oci_api_key.pem"
+export OCI_REGION="ap-tokyo-1"
+
+# Terraform 資源變數 (由 Terraform 變數讀取)
+export TF_VAR_compartment_id="ocid1.tenancy.oc1..xxxx"
+export TF_VAR_region="ap-tokyo-1"
+
+echo "✅ OCI Environment Variables Set!"

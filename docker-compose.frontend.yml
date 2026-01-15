@@ -1,0 +1,16 @@
+version: '3.9'
+
+services:
+  frontend-mock:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    ports:
+      - "3000:80"
+    networks:
+      - alphapulse-network
+    container_name: alphapulse-frontend-mock
+
+networks:
+  alphapulse-network:
+    driver: bridge

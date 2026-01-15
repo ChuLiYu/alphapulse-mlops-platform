@@ -22,7 +22,12 @@ import mlflow.sklearn
 import numpy as np
 import pandas as pd
 import xgboost as xgb
-from catboost import CatBoostRegressor
+try:
+    from catboost import CatBoostRegressor
+    CATBOOST_AVAILABLE = True
+except ImportError:
+    CATBOOST_AVAILABLE = False
+    print("⚠️  CatBoost not available. CatBoost models will be skipped.")
 from scipy import stats
 from sklearn.ensemble import GradientBoostingRegressor, RandomForestRegressor
 from sklearn.linear_model import Lasso, Ridge
@@ -57,8 +62,10 @@ class TrainingConfig:
     data_source: str = "feature_store"  # Use centralized feature store
     target_column: str = "target_return"  # What we're predicting
     min_samples_required: int = 1000
-    db_connection_string: str = (
-        "postgresql://postgres:postgres@postgres:5432/alphapulse"
+    db_connection_string: str = field(
+        default_factory=lambda: os.getenv(
+            "DATABASE_URL", "postgresql://postgres:postgres@postgres:5432/alphapulse"
+        )
     )
 
     # Training settings
@@ -82,7 +89,9 @@ class TrainingConfig:
     ensemble_top_k: int = 3  # Number of top models to ensemble
 
     # MLflow settings
-    mlflow_uri: str = "http://mlflow:5000"
+    mlflow_uri: str = field(
+        default_factory=lambda: os.getenv("MLFLOW_TRACKING_URI", "http://mlflow:5000")
+    )
     experiment_name: str = "iterative_training"
 
     # Output settings

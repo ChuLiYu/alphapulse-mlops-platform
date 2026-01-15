@@ -97,13 +97,12 @@ services:
       --default-artifact-root s3://alphapulse/mlflow-artifacts
       --host 0.0.0.0
       --port 5000
-      --allowed-hosts "*"
     environment:
       AWS_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-minioadmin}
       AWS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
       MLFLOW_S3_ENDPOINT_URL: http://minio:9000
     ports:
-      - "${MLFLOW_PORT:-5001}:5000"
+      - "${MLFLOW_PORT:-5002}:5000"
     networks:
       - alphapulse-network
     depends_on:
@@ -113,7 +112,7 @@ services:
         condition: service_healthy
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:5000/"]
       interval: 30s
       timeout: 10s
       retries: 3

@@ -9,8 +9,10 @@ import json
 import os
 import sys
 from datetime import datetime
+from pathlib import Path
 
-sys.path.insert(0, "/app/src")
+# Add project root to path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../src")))
 
 import xgboost as xgb
 from sklearn.ensemble import RandomForestRegressor
@@ -40,7 +42,7 @@ def ultra_fast_training():
         min_val_r2=0.01,
         mlflow_uri=os.getenv("MLFLOW_TRACKING_URI", "http://mlflow:5000"),
         experiment_name="ultra_fast_production",
-        output_dir="/app/models/saved",
+        output_dir="storage/models/saved",
         save_all_iterations=False,
     )
 
