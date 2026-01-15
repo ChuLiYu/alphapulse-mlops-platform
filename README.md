@@ -14,64 +14,71 @@ AlphaPulse is a **Zero-Cost, High-Performance MLOps Platform** built for quantit
 ```mermaid
 %%{init: {'flowchart': {'curve': 'basis'}}}%%
 flowchart TD
-    %% --- Palette & Styles ---
-    classDef data fill:#E1F5FE,stroke:#01579B,stroke-width:2px,color:#01579B;
+    %% --- Color Palette ---
+    classDef data fill:#E1F5FE,stroke:#0277BD,stroke-width:2px,color:#01579B;
     classDef compute fill:#E8F5E9,stroke:#2E7D32,stroke-width:2px,color:#1B5E20;
     classDef prod fill:#FFF3E0,stroke:#EF6C00,stroke-width:2px,color:#E65100;
     classDef storage fill:#F3E5F5,stroke:#7B1FA2,stroke-width:2px,color:#4A148C;
     
-    %% --- 1. Data Layer ---
-    subgraph Data_Hub ["🌐 Ingestion Layer"]
+    %% --- Main Pipeline Stack (Left Column) ---
+    subgraph Main_Stack [ ]
         direction TB
-        S1(Binance API)
-        S2(News Feeds)
-        FS[(Postgres Feature Store)]
+        style Main_Stack fill:none,stroke:none
+
+        subgraph Data_Hub ["1. Data Ingestion Layer"]
+            direction TB
+            S1(Binance API)
+            S2(News Feeds)
+            FS[(Postgres Feature Store)]
+        end
+
+        subgraph MLOps_Engine ["2. Training Core"]
+            direction TB
+            T1{{Airflow Orchestrator}}
+            T2[[Iterative Trainer]]
+            T3{MLflow Registry}
+            T4>Optuna Tuner]
+        end
+
+        subgraph Prod_Cluster ["3. Production (Oracle ARM64)"]
+            direction TB
+            P1[FastAPI Service]
+            P2[MUI Dashboard]
+            P3([Inference Engine])
+        end
     end
 
-    %% --- 2. Training Layer ---
-    subgraph MLOps_Engine ["🧠 Training Core"]
+    %% --- Storage Sidecar (Right Column) ---
+    subgraph Cloud_Tier ["☁️ Cloud Persistence"]
         direction TB
-        T1{{Airflow Orchestrator}}
-        T2[[Iterative Trainer]]
-        T3{MLflow Registry}
-        T4>Optuna Tuner]
-    end
-
-    %% --- 3. Production Layer ---
-    subgraph Prod_Cluster ["🚀 Production (Oracle ARM64)"]
-        direction TB
-        P1[FastAPI Service]
-        P2[MUI Dashboard]
-        P3([Inference Engine])
-    end
-
-    %% --- 4. Storage Layer (Bottom) ---
-    subgraph Cloud_Tier ["☁️ Global Persistence"]
-        direction LR
         ST1[(AWS S3)]
         ST2[(Cloudflare R2)]
     end
 
-    %% --- Precise Connections (Visual Hierarchy) ---
-    %% Main Data Pipe (Bold, Direct)
-    S1 & S2 ==>|Raw Stream| FS
-    FS ==>|Stationary Tensors| T1
-    T1 ==>|Trigger| T2
+    %% --- Routing & Connections ---
+    %% 1. Data Inflow
+    S1 & S2 ===>|Raw| FS
     
-    %% Training Loop (Standard)
+    %% 2. Feature Store to Training (Direct Down)
+    FS ===>|Stationary Features| T1
+    
+    %% 3. Training Loop
+    T1 -->|Trigger| T2
     T2 <-->|Hyperparams| T4
     T2 -->|Metrics| T3
     
-    %% Deployment & Serving (Async/Dashed)
-    T3 -.->|Promote Model| P1
+    %% 4. Model Promotion (Async)
+    T3 -.->|Register Model| P1
     P1 -->|Request| P3
     P3 -->|Prediction| P2
-    
-    %% Persistence (Bottom Flow to avoid text overlap)
-    T3 & P1 -.->|Artifacts/Logs| ST1
+
+    %% 5. Persistence Routing (To the Right - No Crossing)
+    FS -.->|Backup| ST1
+    T3 -.->|Artifacts| ST1
+    P1 -.->|Logs| ST2
     ST1 ===|Sync| ST2
 
-    %% --- Apply Styles ---
+    %% --- Styles ---
     class S1,S2,FS data
     class T1,T2,T3,T4 compute
     class P1,P2,P3 prod
