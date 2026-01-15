@@ -13,76 +13,72 @@ AlphaPulse is a **Zero-Cost, High-Performance MLOps Platform** built for quantit
 
 ```mermaid
 %%{init: {'flowchart': {'curve': 'basis'}}}%%
-flowchart TD
-    %% --- Color Palette ---
-    classDef data fill:#E1F5FE,stroke:#0277BD,stroke-width:2px,color:#01579B;
+flowchart LR
+    %% --- Palette ---
+    classDef data fill:#E1F5FE,stroke:#01579B,stroke-width:2px,color:#01579B;
     classDef compute fill:#E8F5E9,stroke:#2E7D32,stroke-width:2px,color:#1B5E20;
     classDef prod fill:#FFF3E0,stroke:#EF6C00,stroke-width:2px,color:#E65100;
     classDef storage fill:#F3E5F5,stroke:#7B1FA2,stroke-width:2px,color:#4A148C;
+    classDef container fill:#FFFFFF,stroke:#EEEEEE,stroke-width:1px,stroke-dasharray: 5 5;
 
-    %% --- 1. Subgraph Definitions (No Connections Yet) ---
-    subgraph Data_Hub ["1. Ingestion Layer"]
+    %% --- LEFT COLUMN: Main Pipeline (Vertical Stack) ---
+    subgraph Core_System [" "]
         direction TB
-        S1(Binance API)
-        S2(News Feeds)
-        FS[(Postgres Feature Store)]
+        style Core_System fill:none,stroke:none
+
+        subgraph Data_Hub ["1. Ingestion Layer"]
+            direction TB
+            S1(Binance API)
+            S2(News Feeds)
+            FS[(Postgres Feature Store)]
+        end
+
+        subgraph MLOps_Engine ["2. Training Core"]
+            direction TB
+            T1{{Airflow Orchestrator}}
+            T2[[Iterative Trainer]]
+            T3{MLflow Registry}
+            T4>Optuna Tuner]
+        end
+
+        subgraph Prod_Cluster ["3. Production (Oracle ARM64)"]
+            direction TB
+            P1[FastAPI Service]
+            P2[MUI Dashboard]
+            P3([Inference Engine])
+        end
     end
 
-    subgraph MLOps_Engine ["2. Training Core"]
-        direction TB
-        T1{{Airflow Orchestrator}}
-        T2[[Iterative Trainer]]
-        T3{MLflow Registry}
-        T4>Optuna Tuner]
-    end
-
-    subgraph Prod_Cluster ["3. Production (Oracle ARM64)"]
-        direction TB
-        P1[FastAPI Service]
-        P2[MUI Dashboard]
-        P3([Inference Engine])
-    end
-
-    subgraph Cloud_Tier ["4. Cloud Persistence"]
+    %% --- RIGHT COLUMN: Storage (Vertical Stack) ---
+    subgraph Storage_System ["4. Cloud Persistence"]
         direction TB
         ST1[(AWS S3)]
         ST2[(Cloudflare R2)]
     end
 
-    %% --- 2. Internal Connections (Short) ---
-    %% Data Hub Internal
-    S1 & S2 --> FS
-    
-    %% Training Internal
+    %% --- Routing ---
+    %% Vertical Flow (Inside Core)
+    S1 & S2 ==> FS
+    FS ==> T1
     T1 --> T2
     T2 <--> T4
     T2 --> T3
-    
-    %% Production Internal
+    T3 -.-> P1
     P1 --> P3
     P3 --> P2
-    
-    %% Storage Internal
-    ST1 === ST2
 
-    %% --- 3. Cross-Layer Connections (Long - Drawn Last to stay on Top) ---
-    %% Main Flow
-    FS ==>|Feature Stream| T1
-    T3 -.->|Model Promote| P1
-    
-    %% Side Flows (Storage) - Using linkStyle to ensure visibility
+    %% Horizontal Flow (Core -> Storage)
+    %% These arrows will fly to the right, avoiding all text
     FS -.->|Backup| ST1
     T3 -.->|Artifacts| ST1
     P1 -.->|Logs| ST1
+    ST1 ===|Sync| ST2
 
     %% --- Styles ---
     class S1,S2,FS data
     class T1,T2,T3,T4 compute
     class P1,P2,P3 prod
     class ST1,ST2 storage
-    
-    %% Force thicker strokes for main flow
-    linkStyle 4,5,10,11 stroke-width:3px;
 ```
 
 ---
