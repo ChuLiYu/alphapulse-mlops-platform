@@ -47,4 +47,4 @@ RUN python -c "import pandas; import mlflow; print('Runtime dependencies OK')"
 EXPOSE 8080
 
 # Default command
-CMD ["python", "-m", "training.train_server"]
+CMD ["python", "-m", "training.train_server"]# Trigger CI build

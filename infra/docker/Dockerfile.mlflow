@@ -32,3 +32,4 @@ EXPOSE 5000
 
 # Default command
 CMD ["mlflow", "server", "--host", "0.0.0.0", "--port", "5000"]
+# Trigger CI build
