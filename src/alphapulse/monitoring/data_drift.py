@@ -50,8 +50,8 @@ except ImportError:
 
 from sqlalchemy.orm import Session
 
-from src.alphapulse.api.database import get_db_session
-from src.alphapulse.api.models import BTCPrice, TechnicalIndicator
+from alphapulse.api.database import get_db_session
+from alphapulse.api.models import BTCPrice, TechnicalIndicator
 
 
 class DataDriftMonitor:

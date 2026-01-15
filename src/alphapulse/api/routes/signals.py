@@ -13,15 +13,15 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import and_, desc, func
 from sqlalchemy.orm import Session
 
-from src.alphapulse.api.database import get_db
-from src.alphapulse.api.models import TradingSignal
-from src.alphapulse.api.schemas.signal import (
+from alphapulse.api.database import get_db
+from alphapulse.api.models import TradingSignal
+from alphapulse.api.schemas.signal import (
     SignalCreate,
     SignalListResponse,
     SignalResponse,
     SignalStats,
 )
-from src.alphapulse.api.schemas.signal import TradingSignal as TradingSignalSchema
+from alphapulse.api.schemas.signal import TradingSignal as TradingSignalSchema
 
 router = APIRouter()
 

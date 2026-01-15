@@ -14,7 +14,7 @@ from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, T
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
-from src.alphapulse.api.database import Base
+from alphapulse.api.database import Base
 
 
 class User(Base):

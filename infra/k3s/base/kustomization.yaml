@@ -8,4 +8,7 @@ resources:
   - storage.yaml
   - postgres.yaml
   - fastapi.yaml
+  - frontend.yaml
   - airflow.yaml
+  - mlflow.yaml
+  - trainer.yaml

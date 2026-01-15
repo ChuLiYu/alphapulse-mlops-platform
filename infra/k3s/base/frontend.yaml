@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alphapulse-frontend
+  namespace: alphapulse
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: alphapulse-frontend
+  template:
+    metadata:
+      labels:
+        app: alphapulse-frontend
+    spec:
+      containers:
+      - name: alphapulse-frontend
+        image: k3d-alphapulse-registry:5001/alphapulse-frontend:latest
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: alphapulse-frontend
+  namespace: alphapulse
+spec:
+  selector:
+    app: alphapulse-frontend
+  ports:
+  - port: 80
+    targetPort: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: frontend-ingress
+  namespace: alphapulse
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: web
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: alphapulse-frontend
+            port:
+              number: 80

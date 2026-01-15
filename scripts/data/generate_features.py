@@ -3,6 +3,7 @@
 快速生成模型特徵數據
 """
 import sys
+import os
 
 sys.path.insert(0, "/app/src")
 
@@ -15,20 +16,21 @@ def generate_features():
     """從價格數據生成特徵"""
     print("🔧 開始生成特徵...")
 
-    engine = create_engine("postgresql://postgres:postgres@postgres:5432/alphapulse")
+    db_url = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@postgres:5432/alphapulse")
+    engine = create_engine(db_url)
 
     try:
         # 加載價格數據
         with engine.connect() as conn:
             query = """
                 SELECT 
-                    timestamp as date,
-                    symbol as ticker,
-                    price as close,
+                    date,
+                    ticker,
+                    close,
                     volume
-                FROM prices 
-                WHERE symbol = 'BTC-USD'
-                ORDER BY timestamp
+                FROM btc_price_data 
+                WHERE ticker = 'BTC'
+                ORDER BY date
             """
             df = pd.read_sql(query, conn.connection)
 
@@ -123,9 +125,26 @@ def generate_features():
         df["month"] = df["date"].dt.month
         df["quarter"] = df["date"].dt.quarter
 
+        # 🎯 生成預測目標 (Labels)
+        print("🎯 生成訓練標籤 (Future 24h Return)...")
+        # 未來 24 小時的回報率
+        df["target_return"] = df["close"].shift(-24) / df["close"] - 1
+        
+        # 二元分類目標：漲 (1) 或 跌 (0)
+        df["target_class"] = (df["target_return"] > 0).astype(int)
+
         # 填充缺失值
-        print("🔧 處理缺失值...")
-        df = df.fillna(method="bfill").fillna(method="ffill").fillna(0)
+        print("🔧 處理缺失值與無限值...")
+        # 替換無限值為 0
+        df = df.replace([np.inf, -np.inf], 0)
+        
+        # 注意：不要填充 target 的 NaN，因為最後 24 小時沒有未來數據
+        # 我們先填特徵的 NaN
+        features = [c for c in df.columns if "target" not in c]
+        df[features] = df[features].fillna(method="bfill").fillna(method="ffill").fillna(0)
+        
+        # 移除沒有標籤的行 (最後 24 行)
+        df = df.dropna(subset=["target_return"])
 
         # 只保留有完整數據的行（去掉前面的NaN）
         df = df.iloc[50:]  # 跳過前50行（需要用於計算移動平均）

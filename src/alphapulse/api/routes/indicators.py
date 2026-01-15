@@ -13,9 +13,9 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import and_, desc
 from sqlalchemy.orm import Session
 
-from src.alphapulse.api.database import get_db
-from src.alphapulse.api.models import TechnicalIndicator
-from src.alphapulse.api.schemas.indicator import (
+from alphapulse.api.database import get_db
+from alphapulse.api.models import TechnicalIndicator
+from alphapulse.api.schemas.indicator import (
     IndicatorCreate,
     IndicatorData,
     IndicatorListResponse,

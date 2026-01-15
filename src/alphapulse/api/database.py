@@ -68,7 +68,7 @@ def init_db():
     as part of database migration scripts.
     """
     # Import models to ensure they are registered with Base
-    from src.alphapulse.api.models import Price, TechnicalIndicator, TradingSignal
+    from alphapulse.api.models import Price, TechnicalIndicator, TradingSignal
 
     # Create all tables
     Base.metadata.create_all(bind=engine)

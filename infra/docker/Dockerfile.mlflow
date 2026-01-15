@@ -1,19 +1,26 @@
-# Custom MLflow image with PostgreSQL support
-FROM ghcr.io/mlflow/mlflow:latest
+# Custom MLflow image optimized for AlphaPulse
+FROM python:3.12-slim
 
-# Install curl for healthcheck
-RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+# Set MLflow version to ensure reproducibility
+ARG MLFLOW_VERSION=2.19.0
 
-# Install PostgreSQL client libraries and psycopg2
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    libpq5 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install MLflow and storage dependencies
 RUN pip install --no-cache-dir \
+    mlflow==${MLFLOW_VERSION} \
     psycopg2-binary \
-    boto3 \
-    awscli
+    boto3
+
+# Set working directory
+WORKDIR /mlflow
 
 # Set environment variables
 ENV MLFLOW_TRACKING_URI=""
-ENV AWS_ACCESS_KEY_ID=""
-ENV AWS_SECRET_ACCESS_KEY=""
 ENV MLFLOW_S3_ENDPOINT_URL=""
 
 # Health check
@@ -23,5 +30,5 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
 # Expose MLflow port
 EXPOSE 5000
 
-# Default command (can be overridden in docker-compose)
+# Default command
 CMD ["mlflow", "server", "--host", "0.0.0.0", "--port", "5000"]

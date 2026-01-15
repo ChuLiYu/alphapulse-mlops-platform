@@ -68,7 +68,7 @@ async def health_check():
 
 
 # Import routers after app creation to avoid circular imports
-from src.alphapulse.api.routes import auth, health, indicators, prices, signals
+from alphapulse.api.routes import auth, health, indicators, prices, signals
 
 # Include routers
 app.include_router(health.router, prefix="/api/v1", tags=["health"])

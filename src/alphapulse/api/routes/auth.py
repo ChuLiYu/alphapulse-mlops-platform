@@ -16,9 +16,9 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy.orm import Session
 
-from src.alphapulse.api.database import get_db
-from src.alphapulse.api.models_user import APIKey, Role, User, UserRole
-from src.alphapulse.security.auth import (
+from alphapulse.api.database import get_db
+from alphapulse.api.models_user import APIKey, Role, User, UserRole
+from alphapulse.security.auth import (
     PERMISSIONS,
     AuthService,
     create_default_roles,

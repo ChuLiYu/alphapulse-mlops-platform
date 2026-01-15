@@ -11,8 +11,8 @@ from typing import Dict
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from src.alphapulse.api.database import get_db
-from src.alphapulse.api.schemas.health import HealthDetailed, HealthStatus
+from alphapulse.api.database import get_db
+from alphapulse.api.schemas.health import HealthDetailed, HealthStatus
 
 router = APIRouter()
 

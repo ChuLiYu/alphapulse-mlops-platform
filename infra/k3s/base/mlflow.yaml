@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mlflow
+  namespace: alphapulse
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mlflow
+  template:
+    metadata:
+      labels:
+        app: mlflow
+    spec:
+      containers:
+      - name: mlflow
+        image: k3d-alphapulse-registry:5001/mlflow:v1-prod
+        imagePullPolicy: IfNotPresent
+        command: ["mlflow", "server"]
+        args:
+          - "--host"
+          - "0.0.0.0"
+          - "--port"
+          - "5000"
+          - "--backend-store-uri"
+          - "postgresql://postgres:postgres@postgres:5432/alphapulse" # Sharing DB for dev
+          - "--default-artifact-root"
+          - "/mlflow/artifacts"
+        ports:
+        - containerPort: 5000
+        volumeMounts:
+        - name: mlflow-data
+          mountPath: /mlflow/artifacts
+      volumes:
+      - name: mlflow-data
+        persistentVolumeClaim:
+          claimName: mlflow-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mlflow
+  namespace: alphapulse
+spec:
+  selector:
+    app: mlflow
+  ports:
+  - port: 5000
+    targetPort: 5000
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: mlflow-ingress
+  namespace: alphapulse
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: web
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /mlflow
+        pathType: Prefix
+        backend:
+          service:
+            name: mlflow
+            port:
+              number: 5000

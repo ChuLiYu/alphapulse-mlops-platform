@@ -15,8 +15,8 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
-from src.alphapulse.api.database import get_db
-from src.alphapulse.api.models_user import APIKey, AuditLog, Role, User, UserRole
+from alphapulse.api.database import get_db
+from alphapulse.api.models_user import APIKey, AuditLog, Role, User, UserRole
 
 # Security configuration
 SECRET_KEY = os.getenv(

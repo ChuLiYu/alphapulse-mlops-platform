@@ -1,38 +1,50 @@
-# Training Container for AlphaPulse ML Models
-# Separate from Mage ETL for cleaner dependency management
+# Stage 1: Build environment
+FROM python:3.12-slim AS builder
+
+WORKDIR /app
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements
+COPY training/requirements.txt /tmp/requirements.txt
+
+# Install dependencies into a specific directory for easy copying
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir --prefix=/install -r /tmp/requirements.txt
+
+# Stage 2: Runtime environment
 FROM python:3.12-slim
 
 # Set working directory
 WORKDIR /app
 
-# Set PYTHONPATH to include src directory
-ENV PYTHONPATH=/app/src:/app:${PYTHONPATH}
-
-# Install system dependencies for ML libraries
+# Install runtime dependencies
 RUN apt-get update && apt-get install -y \
-    gcc \
-    g++ \
+    libpq5 \
     curl \
     git \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy training requirements
-COPY training/requirements.txt /tmp/requirements.txt
-
-# Install training dependencies
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r /tmp/requirements.txt && \
-    rm /tmp/requirements.txt
+# Copy installed packages from builder
+COPY --from=builder /install /usr/local
 
 # Copy training scripts and source code
-# Note: src/ and training/ will be mounted via volumes for development
-# For production, you would copy them here
+COPY training/ /app/training/
+COPY src/ /app/src/
+
+# Set PYTHONPATH
+ENV PYTHONPATH=/app/src:/app:${PYTHONPATH}
 
 # Health check: Verify critical training packages
-RUN python -c "import torch; import xgboost; import mlflow; import pandas; print('Training dependencies OK')"
+RUN python -c "import pandas; import mlflow; print('Runtime dependencies OK')"
 
 # Expose port for training API
 EXPOSE 8080
 
-# Default command (will be overridden by docker-compose)
+# Default command
 CMD ["python", "-m", "training.train_server"]

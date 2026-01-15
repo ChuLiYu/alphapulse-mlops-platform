@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: fastapi
-        image: infra-fastapi:latest # Use locally built image or from GHCR
+        image: k3d-alphapulse-registry:5001/fastapi:v3
         imagePullPolicy: IfNotPresent
         env:
         - name: DATABASE_URL
