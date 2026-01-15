@@ -1,13 +1,15 @@
-name: Build and Push ARM64 Images
+name: Build MLflow (ARM64)
 
 on:
   push:
     branches: [ "main" ]
+    paths:
+      - 'infra/docker/Dockerfile.mlflow'
   workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+  IMAGE_NAME: ${{ github.repository }}/mlflow
 
 jobs:
   build-and-push:
@@ -15,30 +17,6 @@ jobs:
     permissions:
       contents: read
       packages: write
-
-    strategy:
-      matrix:
-        include:
-          - service: mlflow
-            context: .
-            file: infra/docker/Dockerfile.mlflow
-            image: mlflow
-          - service: trainer
-            context: .
-            file: infra/docker/Dockerfile.trainer
-            image: trainer
-          - service: fastapi
-            context: .
-            file: infra/docker/Dockerfile.fastapi
-            image: fastapi
-          - service: frontend
-            context: .
-            file: frontend/Dockerfile
-            image: frontend
-          - service: airflow
-            context: .
-            file: infra/docker/Dockerfile.airflow
-            image: airflow
 
     steps:
       - name: Checkout repository
@@ -61,16 +39,16 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${{ matrix.image }}
+          images: ${{ env.REGISTRY }}
           tags: |
             type=sha
             type=raw,value=latest,enable={{is_default_branch}}
 
-      - name: Build and push Docker image
+      - name: Build and push
         uses: docker/build-push-action@v5
         with:
-          context: ${{ matrix.context }}
-          file: ${{ matrix.file }}
+          context: .
+          file: infra/docker/Dockerfile.mlflow
           push: true
           platforms: linux/arm64
           tags: ${{ steps.meta.outputs.tags }}
