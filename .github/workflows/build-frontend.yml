@@ -58,3 +58,24 @@ jobs:
             type=gha
             type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
           cache-to: type=gha,mode=max
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: Execute remote SSH commands to deploy
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USERNAME }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          script: |
+            cd ~/deploy || mkdir -p ~/deploy && cd ~/deploy
+            # Sync manifests
+            if [ -d ".git" ]; then git pull origin main; else git clone https://github.com/${{ github.repository }}.git .; fi
+            # Apply K8s changes
+            sudo kubectl apply -k infra/k3s/base
+            # Force pull the latest image by restarting the deployment
+            sudo kubectl rollout restart deployment/alphapulse-frontend -n alphapulse
