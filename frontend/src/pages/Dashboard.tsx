@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { Box, Typography, Card, CardContent, Grid, Chip, Button } from '@mui/material';
+import React from 'react';
+import { Box, Typography, Card, CardContent, Grid, Chip, Button, Skeleton } from '@mui/material';
 import { ResponsiveContainer, AreaChart, Area, CartesianGrid, XAxis, YAxis, Tooltip } from 'recharts';
 import { ArrowUpRight, Activity, ShieldCheck, Lock, Unlock } from 'lucide-react';
+import { useAuth } from '../hooks/useAuth';
 
 const mockPriceData = [
   { time: '00:00', price: 92000 },
@@ -14,24 +15,16 @@ const mockPriceData = [
 ];
 
 const Dashboard: React.FC = () => {
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [clickCount, setClickCount] = useState(0);
+  const { isAdmin, loading } = useAuth();
 
-  // Secret toggle: Click the title 5 times to enable Admin Mode
-  const handleTitleClick = () => {
-    const newCount = clickCount + 1;
-    if (newCount >= 5) {
-      setIsAdmin(!isAdmin);
-      setClickCount(0);
-    } else {
-      setClickCount(newCount);
-    }
-  };
+  if (loading) {
+    return <Box sx={{ p: 4 }}><Skeleton variant="rectangular" height={400} /></Box>;
+  }
 
   return (
     <Box>
       <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Box onClick={handleTitleClick} sx={{ cursor: 'pointer' }}>
+        <Box>
           <Typography variant="h4" sx={{ mb: 1 }}>AlphaPulse Dashboard</Typography>
           <Typography variant="body2" color="text.secondary">
             {isAdmin ? "Administrator Management Console" : "Live Strategy Performance (Public View)"}
@@ -41,7 +34,7 @@ const Dashboard: React.FC = () => {
           {isAdmin && (
             <Chip 
               icon={<Unlock size={16} />} 
-              label="Admin Mode Active" 
+              label="Admin Privileges Active" 
               color="primary" 
               variant="filled"
             />
@@ -84,7 +77,7 @@ const Dashboard: React.FC = () => {
           </Card>
         </Grid>
 
-        {/* Admin-only Metrics */}
+        {/* Admin-only Metrics (Only visible to verified admins via JWT) */}
         {isAdmin && (
           <>
             <Grid item xs={12} md={3}>
