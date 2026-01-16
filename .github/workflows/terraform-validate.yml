@@ -61,13 +61,6 @@ jobs:
         env:
           TF_CLI_ARGS: "-no-color"
 
-      - name: Terraform Plan (Dry Run)
-        id: plan
-        run: terraform plan -lock=false -input=false
-        env:
-          TF_CLI_ARGS: "-no-color"
-        continue-on-error: true
-
   terraform-security:
     name: Terraform Security Scan
     runs-on: ubuntu-latest
@@ -90,7 +83,7 @@ jobs:
           output: "trivy-results.sarif"
 
       - name: Upload TFSec results
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         if: always()
         with:
           sarif_file: "trivy-results.sarif"
