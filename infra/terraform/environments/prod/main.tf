@@ -127,71 +127,37 @@ resource "oci_core_instance" "alphapulse_server" {
   }
 
   metadata = {
-
     ssh_authorized_keys = var.ssh_public_key != null ? var.ssh_public_key : file(var.ssh_public_key_path)
+    user_data           = base64encode(<<EOF
+#!/bin/bash
+export GH_PAT_TOKEN="${var.github_token}"
 
-    user_data = base64encode(<<EOF
+# Firewall cleanup
+iptables -F || true
+iptables -P INPUT ACCEPT
+iptables -P FORWARD ACCEPT
+iptables -P OUTPUT ACCEPT
+systemctl stop firewalld || true
 
-  #!/bin/bash
+# Install K3s
+curl -sfL https://get.k3s.io | sh -
 
-  # Do not use set -e to ensure the script continues even if some cleanup commands fail
+# Wait for kubectl
+until [ -f /usr/local/bin/kubectl ]; do sleep 5; done
 
-  export GH_PAT_TOKEN="${var.github_token}"
-
-  
-
-  # Best-effort firewall cleanup
-
-  iptables -F || true
-
-  iptables -X || true
-
-  iptables -t nat -F || true
-
-  iptables -t nat -X || true
-
-  iptables -P INPUT ACCEPT
-
-  iptables -P FORWARD ACCEPT
-
-  iptables -P OUTPUT ACCEPT
-
-  systemctl stop firewalld || true
-
-  systemctl disable firewalld || true
-
-  
-
-  # Automated K3s Installation
-
-  curl -sfL https://get.k3s.io | sh -
-
-  
-
-# Wait for K3s API to become ready
-KUBECTL="/usr/local/bin/kubectl"
-until [ -f "$KUBECTL" ] && "$KUBECTL" get nodes | grep -q "Ready"; do 
-  sleep 5
-done
-
-# Create namespace and GHCR Secret for Private Images
-"$KUBECTL" create namespace alphapulse || true
-"$KUBECTL" create secret regcred \
+# Setup GHCR Secret
+export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+/usr/local/bin/kubectl create namespace alphapulse || true
+/usr/local/bin/kubectl create secret regcred \
   --docker-server=ghcr.io \
   --docker-username=ChuLiYu \
-  --docker-password=$${GH_PAT_TOKEN} \
+  --docker-password="$${GH_PAT_TOKEN}" \
   --docker-email=chuliyu@example.com \
-  -n alphapulse --dry-run=client -o yaml | "$KUBECTL" apply -f -
+  -n alphapulse --dry-run=client -o yaml | /usr/local/bin/kubectl apply -f -
 
-dnf install httpd-tools git -y
-htpasswd -bc /root/auth admin AlphaPulse2026
-"$KUBECTL" create secret generic admin-credentials --from-file=auth=/root/auth -n alphapulse --dry-run=client -o yaml | "$KUBECTL" apply -f -
-
-# Zero-touch Application Deployment
-DEPLOY_DIR="/root/deploy"
-rm -rf "$DEPLOY_DIR"
-git clone https://github.com/ChuLiYu/alphapulse-mlops-platform.git "$DEPLOY_DIR"
-"$KUBECTL" apply -k "$DEPLOY_DIR/infra/k3s/base"
+# Deploy application
+git clone https://github.com/ChuLiYu/alphapulse-mlops-platform.git /root/deploy || true
+/usr/local/bin/kubectl apply -k /root/deploy/infra/k3s/base
 EOF
     )
   }
