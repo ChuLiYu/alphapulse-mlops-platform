@@ -26,7 +26,7 @@ echo "" | tee -a "$LOG_FILE"
 
 # Step 1: Check containers
 log "Step 1/4: Checking containers..."
-if ! docker ps | grep -q alphapulse-trainer; then
+if ! docker ps | grep -q trainer; then
     log "❌ Trainer container not running"
     exit 1
 fi
@@ -35,8 +35,8 @@ log "🚀 Starting data collection..."
 
 # 1. Update Price Data
 log "1. Updating BTC price data..."
-docker cp scripts/update_price_data.py alphapulse-trainer:/app/src/ >> "$LOG_FILE" 2>&1
-if docker exec alphapulse-trainer python /app/src/update_price_data.py >> "$LOG_FILE" 2>&1; then
+docker cp scripts/update_price_data.py trainer:/app/src/ >> "$LOG_FILE" 2>&1
+if docker exec trainer python /app/src/update_price_data.py >> "$LOG_FILE" 2>&1; then
     log "   ✅ Price data updated"
 else
     log "   ❌ Failed to update price data"
@@ -45,8 +45,8 @@ fi
 
 # 2. Collect News & Sentiment
 log "2. Collecting news and sentiment..."
-docker cp scripts/collect_news_and_sentiment.py alphapulse-trainer:/app/src/ >> "$LOG_FILE" 2>&1
-if docker exec alphapulse-trainer python /app/src/collect_news_and_sentiment.py >> "$LOG_FILE" 2>&1; then
+docker cp scripts/collect_news_and_sentiment.py trainer:/app/src/ >> "$LOG_FILE" 2>&1
+if docker exec trainer python /app/src/collect_news_and_sentiment.py >> "$LOG_FILE" 2>&1; then
     log "   ✅ News & sentiment collected"
 else
     log "   ❌ Failed to collect news"
@@ -55,8 +55,8 @@ fi
 
 # 3. Feature Integration
 log "3. Integrating features..."
-docker cp scripts/integrate_sentiment_features.py alphapulse-trainer:/app/src/ >> "$LOG_FILE" 2>&1
-if docker exec alphapulse-trainer python /app/src/integrate_sentiment_features.py >> "$LOG_FILE" 2>&1; then
+docker cp scripts/integrate_sentiment_features.py trainer:/app/src/ >> "$LOG_FILE" 2>&1
+if docker exec trainer python /app/src/integrate_sentiment_features.py >> "$LOG_FILE" 2>&1; then
     log "   ✅ Features integrated"
 else
     log "   ❌ Failed to integrate features"
@@ -68,9 +68,9 @@ log "============================================================"
 log "📊 Collection Summary"
 log "============================================================"
 
-PRICE_COUNT=$(docker exec alphapulse-postgres psql -U postgres -d alphapulse -t -c "SELECT COUNT(*) FROM prices" 2>/dev/null | xargs || echo "0")
-NEWS_COUNT=$(docker exec alphapulse-postgres psql -U postgres -d alphapulse -t -c "SELECT COUNT(*) FROM market_news" 2>/dev/null | xargs || echo "0")
-SENTIMENT_COUNT=$(docker exec alphapulse-postgres psql -U postgres -d alphapulse -t -c "SELECT COUNT(*) FROM sentiment_scores" 2>/dev/null | xargs || echo "0")
+PRICE_COUNT=$(docker exec postgres psql -U postgres -d alphapulse -t -c "SELECT COUNT(*) FROM prices" 2>/dev/null | xargs || echo "0")
+NEWS_COUNT=$(docker exec postgres psql -U postgres -d alphapulse -t -c "SELECT COUNT(*) FROM market_news" 2>/dev/null | xargs || echo "0")
+SENTIMENT_COUNT=$(docker exec postgres psql -U postgres -d alphapulse -t -c "SELECT COUNT(*) FROM sentiment_scores" 2>/dev/null | xargs || echo "0")
 
 log "  Prices: $PRICE_COUNT records"
 log "  News: $NEWS_COUNT articles"

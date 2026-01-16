@@ -4,7 +4,7 @@ pip install passlib[bcrypt] python-dotenv "python-jose[cryptography]" email-vali
 
 echo "Setting up Python path..."
 export PYTHONPATH=/home/src/src:/home/src:$PYTHONPATH
-export DATABASE_URL=postgresql://postgres:postgres@alphapulse-postgres:5432/alphapulse
+export DATABASE_URL=postgresql://postgres:postgres@postgres:5432/alphapulse
 
 echo "Running integration tests..."
 cd /home/src

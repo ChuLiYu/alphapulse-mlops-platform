@@ -57,11 +57,11 @@ log ""
 
 # Step 1: Check containers
 log "${BLUE}[1/6] Checking Docker containers${NC}"
-if ! docker ps | grep -q "alphapulse-trainer"; then
+if ! docker ps | grep -q "trainer"; then
     log "${RED}❌ Trainer container not running${NC}"
     exit 1
 fi
-if ! docker ps | grep -q "alphapulse-postgres"; then
+if ! docker ps | grep -q "postgres"; then
     log "${RED}❌ Postgres container not running${NC}"
     exit 1
 fi
@@ -70,7 +70,7 @@ log ""
 
 # Step 2: Check data availability
 log "${BLUE}[2/6] Checking data availability${NC}"
-PRICE_COUNT=$(docker exec alphapulse-postgres psql -U postgres -d alphapulse -t -c "SELECT COUNT(*) FROM prices" 2>/dev/null | xargs || echo "0")
+PRICE_COUNT=$(docker exec postgres psql -U postgres -d alphapulse -t -c "SELECT COUNT(*) FROM prices" 2>/dev/null | xargs || echo "0")
 log "  Price records: $PRICE_COUNT"
 
 if [ "$PRICE_COUNT" -lt 100 ]; then
@@ -85,7 +85,7 @@ log ""
 log "${BLUE}[3/6] Feature engineering${NC}"
 if [ "$SKIP_FEATURES" = true ]; then
     log "${YELLOW}⚠️  Skipping feature generation (--skip-features)${NC}"
-    FEATURE_COUNT=$(docker exec alphapulse-postgres psql -U postgres -d alphapulse -t -c "SELECT COUNT(*) FROM model_features" 2>/dev/null | xargs || echo "0")
+    FEATURE_COUNT=$(docker exec postgres psql -U postgres -d alphapulse -t -c "SELECT COUNT(*) FROM model_features" 2>/dev/null | xargs || echo "0")
     log "  Existing features: $FEATURE_COUNT rows"
     
     if [ "$FEATURE_COUNT" -lt 300 ]; then
@@ -94,10 +94,10 @@ if [ "$SKIP_FEATURES" = true ]; then
     fi
 else
     log "  Generating features from price data..."
-    docker cp scripts/generate_features.py alphapulse-trainer:/app/src/ >> "$LOGFILE" 2>&1
+    docker cp scripts/generate_features.py trainer:/app/src/ >> "$LOGFILE" 2>&1
     
-    if docker exec alphapulse-trainer python /app/src/generate_features.py >> "$LOGFILE" 2>&1; then
-        FEATURE_COUNT=$(docker exec alphapulse-postgres psql -U postgres -d alphapulse -t -c "SELECT COUNT(*) FROM model_features" 2>/dev/null | xargs || echo "0")
+    if docker exec trainer python /app/src/generate_features.py >> "$LOGFILE" 2>&1; then
+        FEATURE_COUNT=$(docker exec postgres psql -U postgres -d alphapulse -t -c "SELECT COUNT(*) FROM model_features" 2>/dev/null | xargs || echo "0")
         log "${GREEN}✅ Features generated: $FEATURE_COUNT rows${NC}"
     else
         log "${RED}❌ Feature generation failed${NC}"
@@ -110,7 +110,7 @@ log ""
 # Step 4: Install dependencies
 log "${BLUE}[4/6] Installing training dependencies${NC}"
 # Trainer should typically have dependencies, but we can run this just in case or skip
-# docker exec alphapulse-trainer pip install -q evidently scipy psutil >> "$LOGFILE" 2>&1
+# docker exec trainer pip install -q evidently scipy psutil >> "$LOGFILE" 2>&1
 log "${GREEN}✅ Dependencies check skipped (Trainer container assumed ready)${NC}"
 log ""
 
@@ -144,10 +144,10 @@ log ""
 START_TIME=$(date +%s)
 
 # Copy training script
-docker cp scripts/$SCRIPT alphapulse-trainer:/app/src/ >> "$LOGFILE" 2>&1 || true
+docker cp scripts/$SCRIPT trainer:/app/src/ >> "$LOGFILE" 2>&1 || true
 
 # Run training
-if docker exec alphapulse-trainer python /app/src/$SCRIPT >> "$LOGFILE" 2>&1; then
+if docker exec trainer python /app/src/$SCRIPT >> "$LOGFILE" 2>&1; then
     END_TIME=$(date +%s)
     DURATION=$((END_TIME - START_TIME))
     log "${GREEN}✅ Training completed in ${DURATION}s${NC}"
@@ -155,7 +155,7 @@ if docker exec alphapulse-trainer python /app/src/$SCRIPT >> "$LOGFILE" 2>&1; th
     # Show results
     log ""
     log "${CYAN}📊 Training Results:${NC}"
-    docker exec alphapulse-trainer python3 << 'PYTHON' 2>/dev/null | tee -a "$LOGFILE" || true
+    docker exec trainer python3 << 'PYTHON' 2>/dev/null | tee -a "$LOGFILE" || true
 import json
 try:
     # Path depends on where script saves it. Assuming /app/models is mounted to ../models

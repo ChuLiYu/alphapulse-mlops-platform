@@ -16,7 +16,7 @@ echo ""
 
 # 步驟 1: 檢查容器
 echo -e "${BLUE}步驟 1/5: 檢查容器狀態${NC}"
-if ! docker ps | grep -q "alphapulse-trainer"; then
+if ! docker ps | grep -q "trainer"; then
     echo -e "${RED}❌ 容器未運行${NC}"
     exit 1
 fi
@@ -24,9 +24,9 @@ echo -e "${GREEN}✅ 容器運行中${NC}\n"
 
 # 步驟 2: 檢查基礎數據
 echo -e "${BLUE}步驟 2/5: 檢查基礎數據${NC}"
-PRICE_COUNT=$(docker exec alphapulse-postgres psql -U postgres -d alphapulse -t -c "SELECT COUNT(*) FROM prices" 2>/dev/null | xargs || echo "0")
-NEWS_COUNT=$(docker exec alphapulse-postgres psql -U postgres -d alphapulse -t -c "SELECT COUNT(*) FROM market_news" 2>/dev/null | xargs || echo "0")
-SENTIMENT_COUNT=$(docker exec alphapulse-postgres psql -U postgres -d alphapulse -t -c "SELECT COUNT(*) FROM sentiment_scores" 2>/dev/null | xargs || echo "0")
+PRICE_COUNT=$(docker exec postgres psql -U postgres -d alphapulse -t -c "SELECT COUNT(*) FROM prices" 2>/dev/null | xargs || echo "0")
+NEWS_COUNT=$(docker exec postgres psql -U postgres -d alphapulse -t -c "SELECT COUNT(*) FROM market_news" 2>/dev/null | xargs || echo "0")
+SENTIMENT_COUNT=$(docker exec postgres psql -U postgres -d alphapulse -t -c "SELECT COUNT(*) FROM sentiment_scores" 2>/dev/null | xargs || echo "0")
 
 echo "  價格數據: $PRICE_COUNT 行"
 echo "  新聞數據: $NEWS_COUNT 行"
@@ -41,14 +41,14 @@ echo -e "${GREEN}✅ 基礎數據充足${NC}\n"
 
 # 步驟 3: 生成特徵（如果需要）
 echo -e "${BLUE}步驟 3/5: 檢查/生成特徵數據${NC}"
-FEATURE_COUNT=$(docker exec alphapulse-postgres psql -U postgres -d alphapulse -t -c "SELECT COUNT(*) FROM model_features" 2>/dev/null | xargs || echo "0")
+FEATURE_COUNT=$(docker exec postgres psql -U postgres -d alphapulse -t -c "SELECT COUNT(*) FROM model_features" 2>/dev/null | xargs || echo "0")
 
 if [ "$FEATURE_COUNT" -lt 300 ]; then
     echo -e "${YELLOW}⚠️  特徵數據不足 ($FEATURE_COUNT 行)${NC}"
     echo "正在生成特徵..."
     
     # 運行特徵整合管道 (使用 Trainer 容器)
-    docker exec alphapulse-trainer python3 << 'PYTHON'
+    docker exec trainer python3 << 'PYTHON'
 import sys
 # Trainer 容器中源代碼路徑
 sys.path.insert(0, '/app/src')
@@ -125,7 +125,7 @@ PYTHON
     fi
     
     # 重新檢查
-    FEATURE_COUNT=$(docker exec alphapulse-postgres psql -U postgres -d alphapulse -t -c "SELECT COUNT(*) FROM model_features" 2>/dev/null | xargs || echo "0")
+    FEATURE_COUNT=$(docker exec postgres psql -U postgres -d alphapulse -t -c "SELECT COUNT(*) FROM model_features" 2>/dev/null | xargs || echo "0")
 fi
 
 echo -e "${GREEN}✅ 特徵數據: $FEATURE_COUNT 行${NC}\n"
@@ -133,7 +133,7 @@ echo -e "${GREEN}✅ 特徵數據: $FEATURE_COUNT 行${NC}\n"
 # 步驟 4: 安裝依賴
 echo -e "${BLUE}步驟 4/5: 安裝訓練依賴${NC}"
 # Trainer 容器應已包含所有依賴
-# docker exec alphapulse-trainer pip install evidently scipy psutil -q
+# docker exec trainer pip install evidently scipy psutil -q
 echo -e "${GREEN}✅ 依賴已安裝 (Trainer容器預裝)${NC}\n"
 
 # 步驟 5: 運行訓練
@@ -144,7 +144,7 @@ echo "=================================================="
 echo "使用專用訓練容器..."
 
 # 運行訓練
-docker exec alphapulse-trainer python /app/training/ultra_fast_train.py
+docker exec trainer python /app/training/ultra_fast_train.py
 
 if [ $? -eq 0 ]; then
     echo ""
@@ -153,10 +153,10 @@ if [ $? -eq 0 ]; then
     echo "=================================================="
     echo ""
     echo "📊 結果:"
-    docker exec alphapulse-trainer cat /app/models/saved/training_summary.json 2>/dev/null | head -30 || echo "查看: docker exec alphapulse-trainer cat /app/models/saved/training_summary.json"
+    docker exec trainer cat /app/models/saved/training_summary.json 2>/dev/null | head -30 || echo "查看: docker exec trainer cat /app/models/saved/training_summary.json"
     echo ""
     echo "📁 模型位置:"
-    docker exec alphapulse-trainer ls -lh /app/models/saved/*.pkl 2>/dev/null || echo "  /app/models/saved/best_model.pkl"
+    docker exec trainer ls -lh /app/models/saved/*.pkl 2>/dev/null || echo "  /app/models/saved/best_model.pkl"
     echo ""
     echo "🌐 MLflow: http://localhost:5001"
 else

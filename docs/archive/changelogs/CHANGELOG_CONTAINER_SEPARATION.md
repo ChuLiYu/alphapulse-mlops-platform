@@ -5,7 +5,7 @@
 ### 🎯 Breaking Changes
 
 - **Container Separation**: Mage ETL and model training now run in independent containers.
-- **New Container**: `alphapulse-trainer` (Port 8080).
+- **New Container**: `trainer` (Port 8080).
 - **Path Changes**:
   - Mage: `/home/src/alphapulse` → `/home/mage/alphapulse`
   - Training: `/home/src/*.py` → `/app/training/*.py`

@@ -67,7 +67,7 @@ The tests will explicitly identify the bottleneck:
 #### Issue A: Schedule Missing or Disabled
 ```bash
 # Re-sync Airflow DAGs
-docker exec alphapulse-airflow-scheduler airflow dags reserialize
+docker exec airflow-scheduler airflow dags reserialize
 ```
 
 #### Issue B: Schedule Exists but Doesn't Trigger
@@ -79,10 +79,10 @@ Check Airflow UI (http://localhost:8080):
 #### Issue C: Pipeline Fails during Execution
 ```bash
 # View task logs
-docker logs alphapulse-airflow-scheduler
+docker logs airflow-scheduler
 
 # Manually trigger a test run
-docker exec alphapulse-airflow-scheduler airflow dags trigger news_ingestion_pipeline
+docker exec airflow-scheduler airflow dags trigger news_ingestion_pipeline
 ```
 
 ---

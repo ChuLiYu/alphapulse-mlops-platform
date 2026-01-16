@@ -11,9 +11,9 @@ The fastest way, training only the 3 best model configurations:
 ./scripts/quick_train_docker.sh
 
 # Method B: Manual execution in container
-docker cp scripts/ultra_fast_train.py alphapulse-trainer:/app/src/
+docker cp scripts/ultra_fast_train.py trainer:/app/src/
 # Dependencies are pre-installed in the trainer container
-docker exec alphapulse-trainer python /app/src/ultra_fast_train.py
+docker exec trainer python /app/src/ultra_fast_train.py
 ```
 
 **Features**:
@@ -31,8 +31,8 @@ Balances speed and performance, training 6 model configurations:
 
 ```bash
 # Using script
-docker cp scripts/quick_production_train.py alphapulse-trainer:/app/src/
-docker exec alphapulse-trainer python /app/src/quick_production_train.py
+docker cp scripts/quick_production_train.py trainer:/app/src/
+docker exec trainer python /app/src/quick_production_train.py
 ```
 
 **Features**:
@@ -49,7 +49,7 @@ docker exec alphapulse-trainer python /app/src/quick_production_train.py
 Comprehensive training with all monitoring enabled:
 
 ```bash
-docker exec alphapulse-trainer python -m alphapulse.ml.training.iterative_trainer
+docker exec trainer python -m alphapulse.ml.training.iterative_trainer
 ```
 
 **Features**:
@@ -69,12 +69,12 @@ docker exec alphapulse-trainer python -m alphapulse.ml.training.iterative_traine
 docker ps --filter "name=alphapulse"
 ```
 
-Ensure `alphapulse-trainer` and `alphapulse-postgres` are running.
+Ensure `trainer` and `postgres` are running.
 
 ### 2. Check Data
 
 ```bash
-docker exec alphapulse-postgres psql -U postgres -d alphapulse -c \
+docker exec postgres psql -U postgres -d alphapulse -c \
   "SELECT COUNT(*) FROM model_features"
 ```
 
@@ -82,7 +82,7 @@ Requires at least **300 rows** (Ultra-Fast) or **500 rows** (Standard) of data.
 
 ### 3. Verify Dependencies
 
-The `alphapulse-trainer` container comes with `evidently`, `scipy`, and `psutil` pre-installed.
+The `trainer` container comes with `evidently`, `scipy`, and `psutil` pre-installed.
 
 ---
 
@@ -100,17 +100,17 @@ chmod +x scripts/quick_train_docker.sh
 
 ```bash
 # View best model
-docker exec alphapulse-trainer cat /app/models/saved/training_summary.json | jq '.best_model'
+docker exec trainer cat /app/models/saved/training_summary.json | jq '.best_model'
 
 # View model files
-docker exec alphapulse-trainer ls -lh /app/models/saved/
+docker exec trainer ls -lh /app/models/saved/
 ```
 
 ### Step 3: Verify Model
 
 ```python
 # Enter container
-docker exec -it alphapulse-trainer bash
+docker exec -it trainer bash
 
 # Load and test model
 python3
@@ -153,28 +153,28 @@ models/saved/
 ### View Training Summary
 
 ```bash
-docker exec alphapulse-trainer cat /app/models/saved/training_summary.json
+docker exec trainer cat /app/models/saved/training_summary.json
 ```
 
 ### View Best Model Metrics
 
 ```bash
-docker exec alphapulse-trainer cat /app/models/saved/training_summary.json | \
+docker exec trainer cat /app/models/saved/training_summary.json | \
   jq '.best_model | {name, val_mae, test_mae, test_r2}'
 ```
 
 ### View Overfitting Stats
 
 ```bash
-docker exec alphapulse-trainer cat /app/models/saved/training_summary.json | \
+docker exec trainer cat /app/models/saved/training_summary.json | \
   jq '.overfitting_stats'
 ```
 
 ### Download Model Locally
 
 ```bash
-docker cp alphapulse-trainer:/app/models/saved/best_model.pkl ./
-docker cp alphapulse-trainer:/app/models/saved/training_summary.json ./
+docker cp trainer:/app/models/saved/best_model.pkl ./
+docker cp trainer:/app/models/saved/training_summary.json ./
 ```
 
 ---
@@ -208,7 +208,7 @@ docker cp alphapulse-trainer:/app/models/saved/training_summary.json ./
 
 ```bash
 # Validate on test data
-docker exec alphapulse-trainer python -c "
+docker exec trainer python -c "
 import joblib
 import pandas as pd
 from sqlalchemy import create_engine, text
@@ -230,8 +230,8 @@ print('✅ Model validation passed')
 
 ```bash
 # Copy model and summary
-docker cp alphapulse-trainer:/app/models/saved/best_model.pkl ./production/
-docker cp alphapulse-trainer:/app/models/saved/training_summary.json ./production/
+docker cp trainer:/app/models/saved/best_model.pkl ./production/
+docker cp trainer:/app/models/saved/training_summary.json ./production/
 
 # Or upload to S3/Cloud Storage
 ```
@@ -262,14 +262,14 @@ async def predict(features: dict):
 
 ```bash
 # Run feature integration DAG
-docker exec alphapulse-airflow-scheduler airflow dags trigger feature_integration_dag
+docker exec airflow-scheduler airflow dags trigger feature_integration_dag
 ```
 
 ### Error: "Insufficient data"
 
 ```bash
 # Check data volume
-docker exec alphapulse-postgres psql -U postgres -d alphapulse -c \
+docker exec postgres psql -U postgres -d alphapulse -c \
   "SELECT COUNT(*) FROM model_features"
 
 # If data is insufficient, run data pipelines:
@@ -282,10 +282,10 @@ docker exec alphapulse-postgres psql -U postgres -d alphapulse -c \
 
 ```bash
 # Check MLflow status
-docker logs alphapulse-mlflow
+docker logs mlflow
 
 # Restart MLflow
-docker restart alphapulse-mlflow
+docker restart mlflow
 ```
 
 ### Poor Performance (R² < 0.1)

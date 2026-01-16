@@ -25,7 +25,7 @@ def run_command(command):
 
 def get_news_count():
     """Gets the count of records in market_news table."""
-    cmd = 'docker exec alphapulse-postgres psql -U postgres -d alphapulse -t -c "SELECT count(*) FROM market_news;"'
+    cmd = 'docker exec postgres psql -U postgres -d alphapulse -t -c "SELECT count(*) FROM market_news;"'
     try:
         output = run_command(cmd)
         return int(output.strip())
@@ -37,14 +37,14 @@ def trigger_dag(dag_id):
     """Triggers the Airflow DAG."""
     print(f"Triggering DAG: {dag_id}...")
     run_command(
-        f"docker exec alphapulse-airflow-scheduler airflow dags trigger {dag_id}"
+        f"docker exec airflow-scheduler airflow dags trigger {dag_id}"
     )
 
 
 def get_latest_dag_run_state(dag_id):
     """Gets the state of the latest DAG run."""
     # List runs, sort by execution date desc, take top 1
-    cmd = f"docker exec alphapulse-airflow-scheduler airflow dags list-runs -d {dag_id} -o plain"
+    cmd = f"docker exec airflow-scheduler airflow dags list-runs -d {dag_id} -o plain"
     output = run_command(cmd)
     lines = output.strip().split("\n")
     if len(lines) <= 1:
@@ -64,7 +64,7 @@ def get_latest_dag_run_state(dag_id):
 
     # Using json output is safer if available, but plain is standard.
     # Let's dump to json for easier parsing.
-    cmd_json = f"docker exec alphapulse-airflow-scheduler airflow dags list-runs -d {dag_id} -o json"
+    cmd_json = f"docker exec airflow-scheduler airflow dags list-runs -d {dag_id} -o json"
     import json
 
     try:

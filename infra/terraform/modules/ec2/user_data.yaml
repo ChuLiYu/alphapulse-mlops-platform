@@ -33,7 +33,7 @@ write_files:
       services:
         postgres:
           image: postgres:15-alpine
-          container_name: alphapulse-postgres
+          container_name: postgres
           restart: unless-stopped
           environment:
             POSTGRES_DB: alphapulse
@@ -72,7 +72,7 @@ write_files:
           build:
             context: .
             dockerfile: Dockerfile.mlflow
-          container_name: alphapulse-mlflow
+          container_name: mlflow
           restart: unless-stopped
           environment:
             MLFLOW_TRACKING_URI: ${mlflow_tracking_uri}
@@ -90,7 +90,7 @@ write_files:
           build:
             context: .
             dockerfile: Dockerfile.airflow
-          container_name: alphapulse-airflow-webserver
+          container_name: airflow-webserver
           command: webserver
           restart: always
           environment:
@@ -117,7 +117,7 @@ write_files:
           build:
             context: .
             dockerfile: Dockerfile.airflow
-          container_name: alphapulse-airflow-scheduler
+          container_name: airflow-scheduler
           command: scheduler
           restart: always
           environment:
@@ -141,7 +141,7 @@ write_files:
           build:
             context: .
             dockerfile: Dockerfile.airflow
-          container_name: alphapulse-airflow-init
+          container_name: airflow-init
           command: bash -c "/opt/airflow/scripts/create_connections.sh"
           environment:
             - AIRFLOW__CORE__EXECUTOR=LocalExecutor

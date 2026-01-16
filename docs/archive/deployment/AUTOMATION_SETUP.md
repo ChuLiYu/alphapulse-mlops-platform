@@ -98,7 +98,7 @@ crontab -e
 tail -f /tmp/alphapulse_logs/auto_collect_*.log
 
 # Check data freshness
-docker exec alphapulse-postgres psql -U postgres -d alphapulse -c "
+docker exec postgres psql -U postgres -d alphapulse -c "
 SELECT 'prices', MAX(timestamp) FROM prices
 UNION ALL SELECT 'news', MAX(published_at) FROM market_news
 UNION ALL SELECT 'sentiment', MAX(analyzed_at) FROM sentiment_scores
@@ -181,13 +181,13 @@ chmod +x scripts/collect_news_and_sentiment.py
 
 ```bash
 docker ps | grep alphapulse
-docker logs alphapulse-postgres | tail -20
+docker logs postgres | tail -20
 ```
 
 **Verify connection:**
 
 ```bash
-docker exec alphapulse-postgres psql -U postgres -d alphapulse -c "SELECT 1"
+docker exec postgres psql -U postgres -d alphapulse -c "SELECT 1"
 ```
 
 ### Issue: No new data
@@ -240,7 +240,7 @@ launchctl list | grep alphapulse  # macOS
 crontab -l                         # Linux
 
 # Database status
-docker exec alphapulse-postgres psql -U postgres -d alphapulse -c "
+docker exec postgres psql -U postgres -d alphapulse -c "
 SELECT table_name, COUNT(*) FROM (
     SELECT 'prices' as table_name FROM prices
     UNION ALL SELECT 'news' FROM market_news

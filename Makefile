@@ -192,7 +192,7 @@ health:
 	@echo "$(BLUE)════════════════════════════════════════════════════════════════$(NC)"
 	@echo ""
 	@echo "$(YELLOW)Checking PostgreSQL...$(NC)"
-	@docker exec alphapulse-postgres pg_isready -U postgres && echo "$(GREEN)✓ PostgreSQL is healthy$(NC)" || echo "$(RED)✗ PostgreSQL is down$(NC)"
+	@docker exec postgres pg_isready -U postgres && echo "$(GREEN)✓ PostgreSQL is healthy$(NC)" || echo "$(RED)✗ PostgreSQL is down$(NC)"
 	@echo ""
 	@echo "$(YELLOW)Checking MinIO...$(NC)"
 	@curl -sf http://localhost:9000/minio/health/live > /dev/null && echo "$(GREEN)✓ MinIO is healthy$(NC)" || echo "$(RED)✗ MinIO is down$(NC)"
@@ -214,18 +214,18 @@ health:
 
 db-shell:
 	@echo "$(BLUE)Opening PostgreSQL shell...$(NC)"
-	@docker exec -it alphapulse-postgres psql -U postgres -d alphapulse
+	@docker exec -it postgres psql -U postgres -d alphapulse
 
 db-migrate:
 	@echo "$(BLUE)Running database migrations...$(NC)"
-	@docker exec -i alphapulse-postgres psql -U postgres -d alphapulse < infra/scripts/init-db.sql
+	@docker exec -i postgres psql -U postgres -d alphapulse < infra/scripts/init-db.sql
 	@echo "$(GREEN)✓ Migrations completed$(NC)"
 
 db-reset:
 	@echo "$(RED)⚠️  This will delete all data! Are you sure? [y/N]$(NC)" && read ans && [ $${ans:-N} = y ]
 	@echo "$(BLUE)Resetting database...$(NC)"
 	@cd infra && docker compose stop postgres
-	docker volume rm alphapulse-postgres_data || true
+	docker volume rm postgres_data || true
 	@cd infra && docker compose up -d postgres
 	@sleep 5
 	@make db-migrate
@@ -234,7 +234,7 @@ db-reset:
 db-backup:
 	@echo "$(BLUE)Backing up database...$(NC)"
 	@mkdir -p backups
-	@docker exec alphapulse-postgres pg_dump -U postgres alphapulse > backups/alphapulse-$(shell date +%Y%m%d-%H%M%S).sql
+	@docker exec postgres pg_dump -U postgres alphapulse > backups/alphapulse-$(shell date +%Y%m%d-%H%M%S).sql
 	@echo "$(GREEN)✓ Database backed up to backups/$(NC)"
 
 # ================================================================================
@@ -263,7 +263,7 @@ restore:
 	@ls -lh backups/
 	@echo ""
 	@echo "$(YELLOW)Enter backup filename for SQL restore:$(NC)"
-	@read backup && docker exec -i alphapulse-postgres psql -U postgres alphapulse < backups/$$backup
+	@read backup && docker exec -i postgres psql -U postgres alphapulse < backups/$$backup
 	@echo "$(GREEN)✓ SQL Restore complete. MinIO data restore requires manual intervention.$(NC)"
 
 # ================================================================================
@@ -362,3 +362,25 @@ train-status:
 	@echo ""
 	@echo "$(BLUE)Saved Models:$(NC)"
 	@ls -lh src/models/saved/*.pkl 2>/dev/null || echo "No models saved yet. Run: make train-auto"
+
+# ================================================================================
+# Code Quality & Formatting
+# ================================================================================
+
+.PHONY: format lint
+
+format:
+	@echo "$(BLUE)Formatting codebases...$(NC)"
+	@echo "$(YELLOW)1. Formatting Python code with black...$(NC)"
+	@. .venv/bin/activate && black src/ tests/
+	@echo "$(YELLOW)2. Formatting Terraform code...$(NC)"
+	@terraform fmt -recursive infra/terraform
+	@echo "$(GREEN)✓ All code formatted successfully!$(NC)"
+
+lint:
+	@echo "$(BLUE)Linting codebases...$(NC)"
+	@echo "$(YELLOW)1. Checking Python formatting (black)...$(NC)"
+	@. .venv/bin/activate && black --check src/ tests/
+	@echo "$(YELLOW)2. Checking Terraform formatting...$(NC)"
+	@terraform fmt -check -recursive infra/terraform
+	@echo "$(GREEN)✓ All linting checks passed!$(NC)"

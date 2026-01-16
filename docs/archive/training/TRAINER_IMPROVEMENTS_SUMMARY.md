@@ -170,7 +170,7 @@ python /tmp/train_model.py
 ```bash
 docker run --rm \
   --network alphapulse-network \
-  -e DATABASE_URL="postgresql://postgres:postgres@alphapulse-postgres:5432/alphapulse" \
+  -e DATABASE_URL="postgresql://postgres:postgres@postgres:5432/alphapulse" \
   -v /tmp/train_model.py:/app/train_model.py \
   python:3.12-slim \
   bash -c "pip install pandas sqlalchemy psycopg2-binary scikit-learn && python /app/train_model.py"

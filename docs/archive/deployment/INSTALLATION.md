@@ -25,5 +25,5 @@
 ## Data Backfill
 To populate the system with 8 years of data:
 ```bash
-docker exec -it alphapulse-trainer python /app/scripts/data/backfill_prices.py
+docker exec -it trainer python /app/scripts/data/backfill_prices.py
 ```

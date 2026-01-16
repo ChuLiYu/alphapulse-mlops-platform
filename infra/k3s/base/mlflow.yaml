@@ -17,7 +17,7 @@ spec:
       - name: regcred
       containers:
       - name: mlflow
-        image: ghcr.io/chuliyu/alphapulse-mlflow:latest
+        image: ghcr.io/chuliyu/alphapulse-mlops-platform/mlflow:latest
         imagePullPolicy: Always
         command: ["mlflow", "server"]
         args:

@@ -30,7 +30,7 @@ pytest --cov=src/alphapulse tests/
 ### Docker Environment (Production-like)
 ```bash
 # Run all tests inside the Airflow environment
-docker exec alphapulse-airflow-scheduler pytest /opt/airflow/tests/ -v
+docker exec airflow-scheduler pytest /opt/airflow/tests/ -v
 ```
 
 ## 🧪 Detailed Test Categories

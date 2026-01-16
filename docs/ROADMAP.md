@@ -22,10 +22,10 @@ AlphaPulse is a **cost-optimized backend infrastructure** for cryptocurrency tra
 - **Docker Compose**: Orchestration for local and production environments.
 - **Container Strategy**:
     - `alphapulse-airflow-*`: Robust orchestration for data pipelines (Webserver, Scheduler).
-    - `alphapulse-trainer`: Dedicated Training API (Scikit-learn, XGBoost) to isolate heavy dependencies.
-    - `alphapulse-fastapi`: Serving Layer for predictions and data access.
-    - `alphapulse-mlflow`: Experiment tracking.
-    - `alphapulse-postgres`: Centralized storage.
+    - `trainer`: Dedicated Training API (Scikit-learn, XGBoost) to isolate heavy dependencies.
+    - `fastapi`: Serving Layer for predictions and data access.
+    - `mlflow`: Experiment tracking.
+    - `postgres`: Centralized storage.
 
 ### 2. Backend & Data
 - **FastAPI**: Type-safe REST API with Pydantic models.

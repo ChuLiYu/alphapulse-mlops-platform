@@ -17,7 +17,7 @@ spec:
       - name: regcred
       containers:
       - name: fastapi
-        image: ghcr.io/chuliyu/alphapulse-fastapi:latest
+        image: ghcr.io/chuliyu/alphapulse-mlops-platform/fastapi:latest
         imagePullPolicy: Always
         env:
         - name: DATABASE_URL
@@ -45,7 +45,7 @@ metadata:
   name: fastapi
   namespace: alphapulse
 spec:
-  type: ClusterIP # 改為 ClusterIP
+  type: ClusterIP
   selector:
     app: fastapi
   ports:

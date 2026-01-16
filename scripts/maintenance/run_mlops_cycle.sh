@@ -13,11 +13,11 @@ sleep 30
 
 # 2. Run Inference (Manual trigger if training still running)
 echo "2. Running Inference Engine..."
-docker exec -e DATABASE_URL=postgresql://postgres:postgres@postgres:5432/alphapulse alphapulse-trainer python /app/src/alphapulse/ml/inference/engine.py
+docker exec -e DATABASE_URL=postgresql://postgres:postgres@postgres:5432/alphapulse trainer python /app/src/alphapulse/ml/inference/engine.py
 
 # 3. Run Monitoring (Drift Detection)
 echo "3. Running Evidently AI Drift Detection..."
-docker exec -e DATABASE_URL=postgresql://postgres:postgres@postgres:5432/alphapulse alphapulse-trainer python /app/src/alphapulse/monitoring/drift_detector.py
+docker exec -e DATABASE_URL=postgresql://postgres:postgres@postgres:5432/alphapulse trainer python /app/src/alphapulse/monitoring/drift_detector.py
 
 echo "✅ Full Cycle Complete!"
 echo "Check MLflow (Port 5001) for results and drift reports."

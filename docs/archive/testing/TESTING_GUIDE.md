@@ -248,7 +248,7 @@ This runs:
 docker ps -a | grep alphapulse
 
 # Check logs
-docker logs alphapulse-postgres
+docker logs postgres
 
 # Restart services
 make down && make up

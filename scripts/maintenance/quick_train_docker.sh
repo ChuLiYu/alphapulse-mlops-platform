@@ -16,7 +16,7 @@ NC='\033[0m' # No Color
 
 # 檢查容器狀態
 echo "📋 檢查 Docker 容器..."
-if ! docker ps | grep -q "alphapulse-trainer"; then
+if ! docker ps | grep -q "trainer"; then
     echo -e "${RED}❌ Trainer 容器未運行${NC}"
     echo "請先啟動容器: docker-compose up -d"
     exit 1
@@ -26,7 +26,7 @@ echo -e "${GREEN}✅ Trainer 容器運行中${NC}"
 # 檢查數據庫
 echo ""
 echo "🔍 檢查數據庫..."
-DB_CHECK=$(docker exec alphapulse-postgres psql -U postgres -d alphapulse -t -c "SELECT COUNT(*) FROM model_features" 2>/dev/null || echo "0")
+DB_CHECK=$(docker exec postgres psql -U postgres -d alphapulse -t -c "SELECT COUNT(*) FROM model_features" 2>/dev/null || echo "0")
 DB_COUNT=$(echo $DB_CHECK | xargs)
 
 if [ "$DB_COUNT" -lt 500 ]; then
@@ -53,7 +53,7 @@ echo "🎯 開始訓練 (這可能需要 5-15 分鐘)..."
 echo "=================================================="
 echo ""
 
-docker exec -it alphapulse-trainer python /app/training/quick_production_train.py
+docker exec -it trainer python /app/training/quick_production_train.py
 
 TRAIN_EXIT_CODE=$?
 
@@ -65,8 +65,8 @@ if [ $TRAIN_EXIT_CODE -eq 0 ]; then
     echo "=================================================="
     echo ""
     echo "📊 下一步:"
-    echo "  1. 查看模型: docker exec alphapulse-trainer ls -lh /app/models/saved/"
-    echo "  2. 查看摘要: docker exec alphapulse-trainer cat /app/models/saved/training_summary.json"
+    echo "  1. 查看模型: docker exec trainer ls -lh /app/models/saved/"
+    echo "  2. 查看摘要: docker exec trainer cat /app/models/saved/training_summary.json"
     echo "  3. 訪問 MLflow: http://localhost:5001"
     echo "  4. 訪問訓練 API: http://localhost:8080/docs"
     echo ""
@@ -76,9 +76,9 @@ else
     echo "=================================================="
     echo ""
     echo "🔍 故障排除:"
-    echo "  1. 檢查日誌: docker logs alphapulse-trainer"
-    echo "  2. 檢查數據: docker exec alphapulse-postgres psql -U postgres -d alphapulse -c 'SELECT COUNT(*) FROM model_features'"
+    echo "  1. 檢查日誌: docker logs trainer"
+    echo "  2. 檢查數據: docker exec postgres psql -U postgres -d alphapulse -c 'SELECT COUNT(*) FROM model_features'"
     echo "  3. 檢查容器健康: docker ps"
-    echo "  4. 進入容器調試: docker exec -it alphapulse-trainer bash"
+    echo "  4. 進入容器調試: docker exec -it trainer bash"
     exit 1
 fi

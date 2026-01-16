@@ -96,7 +96,7 @@ python3 /tmp/train_model.py
 # Run in Docker
 docker run --rm \
   --network alphapulse-network \
-  -e DATABASE_URL="postgresql://postgres:postgres@alphapulse-postgres:5432/alphapulse" \
+  -e DATABASE_URL="postgresql://postgres:postgres@postgres:5432/alphapulse" \
   -v /tmp/train_model.py:/app/train_model.py \
   python:3.12-slim \
   bash -c "pip install -q pandas sqlalchemy psycopg2-binary scikit-learn && python /app/train_model.py"
@@ -311,29 +311,29 @@ docker-compose up -d
 docker-compose ps
 
 # View service logs
-docker logs alphapulse-postgres
-docker logs alphapulse-airflow-webserver
+docker logs postgres
+docker logs airflow-webserver
 
 # Access PostgreSQL
-docker exec -it alphapulse-postgres psql -U postgres -d alphapulse
+docker exec -it postgres psql -U postgres -d alphapulse
 
 # Run training in container
-docker exec alphapulse-trainer python /home/src/train.py
+docker exec trainer python /home/src/train.py
 ```
 
 ### Airflow Commands
 
 ```bash
 # Trigger training DAG manually
-docker exec alphapulse-airflow-webserver \
+docker exec airflow-webserver \
   airflow dags trigger model_training_pipeline
 
 # Check DAG status
-docker exec alphapulse-airflow-webserver \
+docker exec airflow-webserver \
   airflow dags list
 
 # View task logs
-docker exec alphapulse-airflow-webserver \
+docker exec airflow-webserver \
   airflow tasks logs model_training_pipeline trigger_training_job
 ```
 

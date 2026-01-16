@@ -85,7 +85,7 @@ check_health() {
     sleep 5  # Give services time to start
     
     # PostgreSQL
-    if docker exec alphapulse-postgres pg_isready -U postgres &> /dev/null; then
+    if docker exec postgres pg_isready -U postgres &> /dev/null; then
         echo -e "${GREEN}✓ PostgreSQL${NC}"
     else
         echo -e "${RED}✗ PostgreSQL${NC}"

@@ -5,7 +5,7 @@ This guide explains how to use the automated training system to build robust tra
 ## Core Concepts
 
 ### 1. The Trainer API
-The training logic is isolated in a dedicated container (`alphapulse-trainer`) accessible via a REST API. This separates heavy ML dependencies from the data pipeline.
+The training logic is isolated in a dedicated container (`trainer`) accessible via a REST API. This separates heavy ML dependencies from the data pipeline.
 
 ### 2. Training Modes
 - **ultra_fast**: 3 iterations, 3-fold CV. Designed for quick logic verification.
@@ -42,7 +42,7 @@ curl -X POST http://localhost:8181/train -H "Content-Type: application/json" -d 
 ## Monitoring
 Check training progress at:
 - **MLflow UI**: `http://localhost:5001`
-- **Trainer Logs**: `docker logs -f alphapulse-trainer`
+- **Trainer Logs**: `docker logs -f trainer`
 
 ---
 **Version**: 1.0

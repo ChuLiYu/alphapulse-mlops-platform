@@ -40,11 +40,11 @@ docker compose ps
 # - PostgreSQL: localhost:5432
 
 # 6. Run tests (verify ML libraries installed)
-docker exec alphapulse-airflow-scheduler pytest /opt/airflow/tests/unit/ -v
-docker exec alphapulse-airflow-scheduler pytest /opt/airflow/tests/integration/ -v
+docker exec airflow-scheduler pytest /opt/airflow/tests/unit/ -v
+docker exec airflow-scheduler pytest /opt/airflow/tests/integration/ -v
 
 # 7. Check ML library versions
-docker exec alphapulse-trainer python -c "import xgboost, lightgbm, sklearn; \
+docker exec trainer python -c "import xgboost, lightgbm, sklearn; \
   print(f'XGBoost: {xgboost.__version__}'); \
   print(f'LightGBM: {lightgbm.__version__}'); \
   print(f'scikit-learn: {sklearn.__version__}')"
@@ -55,13 +55,13 @@ docker exec alphapulse-trainer python -c "import xgboost, lightgbm, sklearn; \
 ### 1. Data Preparation
 Prepare the dataset for training:
 ```bash
-docker exec alphapulse-trainer python /app/src/alphapulse/ml/prepare_training_data.py
+docker exec trainer python /app/src/alphapulse/ml/prepare_training_data.py
 ```
 
 ### 2. Automated Training
 Train models using Walk-Forward Cross-Validation:
 ```bash
-docker exec alphapulse-trainer python /app/src/alphapulse/ml/auto_train.py
+docker exec trainer python /app/src/alphapulse/ml/auto_train.py
 ```
 
 ### 3. Tracking & Versioning
@@ -80,7 +80,7 @@ cat src/results/training_summary.json
 ### 5. Model Validation
 Verify the trained model:
 ```bash
-docker exec alphapulse-trainer python -c "
+docker exec trainer python -c "
 import joblib
 model = joblib.load('/app/models/saved/best_model.pkl')
 print('Model loaded successfully:', type(model))

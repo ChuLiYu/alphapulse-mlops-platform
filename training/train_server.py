@@ -277,7 +277,7 @@ async def health_check():
     """Health check endpoint"""
     return {
         "status": "healthy",
-        "service": "alphapulse-trainer",
+        "service": "trainer",
         "version": "1.0.0",
         "timestamp": datetime.now().isoformat(),
     }

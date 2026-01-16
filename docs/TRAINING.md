@@ -96,7 +96,7 @@ python3 /tmp/train_model.py
 # Run in Docker
 docker run --rm \
   --network alphapulse-network \
-  -e DATABASE_URL="postgresql://postgres:postgres@alphapulse-postgres:5432/alphapulse" \
+  -e DATABASE_URL="postgresql://postgres:postgres@postgres:5432/alphapulse" \
   -v /tmp/train_model.py:/app/train_model.py \
   python:3.12-slim \
   bash -c "pip install -q pandas sqlalchemy psycopg2-binary scikit-learn && python /app/train_model.py"
@@ -311,29 +311,29 @@ docker-compose up -d
 docker-compose ps
 
 # View service logs
-docker logs alphapulse-postgres
-docker logs alphapulse-airflow-webserver
+docker logs postgres
+docker logs airflow-webserver
 
 # Access PostgreSQL
-docker exec -it alphapulse-postgres psql -U postgres -d alphapulse
+docker exec -it postgres psql -U postgres -d alphapulse
 
 # Run training in container
-docker exec alphapulse-trainer python /home/src/train.py
+docker exec trainer python /home/src/train.py
 ```
 
 ### Airflow Commands
 
 ```bash
 # Trigger training DAG manually
-docker exec alphapulse-airflow-webserver \
+docker exec airflow-webserver \
   airflow dags trigger model_training_pipeline
 
 # Check DAG status
-docker exec alphapulse-airflow-webserver \
+docker exec airflow-webserver \
   airflow dags list
 
 # View task logs
-docker exec alphapulse-airflow-webserver \
+docker exec airflow-webserver \
   airflow tasks logs model_training_pipeline trigger_training_job
 ```
 
@@ -660,21 +660,21 @@ Five comprehensive tests:
 ```bash
 # Build image
 cd /tmp
-docker build -f Dockerfile.trainer -t alphapulse-trainer:2.0 .
+docker build -f Dockerfile.trainer -t trainer:2.0 .
 
 # Run training
 docker run --rm \
   --network alphapulse-network \
-  -e DATABASE_URL="postgresql://postgres:postgres@alphapulse-postgres:5432/alphapulse" \
+  -e DATABASE_URL="postgresql://postgres:postgres@postgres:5432/alphapulse" \
   -v /tmp/alphapulse_models:/models \
-  alphapulse-trainer:2.0
+  trainer:2.0
 
 # Run validation
 docker run --rm \
   --network alphapulse-network \
-  -e DATABASE_URL="postgresql://postgres:postgres@alphapulse-postgres:5432/alphapulse" \
+  -e DATABASE_URL="postgresql://postgres:postgres@postgres:5432/alphapulse" \
   -v /tmp/alphapulse_models:/models \
-  alphapulse-trainer:2.0 \
+  trainer:2.0 \
   python validate_model.py
 ```
 
@@ -688,9 +688,9 @@ services:
     build:
       context: /tmp
       dockerfile: Dockerfile.trainer
-    image: alphapulse-trainer:2.0
+    image: trainer:2.0
     environment:
-      - DATABASE_URL=postgresql://postgres:postgres@alphapulse-postgres:5432/alphapulse
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/alphapulse
     volumes:
       - alphapulse_models:/models
     networks:
@@ -748,7 +748,7 @@ echo $DATABASE_URL
 # Reduce hyperparameter combinations
 # Load data in chunks
 # Increase Docker memory limit
-docker run --memory 4g alphapulse-trainer:2.0
+docker run --memory 4g trainer:2.0
 ```
 
 ---
