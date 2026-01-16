@@ -9,6 +9,7 @@ from pydantic import BaseModel
 
 class AccessLog(BaseModel):
     """Represents a single access log entry for the Threat Map."""
+
     ip: str
     country: str
     lat: float
@@ -18,4 +19,5 @@ class AccessLog(BaseModel):
 
 class AccessLogsResponse(BaseModel):
     """Response wrapper for access logs."""
+
     data: List[AccessLog]

@@ -1,4 +1,3 @@
-
 import unittest
 import time
 import pandas as pd
@@ -10,8 +9,9 @@ import requests
 # Set environment variables if needed
 # os.environ['AIRFLOW_HOME'] = '/opt/airflow'
 
+
 class TestEndToEndPipeline(unittest.TestCase):
-    
+
     @classmethod
     def setUpClass(cls):
         # Allow connection to the postgres DB (assuming localhost mapping or inside container)
@@ -39,15 +39,25 @@ class TestEndToEndPipeline(unittest.TestCase):
 
         # 1. Verification of BTC Data
         prices_df = pd.read_sql("SELECT count(*) as cnt FROM prices", self.conn)
-        self.assertGreater(prices_df['cnt'].iloc[0], 0, "Prices table should not be empty")
+        self.assertGreater(
+            prices_df["cnt"].iloc[0], 0, "Prices table should not be empty"
+        )
 
         # 2. Verification of Sentiment Data
-        sentiment_df = pd.read_sql("SELECT count(*) as cnt FROM sentiment_scores", self.conn)
-        self.assertGreater(sentiment_df['cnt'].iloc[0], 0, "Sentiment scores should not be empty")
+        sentiment_df = pd.read_sql(
+            "SELECT count(*) as cnt FROM sentiment_scores", self.conn
+        )
+        self.assertGreater(
+            sentiment_df["cnt"].iloc[0], 0, "Sentiment scores should not be empty"
+        )
 
         # 3. Verification of Features
-        features_df = pd.read_sql("SELECT count(*) as cnt FROM model_features", self.conn)
-        self.assertGreater(features_df['cnt'].iloc[0], 0, "Model features should not be empty")
+        features_df = pd.read_sql(
+            "SELECT count(*) as cnt FROM model_features", self.conn
+        )
+        self.assertGreater(
+            features_df["cnt"].iloc[0], 0, "Model features should not be empty"
+        )
 
         print("Data verification passed!")
 
@@ -61,7 +71,10 @@ class TestEndToEndPipeline(unittest.TestCase):
             self.assertEqual(resp.status_code, 200)
             print("Trainer is healthy")
         except Exception as e:
-            print(f"Trainer check failed (might be expected if not running locally): {e}")
+            print(
+                f"Trainer check failed (might be expected if not running locally): {e}"
+            )
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

@@ -125,7 +125,6 @@ class TestDockerServices:
         except requests.exceptions.RequestException as e:
             pytest.fail(f"❌ Ollama service not accessible: {e}")
 
-
     def test_minio_health(self):
         """Test MinIO (S3-compatible storage) is healthy."""
         try:
@@ -153,7 +152,6 @@ class TestDockerServices:
             # Optional: check detailed health if it exists
             # assert "database" in data or data["service"] == "AlphaPulse API", "Invalid health response"
             print(f"✅ FastAPI health: {data}")
-
 
         except requests.exceptions.RequestException as e:
             pytest.fail(f"❌ FastAPI health endpoint failed: {e}")
@@ -248,6 +246,7 @@ class TestPipelineImports:
         """Test AlphaPulse core modules import."""
         try:
             from alphapulse.utils.logging import logger
+
             print("✅ AlphaPulse core modules import successfully")
         except ImportError as e:
             pytest.fail(f"❌ Cannot import AlphaPulse core: {e}")

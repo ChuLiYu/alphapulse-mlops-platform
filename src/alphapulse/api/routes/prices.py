@@ -27,19 +27,20 @@ router = APIRouter()
 
 import random
 
+
 def generate_mock_prices(symbol: str, count: int = 30):
     """Generate realistic mock price data when DB is empty."""
     prices = []
     base_price = Decimal("95000") if "BTC" in symbol else Decimal("2500")
     now = datetime.utcnow()
-    
+
     current_price = base_price
     for i in range(count):
         # Brownian motion-ish walk
         change = Decimal(str(random.gauss(0.0005, 0.01)))
         current_price = current_price * (1 + change)
         timestamp = now - timedelta(hours=4 * (count - i))
-        
+
         # Create a mock object that looks like the SQLAlchemy model
         class MockPrice:
             def __init__(self, s, p, v, t):
@@ -48,10 +49,15 @@ def generate_mock_prices(symbol: str, count: int = 30):
                 self.price = p
                 self.volume = v
                 self.timestamp = t
-        
-        prices.append(MockPrice(symbol, current_price, Decimal(str(random.uniform(10, 100))), timestamp))
-    
+
+        prices.append(
+            MockPrice(
+                symbol, current_price, Decimal(str(random.uniform(10, 100))), timestamp
+            )
+        )
+
     return prices
+
 
 @router.get("/prices", response_model=PriceListResponse)
 async def get_prices(
@@ -124,7 +130,9 @@ async def get_latest_price(
     if not price:
         # Fallback to mock latest price
         mock_price = generate_mock_prices(symbol, 1)[0]
-        return PriceResponse(success=True, data=mock_price, message=f"Latest price for {symbol} (Mocked)")
+        return PriceResponse(
+            success=True, data=mock_price, message=f"Latest price for {symbol} (Mocked)"
+        )
 
     return PriceResponse(success=True, data=price, message=f"Latest price for {symbol}")
 

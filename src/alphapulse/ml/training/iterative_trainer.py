@@ -22,8 +22,10 @@ import mlflow.sklearn
 import numpy as np
 import pandas as pd
 import xgboost as xgb
+
 try:
     from catboost import CatBoostRegressor
+
     CATBOOST_AVAILABLE = True
 except ImportError:
     CATBOOST_AVAILABLE = False
@@ -102,7 +104,6 @@ class TrainingConfig:
     use_optuna: bool = False
     optuna_n_trials: int = 50
     optuna_timeout: int = 3600  # 1 hour
-
 
 
 @dataclass
@@ -287,36 +288,46 @@ class IterativeTrainer:
         """
         # 1. Identify Target
         y = df[self.config.target_column].copy()
-        
+
         # 2. Identify Non-Feature Columns (Blacklist)
         blacklist = [
-            "id", "date", "ticker", "created_at", "feature_set_version", 
-            "data_source", "price_change_1d", "price_change_3d", "price_change_7d",
-            "loaded_at", "processed_at", "target_return", self.config.target_column
+            "id",
+            "date",
+            "ticker",
+            "created_at",
+            "feature_set_version",
+            "data_source",
+            "price_change_1d",
+            "price_change_3d",
+            "price_change_7d",
+            "loaded_at",
+            "processed_at",
+            "target_return",
+            self.config.target_column,
         ]
-        
+
         # 3. Create X by selecting only NUMERIC columns and dropping blacklist
         X = df.select_dtypes(include=[np.number]).copy()
-        
+
         # Drop blacklist columns and any column starting with 'metadata_'
         cols_to_drop = [c for c in blacklist if c in X.columns]
         metadata_cols = [c for c in X.columns if c.startswith("metadata_")]
         cols_to_drop.extend(metadata_cols)
-        
+
         X = X.drop(columns=list(set(cols_to_drop)))
-        
+
         print(f"DEBUG: X columns = {X.columns.tolist()}")
-        
+
         # 4. Handle missing/inf values
         X = X.replace([np.inf, -np.inf], np.nan)
         X = X.fillna(X.median())
-        
+
         # Final safety check: ensuring no object/datetime dtypes remain
         non_numeric = X.select_dtypes(exclude=[np.number]).columns
         if not non_numeric.empty:
             print(f"⚠️ Warning: Dropping non-numeric columns: {non_numeric.tolist()}")
             X = X.drop(columns=non_numeric)
-            
+
         return X, y
 
     def run_cross_validation(
@@ -330,9 +341,7 @@ class IterativeTrainer:
         tscv = TimeSeriesSplit(n_splits=n_splits)
         cv_scores = []
 
-        print(
-            f"\n  🔄 Running {n_splits}-fold time series cross-validation..."
-        )
+        print(f"\n  🔄 Running {n_splits}-fold time series cross-validation...")
 
         for fold, (train_idx, val_idx) in enumerate(tscv.split(X), 1):
             X_train_cv = X.iloc[train_idx]
@@ -485,10 +494,10 @@ class IterativeTrainer:
             # 1. MAE Gap (Still useful but sensitive to scale)
             train_val_gap = abs(train_mae - val_mae) / train_mae if train_mae > 0 else 0
             val_test_gap = abs(val_mae - test_mae) / val_mae if val_mae > 0 else 0
-            
+
             # 2. R2 Stability (More robust to market regime changes)
             r2_gap = abs(train_r2 - val_r2)
-            
+
             # 3. Scientific Overfitting Rule:
             # - R2 gap should not be huge
             # - Val R2 must be positive
@@ -527,14 +536,16 @@ class IterativeTrainer:
                 model_filename = f"{model_name}_iter{iteration}.pkl"
                 model_path = os.path.join(self.config.output_dir, model_filename)
                 joblib.dump(model, model_path)
-                
+
                 try:
                     mlflow.log_artifact(model_path)
                     print(f"\n💾 Model saved to MLflow: {model_path}")
                 except Exception as artifact_err:
-                    print(f"\n⚠️ Warning: Failed to upload artifact to MLflow: {artifact_err}")
+                    print(
+                        f"\n⚠️ Warning: Failed to upload artifact to MLflow: {artifact_err}"
+                    )
                     print(f"   Model is still available locally at: {model_path}")
-                
+
                 print(f"✅ Local model saved: {model_path}")
 
             training_time = time.time() - start_time
@@ -661,8 +672,10 @@ class IterativeTrainer:
 
         def objective(trial):
             # Model Selection
-            classifier_name = trial.suggest_categorical("regressor", ["CatBoost", "XGBoost", "RandomForest", "Ridge"])
-            
+            classifier_name = trial.suggest_categorical(
+                "regressor", ["CatBoost", "XGBoost", "RandomForest", "Ridge"]
+            )
+
             model = None
             params = {}
 
@@ -670,12 +683,16 @@ class IterativeTrainer:
                 params = {
                     "iterations": trial.suggest_int("cat_iterations", 100, 500),
                     "depth": trial.suggest_int("cat_depth", 4, 10),
-                    "learning_rate": trial.suggest_float("cat_learning_rate", 0.01, 0.3, log=True),
+                    "learning_rate": trial.suggest_float(
+                        "cat_learning_rate", 0.01, 0.3, log=True
+                    ),
                     "l2_leaf_reg": trial.suggest_float("cat_l2_leaf_reg", 1.0, 10.0),
-                    "bootstrap_type": trial.suggest_categorical("cat_bootstrap", ["Bernoulli", "MVS"]),
+                    "bootstrap_type": trial.suggest_categorical(
+                        "cat_bootstrap", ["Bernoulli", "MVS"]
+                    ),
                     "random_state": 42,
                     "logging_level": "Silent",
-                    "thread_count": 2
+                    "thread_count": 2,
                 }
                 if params["bootstrap_type"] == "Bernoulli":
                     params["subsample"] = trial.suggest_float("cat_subsample", 0.1, 1.0)
@@ -685,55 +702,63 @@ class IterativeTrainer:
                 params = {
                     "n_estimators": trial.suggest_int("n_estimators", 50, 300),
                     "max_depth": trial.suggest_int("max_depth", 2, 10),
-                    "learning_rate": trial.suggest_float("learning_rate", 0.01, 0.3, log=True),
+                    "learning_rate": trial.suggest_float(
+                        "learning_rate", 0.01, 0.3, log=True
+                    ),
                     "subsample": trial.suggest_float("subsample", 0.5, 1.0),
-                    "colsample_bytree": trial.suggest_float("colsample_bytree", 0.5, 1.0),
+                    "colsample_bytree": trial.suggest_float(
+                        "colsample_bytree", 0.5, 1.0
+                    ),
                     "reg_alpha": trial.suggest_float("reg_alpha", 1e-3, 10.0, log=True),
-                    "reg_lambda": trial.suggest_float("reg_lambda", 1e-3, 10.0, log=True),
-                    "random_state": 42
+                    "reg_lambda": trial.suggest_float(
+                        "reg_lambda", 1e-3, 10.0, log=True
+                    ),
+                    "random_state": 42,
                 }
                 model = xgb.XGBRegressor(**params)
                 if hasattr(model, "early_stopping_rounds"):
                     model.early_stopping_rounds = 20
-            
+
             elif classifier_name == "RandomForest":
                 params = {
                     "n_estimators": trial.suggest_int("rf_n_estimators", 50, 200),
                     "max_depth": trial.suggest_int("rf_max_depth", 3, 20),
-                    "min_samples_split": trial.suggest_int("rf_min_samples_split", 2, 20),
+                    "min_samples_split": trial.suggest_int(
+                        "rf_min_samples_split", 2, 20
+                    ),
                     "min_samples_leaf": trial.suggest_int("rf_min_samples_leaf", 1, 10),
                     "random_state": 42,
-                    "n_jobs": -1
+                    "n_jobs": -1,
                 }
                 model = RandomForestRegressor(**params)
-            
+
             elif classifier_name == "Ridge":
                 params = {
                     "alpha": trial.suggest_float("ridge_alpha", 0.01, 10.0, log=True),
-                    "random_state": 42
+                    "random_state": 42,
                 }
                 model = Ridge(**params)
 
             elif classifier_name == "Lasso":
                 params = {
                     "alpha": trial.suggest_float("lasso_alpha", 0.001, 10.0, log=True),
-                    "random_state": 42
+                    "random_state": 42,
                 }
                 model = Lasso(**params)
 
             # CV Evaluation
             tscv = TimeSeriesSplit(n_splits=3)
             scores = []
-            
+
             for train_idx, val_idx in tscv.split(X_train):
                 X_t, X_v = X_train.iloc[train_idx], X_train.iloc[val_idx]
                 y_t, y_v = y_train.iloc[train_idx], y_train.iloc[val_idx]
-                
+
                 if classifier_name == "XGBoost":
                     model.fit(X_t, y_t, eval_set=[(X_v, y_v)], verbose=False)
                 else:
                     model.fit(X_t, y_t)
-                
+
                 preds = model.predict(X_v)
                 scores.append(mean_absolute_error(y_v, preds))
 
@@ -741,7 +766,11 @@ class IterativeTrainer:
 
         # Run Optimization
         study = optuna.create_study(direction="minimize")
-        study.optimize(objective, n_trials=self.config.optuna_n_trials, timeout=self.config.optuna_timeout)
+        study.optimize(
+            objective,
+            n_trials=self.config.optuna_n_trials,
+            timeout=self.config.optuna_timeout,
+        )
 
         print(f"\n🏆 Best trial:")
         print(f"  Value (MAE): {study.best_value:.5f}")
@@ -753,47 +782,63 @@ class IterativeTrainer:
         print("\n🏋️ Training final best model...")
         best_params = study.best_trial.params
         model_type = best_params.pop("regressor")
-        
+
         final_model = None
         # Reconstruct params cleaning prefix if needed (simplified here)
         # Note: Optuna params are flat, we need to map back to specific model construction
         # For simplicity, we re-instantiate based on the best trial's chosen model type
-        
+
         if model_type == "CatBoost":
-            p = {k.replace("cat_", ""): v for k, v in best_params.items() if k.startswith("cat_")}
-            final_model = CatBoostRegressor(**p, random_state=42, logging_level="Silent", thread_count=2)
+            p = {
+                k.replace("cat_", ""): v
+                for k, v in best_params.items()
+                if k.startswith("cat_")
+            }
+            final_model = CatBoostRegressor(
+                **p, random_state=42, logging_level="Silent", thread_count=2
+            )
         elif model_type == "XGBoost":
             # Extract XGB params
-            p = {k: v for k, v in best_params.items() if not k.startswith("rf_") and not k.startswith("ridge_") and not k.startswith("lasso_")}
+            p = {
+                k: v
+                for k, v in best_params.items()
+                if not k.startswith("rf_")
+                and not k.startswith("ridge_")
+                and not k.startswith("lasso_")
+            }
             final_model = xgb.XGBRegressor(**p, random_state=42)
         elif model_type == "RandomForest":
-             p = {k.replace("rf_", ""): v for k, v in best_params.items() if k.startswith("rf_")}
-             final_model = RandomForestRegressor(**p, random_state=42, n_jobs=-1)
+            p = {
+                k.replace("rf_", ""): v
+                for k, v in best_params.items()
+                if k.startswith("rf_")
+            }
+            final_model = RandomForestRegressor(**p, random_state=42, n_jobs=-1)
         elif model_type == "Ridge":
-             p = {"alpha": best_params["ridge_alpha"], "random_state": 42}
-             final_model = Ridge(**p)
+            p = {"alpha": best_params["ridge_alpha"], "random_state": 42}
+            final_model = Ridge(**p)
         elif model_type == "Lasso":
-             p = {"alpha": best_params["lasso_alpha"], "random_state": 42}
-             final_model = Lasso(**p)
+            p = {"alpha": best_params["lasso_alpha"], "random_state": 42}
+            final_model = Lasso(**p)
 
         # Final Training
         final_model.fit(X_train, y_train)
-        
+
         # Evaluate
         y_val_pred = final_model.predict(X_val)
         val_mae = mean_absolute_error(y_val, y_val_pred)
-        
+
         print(f"✅ Final Validation MAE: {val_mae:.5f}")
-        
+
         # Save Best Model
         model_path = os.path.join(self.config.output_dir, "best_optuna_model.pkl")
         joblib.dump(final_model, model_path)
         print(f"💾 Model saved to {model_path}")
-        
+
         return {
             "best_value": study.best_value,
             "best_params": study.best_trial.params,
-            "model_path": model_path
+            "model_path": model_path,
         }
 
     def run_iterative_training(self) -> Dict[str, Any]:
@@ -865,13 +910,15 @@ class IterativeTrainer:
                 model_name = "AlphaPulse_BTC_Model"
                 run_id = self.best_result.mlflow_run_id
                 model_uri = f"runs:/{run_id}/model"
-                
+
                 print(f"📦 Attempting to register model '{model_name}' in Registry...")
                 result = mlflow.register_model(model_uri, model_name)
                 print(f"✅ Model registered as version {result.version}")
             except Exception as reg_err:
                 print(f"\n⚠️ Warning: Model registration in MLflow failed: {reg_err}")
-                print("   The training process will finish successfully. Use the local best_model.pkl.")
+                print(
+                    "   The training process will finish successfully. Use the local best_model.pkl."
+                )
 
             # Save summary
             summary_path = os.path.join(self.config.output_dir, "training_summary.json")

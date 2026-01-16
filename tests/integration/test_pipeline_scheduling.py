@@ -20,7 +20,7 @@ class TestPipelineScheduling:
     def test_schedules_exist_in_database(self):
         """
         驗證所有必要的排程存在於 Mage 資料庫中
-        
+
         這個測試確保：
         1. 排程已經被創建
         2. 排程與正確的管道關聯
@@ -68,19 +68,13 @@ class TestPipelineScheduling:
             # 組合錯誤訊息
             error_messages = []
             if missing_schedules:
-                error_messages.append(
-                    f"❌ 缺少排程: {', '.join(missing_schedules)}"
-                )
+                error_messages.append(f"❌ 缺少排程: {', '.join(missing_schedules)}")
             if inactive_schedules:
-                error_messages.append(
-                    f"⚠️ 非活躍排程: {', '.join(inactive_schedules)}"
-                )
+                error_messages.append(f"⚠️ 非活躍排程: {', '.join(inactive_schedules)}")
 
             assert not error_messages, "\n".join(error_messages)
 
-            print(
-                f"✅ 所有 {len(required_schedules)} 個排程都存在且處於活躍狀態"
-            )
+            print(f"✅ 所有 {len(required_schedules)} 個排程都存在且處於活躍狀態")
 
         except ImportError as e:
             pytest.skip(f"無法導入 Mage 模組，跳過測試: {e}")
@@ -88,7 +82,7 @@ class TestPipelineScheduling:
     def test_schedule_intervals_correct(self):
         """
         驗證排程間隔設定正確
-        
+
         這個測試確保：
         1. 排程的執行頻率符合預期
         2. Cron 表達式格式正確
@@ -126,8 +120,8 @@ class TestPipelineScheduling:
                         f"實際 '{actual_interval}'"
                     )
 
-            assert not mismatched_intervals, (
-                f"排程間隔設定錯誤:\n" + "\n".join(mismatched_intervals)
+            assert not mismatched_intervals, f"排程間隔設定錯誤:\n" + "\n".join(
+                mismatched_intervals
             )
 
             print("✅ 所有排程間隔設定正確")
@@ -138,7 +132,7 @@ class TestPipelineScheduling:
     def test_schedule_start_times_set(self):
         """
         驗證排程有設定開始時間
-        
+
         沒有開始時間的排程可能永遠不會執行
         """
         try:
@@ -173,7 +167,7 @@ class TestPipelineScheduling:
     def test_pipelines_referenced_by_schedules_exist(self):
         """
         驗證排程引用的管道實際存在
-        
+
         避免「排程存在但管道不存在」的情況
         """
         try:
@@ -195,18 +189,15 @@ class TestPipelineScheduling:
             for schedule in active_schedules:
                 try:
                     # 嘗試載入管道
-                    Pipeline.get(
-                        schedule.pipeline_uuid, repo_path=schedule.repo_path
-                    )
+                    Pipeline.get(schedule.pipeline_uuid, repo_path=schedule.repo_path)
                 except Exception as e:
                     missing_pipelines.append(
                         f"{schedule.name} -> {schedule.pipeline_uuid} ({str(e)})"
                     )
 
-            assert not missing_pipelines, (
-                f"以下排程引用的管道不存在或無法載入:\n"
-                + "\n".join(missing_pipelines)
-            )
+            assert (
+                not missing_pipelines
+            ), f"以下排程引用的管道不存在或無法載入:\n" + "\n".join(missing_pipelines)
 
             print(f"✅ 所有 {len(active_schedules)} 個排程的管道都存在")
 
@@ -221,7 +212,7 @@ class TestPipelineExecutionHistory:
     def test_pipelines_have_execution_history(self):
         """
         驗證管道有執行歷史記錄
-        
+
         如果管道從未執行過，可能表示排程有問題
         """
         try:
@@ -258,10 +249,7 @@ class TestPipelineExecutionHistory:
 
             # 這是警告而不是錯誤，因為新部署的系統可能沒有執行歷史
             if pipelines_never_run:
-                print(
-                    f"⚠️ 警告：以下管道從未執行過:\n"
-                    + "\n".join(pipelines_never_run)
-                )
+                print(f"⚠️ 警告：以下管道從未執行過:\n" + "\n".join(pipelines_never_run))
                 print("這可能是正常的（如果是新部署）或表示排程未正常工作")
             else:
                 print("✅ 所有活躍管道都有執行歷史")
@@ -272,7 +260,7 @@ class TestPipelineExecutionHistory:
     def test_recent_pipeline_runs_not_all_failed(self):
         """
         驗證最近的管道執行不是全部失敗
-        
+
         如果所有最近的執行都失敗，說明有系統性問題
         """
         try:
@@ -318,9 +306,10 @@ class TestPipelineExecutionHistory:
                         f"{schedule.name} (最近 {len(recent_runs)} 次執行全部失敗)"
                     )
 
-            assert not pipelines_all_failed, (
-                f"以下管道最近的執行全部失敗，表示有嚴重問題:\n"
-                + "\n".join(pipelines_all_failed)
+            assert (
+                not pipelines_all_failed
+            ), f"以下管道最近的執行全部失敗，表示有嚴重問題:\n" + "\n".join(
+                pipelines_all_failed
             )
 
             print("✅ 沒有管道的最近執行全部失敗")
