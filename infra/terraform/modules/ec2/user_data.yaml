@@ -96,7 +96,7 @@ write_files:
           environment:
             - AIRFLOW__CORE__EXECUTOR=LocalExecutor
             - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://postgres:${postgres_password}@postgres:5432/airflow
-            - AIRFLOW__CORE__FERNET_KEY=${AIRFLOW_FERNET_KEY:-afrRCi0qTwZEvSfVJVGoNbkAWdiSqsXDq-ijdSaIs5g=}
+            - AIRFLOW__CORE__FERNET_KEY=$${AIRFLOW_FERNET_KEY:-afrRCi0qTwZEvSfVJVGoNbkAWdiSqsXDq-ijdSaIs5g=}
             - AIRFLOW__CORE__LOAD_EXAMPLES=False
             - AIRFLOW__API__AUTH_BACKENDS=airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session
             - AWS_ACCESS_KEY_ID=${minio_access_key}
@@ -123,7 +123,7 @@ write_files:
           environment:
             - AIRFLOW__CORE__EXECUTOR=LocalExecutor
             - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://postgres:${postgres_password}@postgres:5432/airflow
-            - AIRFLOW__CORE__FERNET_KEY=${AIRFLOW_FERNET_KEY:-afrRCi0qTwZEvSfVJVGoNbkAWdiSqsXDq-ijdSaIs5g=}
+            - AIRFLOW__CORE__FERNET_KEY=$${AIRFLOW_FERNET_KEY:-afrRCi0qTwZEvSfVJVGoNbkAWdiSqsXDq-ijdSaIs5g=}
             - AIRFLOW__CORE__LOAD_EXAMPLES=False
             - AWS_ACCESS_KEY_ID=${minio_access_key}
             - AWS_SECRET_ACCESS_KEY=${minio_secret_key}
