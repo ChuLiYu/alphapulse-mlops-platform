@@ -10,7 +10,7 @@ provider "oci" {
 }
 
 provider "cloudflare" {
-  api_token = var.cloudflare_api_token
+  api_token = trimspace(var.cloudflare_api_token)
 }
 
 # --- Networking: Reserved Static IP ---
@@ -23,9 +23,9 @@ resource "oci_core_public_ip" "alphapulse_static_ip" {
 
 # --- Cloudflare: DNS Record ---
 resource "cloudflare_record" "frontend" {
-  zone_id = var.cloudflare_zone_id
+  zone_id = trimspace(var.cloudflare_zone_id)
   name    = split(".", var.domain_name)[0]
-  value   = oci_core_public_ip.alphapulse_static_ip.ip_address
+  content = oci_core_public_ip.alphapulse_static_ip.ip_address
   type    = "A"
   proxied = true
 }
