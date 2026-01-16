@@ -50,7 +50,7 @@ class User(Base):
         "APIKey", back_populates="user", cascade="all, delete-orphan"
     )
     roles = relationship(
-        "UserRole", back_populates="user", cascade="all, delete-orphan"
+        "UserRole", back_populates="user", cascade="all, delete-orphan", foreign_keys="[UserRole.user_id]"
     )
 
     def __repr__(self) -> str:

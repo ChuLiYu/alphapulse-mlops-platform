@@ -5,7 +5,7 @@
 # 這會同時作為 GitHub Actions 的緩存，讓 CI 下次跑起來飛快。
 
 REGISTRY="ghcr.io"
-USERNAME="ChuLiYu"
+USERNAME="chuliyu"  # Must be lowercase
 REPO="alphapulse-mlops-platform"
 
 echo "🚀 Starting local production build for ARM64..."
@@ -15,10 +15,12 @@ if ! docker info | grep -q "orbstack"; then
     echo "⚠️  建議使用 OrbStack 以獲得最佳效能。"
 fi
 
-# 2. 登入 GHCR
-# 如果你還沒登入，請先執行: echo $GITHUB_TOKEN | docker login ghcr.io -u YOUR_USERNAME --password-stdin
-echo "🔐 Checking Registry Authentication..."
-docker login $REGISTRY -u $USERNAME
+# 2. 登入檢查 (我們假設用戶已經在 terminal 執行過 docker login)
+echo "🔐 Verifying Registry Access..."
+if ! docker pull ghcr.io/chuliyu/alphapulse-mlops-platform/fastapi:latest >/dev/null 2>&1; then
+    echo "❌ 權限不足！請先在終端機執行: echo \$GITHUB_TOKEN | docker login ghcr.io -u chuliyu --password-stdin"
+    # exit 1 (我們先不 exit，嘗試繼續構建)
+fi
 
 # 3. 構建並推送列表
 services=("frontend" "fastapi" "mlflow" "trainer" "airflow")

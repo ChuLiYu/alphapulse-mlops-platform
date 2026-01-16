@@ -1,9 +1,29 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { ThemeProvider, CssBaseline, Box } from '@mui/material';
+import { ThemeProvider, CssBaseline, Box, Typography, alpha } from '@mui/material';
 import theme from './theme';
 import Sidebar from './components/layout/Sidebar';
 import Dashboard from './pages/Dashboard';
+import MLOpsConsole from './pages/MLOpsConsole';
+
+const PlaceholderPage: React.FC<{ title: string }> = ({ title }) => (
+  <Box 
+    sx={{ 
+      height: '80vh', 
+      display: 'flex', 
+      flexDirection: 'column',
+      justifyContent: 'center', 
+      alignItems: 'center',
+      border: '1px dashed',
+      borderColor: alpha('#00d2ff', 0.2),
+      borderRadius: 4,
+      bgcolor: alpha('#00d2ff', 0.02)
+    }}
+  >
+    <Typography variant="h4" gutterBottom color="primary">{title}</Typography>
+    <Typography variant="body1" color="text.secondary">This feature is currently under development for the MLOps Platform.</Typography>
+  </Box>
+);
 
 const App: React.FC = () => {
   return (
@@ -22,9 +42,9 @@ const App: React.FC = () => {
           >
             <Routes>
               <Route path="/" element={<Dashboard />} />
-              <Route path="/market" element={<Box><Typography variant="h4">Market Data (Coming Soon)</Typography></Box>} />
-              <Route path="/signals" element={<Box><Typography variant="h4">Trading Signals (Coming Soon)</Typography></Box>} />
-              <Route path="/status" element={<Box><Typography variant="h4">System Status (Coming Soon)</Typography></Box>} />
+              <Route path="/market" element={<PlaceholderPage title="Market Data" />} />
+              <Route path="/signals" element={<PlaceholderPage title="Trading Signals" />} />
+              <Route path="/status" element={<MLOpsConsole />} />
             </Routes>
           </Box>
         </Box>
@@ -32,7 +52,5 @@ const App: React.FC = () => {
     </ThemeProvider>
   );
 };
-
-import { Typography } from '@mui/material';
 
 export default App;

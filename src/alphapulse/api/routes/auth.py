@@ -121,6 +121,17 @@ class RoleResponse(BaseModel):
         from_attributes = True
 
 
+class RoleSwitchRequest(BaseModel):
+    """Request model for switching user role (Simulation)."""
+    target_role: str
+
+
+class RoleSwitchResponse(BaseModel):
+    """Response model for role switching."""
+    status: str
+    permissions: List[str]
+
+
 # Authentication endpoints
 @router.post(
     "/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED
@@ -211,6 +222,32 @@ async def login(
         access_token=access_token,
         refresh_token=refresh_token,
         expires_in=30 * 60,  # 30 minutes in seconds
+    )
+
+
+@router.post("/switch-role", response_model=RoleSwitchResponse)
+async def switch_role(
+    role_data: RoleSwitchRequest,
+    current_user: User = Depends(get_current_user_from_token)
+):
+    """
+    Simulate switching roles (Dev/Demo only).
+    
+    This is used for frontend SecOps demonstrations to show how the UI adapts
+    to different permission levels.
+    """
+    # Simple logic mapping for demo
+    permissions = []
+    if role_data.target_role == "admin":
+        permissions = list(PERMISSIONS.keys())
+    elif role_data.target_role == "trader":
+        permissions = ["signal:view", "trade:execute"]
+    else:
+        permissions = ["signal:view"]
+        
+    return RoleSwitchResponse(
+        status="switched",
+        permissions=permissions
     )
 
 

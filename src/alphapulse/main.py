@@ -68,7 +68,7 @@ async def health_check():
 
 
 # Import routers after app creation to avoid circular imports
-from alphapulse.api.routes import auth, health, indicators, prices, signals
+from alphapulse.api.routes import auth, health, indicators, prices, signals, simulation, ops, security
 
 # Include routers
 app.include_router(health.router, prefix="/api/v1", tags=["health"])
@@ -76,6 +76,9 @@ app.include_router(prices.router, prefix="/api/v1", tags=["prices"])
 app.include_router(signals.router, prefix="/api/v1", tags=["signals"])
 app.include_router(indicators.router, prefix="/api/v1", tags=["indicators"])
 app.include_router(auth.router, prefix="/api/v1", tags=["authentication"])
+app.include_router(simulation.router, prefix="/api/v1", tags=["simulation"])
+app.include_router(ops.router, prefix="/api/v1", tags=["mlops"])
+app.include_router(security.router, prefix="/api/v1", tags=["security"])
 
 if __name__ == "__main__":
     import uvicorn

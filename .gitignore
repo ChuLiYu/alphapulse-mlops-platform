@@ -49,3 +49,6 @@ dist/
 .gemini/
 .clineroot
 # Private Security Zone
+.env.oci
+*.tfvars
+infra/terraform/environments/prod/prod.tfvars

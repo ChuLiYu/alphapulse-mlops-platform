@@ -204,7 +204,7 @@ health:
 	@curl -sf http://localhost:8080/health > /dev/null && echo "$(GREEN)✓ Airflow is healthy$(NC)" || echo "$(RED)✗ Airflow is down$(NC)"
 	@echo ""
 	@echo "$(YELLOW)Checking MLflow...$(NC)"
-	@curl -sf http://localhost:5001/health > /dev/null && echo "$(GREEN)✓ MLflow is healthy$(NC)" || echo "$(RED)✗ MLflow is down$(NC)"
+	@curl -sf http://localhost:5002/health > /dev/null && echo "$(GREEN)✓ MLflow is healthy$(NC)" || echo "$(RED)✗ MLflow is down$(NC)"
 	@echo ""
 	@echo "$(BLUE)════════════════════════════════════════════════════════════════$(NC)"
 
@@ -321,14 +321,14 @@ ports:
 	@echo "  PostgreSQL: 5432"
 	@echo "  MinIO API: 9000"
 	@echo "  MinIO Console: 9001"
-	@echo "  MLflow: 5001"
+	@echo "  MLflow: 5002"
 	@echo "  Airflow: 8080"
 
 urls:
 	@echo "Service URLs:"
 	@echo "  FastAPI: http://localhost:8000"
 	@echo "  FastAPI Docs: http://localhost:8000/docs"
-	@echo "  MLflow UI: http://localhost:5001"
+	@echo "  MLflow UI: http://localhost:5002"
 	@echo "  Airflow UI: http://localhost:8080"
 	@echo "  MinIO Console: http://localhost:9001 (user: minioadmin, pass: minioadmin)"
 

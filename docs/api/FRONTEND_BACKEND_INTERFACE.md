@@ -1,158 +1,89 @@
 # Frontend-Backend API Interface
 
-**Base URL**: `/api`
+**Base URL**: `/api/v1`
 **Authentication**: Bearer Token (JWT) in `Authorization` header.
 
 ---
 
-## 1. Authentication
+## 1. Authentication & Security
 
 ### Login
 - **Endpoint**: `POST /auth/login`
+- **Response**: `{ "access_token": "...", "role": "admin", "model_version": "v2.4.1-prod" }`
+
+---
+
+## 2. Interactive Simulation (Strategy Playground)
+
+### Run Quick Backtest
+- **Endpoint**: `POST /simulation/backtest`
 - **Request**:
   ```json
   {
-    "username": "admin",
-    "password": "password123"
+    "risk_level": 5,
+    "confidence_threshold": 0.75,
+    "stop_loss_pct": 0.05
   }
   ```
-- **Response (200)**:
+- **Response**:
   ```json
   {
-    "access_token": "eyJhbG...",
-    "refresh_token": "eyJhbG...",
-    "token_type": "bearer",
-    "expires_in": 1800
-  }
-  ```
-
-### Get Current User
-- **Endpoint**: `GET /auth/me`
-- **Response (200)**:
-  ```json
-  {
-    "id": 1,
-    "username": "admin",
-    "email": "admin@example.com",
-    "is_superuser": true
-  }
-  ```
-
----
-
-## 2. Market Data (Prices)
-
-### Get Historical Prices
-- **Endpoint**: `GET /prices/{symbol}`
-- **Parameters**:
-  - `days` (int, default=7): History range in days.
-  - `limit` (int, optional): Max records.
-- **Response (200)**:
-  ```json
-  {
-    "success": true,
-    "data": [
-      {
-        "symbol": "BTC-USD",
-        "timestamp": "2026-01-15T12:00:00Z",
-        "price": "95000.50",
-        "volume": "120.5"
-      }
-    ],
-    "total": 100
-  }
-  ```
-
-### Get Price Statistics
-- **Endpoint**: `GET /prices/{symbol}/stats`
-- **Parameters**: `days` (default=30)
-- **Response (200)**:
-  ```json
-  {
-    "symbol": "BTC-USD",
-    "prices": {
-      "latest": "95000.50",
-      "minimum": "92000.00",
-      "maximum": "98000.00",
-      "average": "94500.25"
-    },
-    "changes": {
-      "percentage": "3.25"
-    }
-  }
-  ```
-
----
-
-## 3. Trading Signals
-
-### Get Latest Signal
-- **Endpoint**: `GET /signals/{symbol}/latest`
-- **Response (200)**:
-  ```json
-  {
-    "success": true,
-    "data": {
-      "id": 101,
-      "symbol": "BTC-USD",
-      "signal_type": "BUY",
-      "confidence": "0.8950",
-      "price_at_signal": "94800.00",
-      "timestamp": "2026-01-15T14:30:00Z"
-    }
-  }
-  ```
-
-### Get Signal Statistics
-- **Endpoint**: `GET /signals/{symbol}/stats`
-- **Response (200)**:
-  ```json
-  {
-    "total_signals": 50,
-    "buy_signals": 30,
-    "sell_signals": 15,
-    "hold_signals": 5,
-    "avg_confidence": "0.7500"
-  }
-  ```
-
----
-
-## 4. Technical Indicators
-
-### Get Indicators
-- **Endpoint**: `GET /indicators/{symbol}`
-- **Parameters**: `days` (default=7)
-- **Response (200)**:
-  ```json
-  {
-    "success": true,
-    "data": [
-      {
-        "timestamp": "2026-01-15T12:00:00Z",
-        "rsi_14": "65.5",
-        "macd": "120.5",
-        "bb_upper": "96000.00",
-        "bb_lower": "93000.00"
-      }
+    "equity_curve": [
+      { "day": 0, "value": 10000, "benchmark": 10000 },
+      { "day": 1, "value": 10200, "benchmark": 10150 }
     ]
   }
   ```
 
 ---
 
-## 5. System Health
+## 3. MLOps & Observability [Implemented Structures]
 
-### Metrics
-- **Endpoint**: `GET /health/metrics`
-- **Response (200)**:
+### Pipeline Health
+- **Endpoint**: `GET /ops/pipeline-status`
+- **Response**:
   ```json
   {
-    "status": "healthy",
-    "metrics": {
-      "uptime": { "seconds": 3600 },
-      "cpu_usage": { "percent": 45.2 },
-      "memory_usage": { "percent": 60.1 }
-    }
+    "stages": [
+      { "id": "ingest", "label": "Data Ingestion", "status": "success" },
+      { "id": "train", "label": "Model Training", "status": "running" }
+    ],
+    "last_retrained": "2026-01-15T10:00:00Z"
   }
+  ```
+
+### Data Drift (PSI)
+- **Endpoint**: `GET /ops/drift-analysis`
+- **Response**:
+  ```json
+  {
+    "overall_score": 0.024,
+    "features": [
+      { "feature": "Sentiment_Score", "drift": 0.24, "alert": true },
+      { "feature": "RSI_14", "drift": 0.08, "alert": false }
+    ]
+  }
+  ```
+
+### Model Registry
+- **Endpoint**: `GET /models`
+- **Response**:
+  ```json
+  [
+    { "version": "v2.4.1", "stage": "Production", "accuracy": "89.2%", "status": "Active" },
+    { "version": "v2.5.0-rc1", "stage": "Staging", "accuracy": "91.5%", "status": "Testing" }
+  ]
+  ```
+
+---
+
+## 4. Market Data & Signals
+
+### Get Latest Signals
+- **Endpoint**: `GET /signals`
+- **Response**:
+  ```json
+  [
+    { "id": 1, "symbol": "BTC-USD", "type": "BUY", "confidence": 0.89, "timestamp": "..." }
+  ]
   ```

@@ -74,21 +74,21 @@ test_minio_health() {
 test_mlflow_accessibility() {
     echo "4. Testing MLflow accessibility..."
     
-    if curl -s -f http://localhost:5000 > /dev/null 2>&1; then
-        print_success "MLflow UI is accessible"
+    if curl -s -f http://localhost:5002 > /dev/null 2>&1; then
+        print_success "MLflow UI is accessible (Port 5002)"
     else
-        print_skipped "MLflow UI is not accessible (may still be starting)"
+        print_skipped "MLflow UI is not accessible (may still be starting or port conflict)"
     fi
 }
 
-# Test 5: Check Mage.ai accessibility
-test_mage_accessibility() {
-    echo "5. Testing Mage.ai accessibility..."
+# Test 5: Check Airflow accessibility
+test_airflow_accessibility() {
+    echo "5. Testing Airflow accessibility..."
     
-    if curl -s -f http://localhost:6789 > /dev/null 2>&1; then
-        print_success "Mage.ai UI is accessible"
+    if curl -s -f http://localhost:8080 > /dev/null 2>&1; then
+        print_success "Airflow UI is accessible (Port 8080)"
     else
-        print_skipped "Mage.ai UI is not accessible (may still be starting)"
+        print_skipped "Airflow UI is not accessible (may still be starting)"
     fi
 }
 
@@ -170,7 +170,7 @@ run_all_tests() {
     test_postgres_connectivity
     test_minio_health
     test_mlflow_accessibility
-    test_mage_accessibility
+    test_airflow_accessibility
     test_minio_bucket
     test_environment_variables
     test_disk_space

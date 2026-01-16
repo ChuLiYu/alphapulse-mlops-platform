@@ -13,7 +13,7 @@ const Sidebar: React.FC = () => {
     { text: 'Dashboard', icon: <LayoutDashboard size={20} />, path: '/' },
     { text: 'Market Data', icon: <TrendingUp size={20} />, path: '/market' },
     { text: 'Signals', icon: <Bell size={20} />, path: '/signals' },
-    { text: 'System Status', icon: <Activity size={20} />, path: '/status' },
+    { text: 'MLOps Console', icon: <Activity size={20} />, path: '/status' },
   ];
 
   return (

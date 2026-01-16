@@ -10,7 +10,14 @@ services:
     networks:
       - alphapulse-network
     container_name: alphapulse-frontend-mock
+    depends_on:
+      - fastapi
+
+  fastapi:
+    external: true
+    name: alphapulse-fastapi
 
 networks:
   alphapulse-network:
-    driver: bridge
+    external: true
+    name: alphapulse-network
