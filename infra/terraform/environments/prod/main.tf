@@ -146,8 +146,13 @@ systemctl stop firewalld || true
 # Install K3s
 curl -sfL https://get.k3s.io | sh - 
 
-# Wait for kubectl
-timeout 300s bash -c 'until [ -f /usr/local/bin/kubectl ]; do sleep 5; done'
+# 1. Resolve Path Issues: Create symbolic links
+ln -s /usr/local/bin/k3s /usr/bin/k3s || true
+ln -s /usr/local/bin/kubectl /usr/bin/kubectl || true
+
+# 2. Resolve Race Condition: Wait for Node to be Ready
+echo "Waiting for K3s node to be Ready..."
+timeout 600s bash -c 'until /usr/local/bin/kubectl get nodes | grep -q "  Ready "; do sleep 10; echo "Still waiting for node..."; done'
 
 export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
 alias kubectl='/usr/local/bin/kubectl'
