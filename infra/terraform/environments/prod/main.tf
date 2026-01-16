@@ -153,7 +153,7 @@ echo "${var.github_token}" > /root/.gh_token
 /usr/local/bin/kubectl create namespace alphapulse || true
 /usr/local/bin/kubectl create secret regcred \
   --docker-server=ghcr.io \
-  --docker-username=ChuLiYu \
+  --docker-username=chuliyu \
   --docker-password="$(cat /root/.gh_token)" \
   --docker-email=chuliyu@example.com \
   -n alphapulse --dry-run=client -o yaml | /usr/local/bin/kubectl apply -f -
