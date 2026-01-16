@@ -1,6 +1,11 @@
 name: Terraform Deploy
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - "infra/terraform/environments/prod/**"
+      - "infra/terraform/modules/**"
   workflow_dispatch:
     inputs:
       environment:
