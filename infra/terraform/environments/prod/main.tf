@@ -134,68 +134,39 @@ resource "oci_core_instance" "alphapulse_server" {
 
   #!/bin/bash
 
-  set -e
+  # Do not use set -e to ensure the script continues even if some cleanup commands fail
 
   export GH_PAT_TOKEN="${var.github_token}"
 
   
 
-  # Flush and disable local firewall to allow K3s internal and external traffic
+  # Best-effort firewall cleanup
 
-  
+  iptables -F || true
 
-  iptables -F
+  iptables -X || true
 
-  
+  iptables -t nat -F || true
 
-  iptables -X
-
-  
-
-  iptables -t nat -F
-
-  
-
-  iptables -t nat -X
-
-  
-
-  iptables -t mangle -F
-
-  
-
-  iptables -t mangle -X
-
-  
+  iptables -t nat -X || true
 
   iptables -P INPUT ACCEPT
 
-  
-
   iptables -P FORWARD ACCEPT
-
-  
 
   iptables -P OUTPUT ACCEPT
 
-  
-
-  netfilter-persistent save || true
-
-  
-
   systemctl stop firewalld || true
-
-  
 
   systemctl disable firewalld || true
 
   
 
-  
+  # Automated K3s Installation
 
-# Automated K3s Installation
-curl -sfL https://get.k3s.io | sh -
+  curl -sfL https://get.k3s.io | sh -
+
+  
 
 # Wait for K3s API to become ready
 KUBECTL="/usr/local/bin/kubectl"
