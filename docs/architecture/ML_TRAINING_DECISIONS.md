@@ -25,22 +25,23 @@ This document records the architectural decisions, tradeoffs, and practical cons
 
 **Tradeoffs**:
 
-  
 - ❌ **Build Time**: Docker build takes 8-12 minutes instead of 3-5 minutes
 - ❌ **Resource Usage**: Container requires more memory (2GB → 3GB recommended)
 
 **Implementation**:
 
-| Technology       | Purpose                  | Version | Why Chosen                               |
-| ---------------- | ------------------------ | ------- | ---------------------------------------- |
-| **XGBoost**      | Gradient boosting models | 2.0.0+  | Industry-standard, handles non-linearity |
+| Technology       | Purpose                  | Version | Why Chosen                                                                   |
+| ---------------- | ------------------------ | ------- | ---------------------------------------------------------------------------- |
+| **XGBoost**      | Gradient boosting models | 2.0.0+  | Industry-standard, handles non-linearity                                     |
 | **CatBoost**     | Robust Gradient Boosting | 1.2.0+  | **Superior handling of non-stationary financial data via Ordered Boosting.** |
-| **scikit-learn** | ML utilities & baselines | 1.5.2   | Feature engineering, preprocessing       |
-| **MLflow**       | Experiment tracking      | 2.10.2+ | Model versioning, metrics logging        |
-| **Optuna**       | Hyperparameter tuning    | 3.5.0+  | Automated parameter optimization         |
+| **scikit-learn** | ML utilities & baselines | 1.5.2   | Feature engineering, preprocessing                                           |
+| **MLflow**       | Experiment tracking      | 2.10.2+ | Model versioning, metrics logging                                            |
+| **Optuna**       | Hyperparameter tuning    | 3.5.0+  | Automated parameter optimization                                             |
 
 ### Rationale for CatBoost
+
 Financial data is notorious for noise and regime changes. We added CatBoost to the ensemble because:
+
 1. **Ordered Boosting**: Effectively combats gradient leakage and reduces overfitting on small/noisy time-series samples.
 2. **Symmetric Trees**: Provides faster inference and better regularization compared to traditional depth-wise trees.
 3. **Internal Categorical Handling**: Prepares the platform for future integration of categorical data (Exchanges, Sentiment Sources).

@@ -124,13 +124,7 @@ This checklist ensures all components are ready for production deployment to the
    ssh root@<hetzner-ip> "cd /opt/alphapulse && docker compose exec mc /bin/sh -c 'mc mb alphapulse/alphapulse --ignore-existing'"
    ```
 
-
-
-
-
 ### Phase 4: FastAPI Deployment
-
-
 
 2. **Verify API Accessibility**
    ```bash
@@ -139,8 +133,6 @@ This checklist ensures all components are ready for production deployment to the
    ```
 
 ### Phase 5: Monitoring Setup
-
-
 
 2. **Set Up Alerting**
    - Configure Slack webhook for alerts
@@ -264,10 +256,10 @@ This checklist ensures all components are ready for production deployment to the
 
 ### Deployment Approval
 
-- [ ] Infrastructure Team Lead: ********\_\_\_\_********
-- [ ] Security Team Lead: ********\_\_\_\_********
-- [ ] Operations Team Lead: ********\_\_\_\_********
-- [ ] Product Owner: ********\_\_\_\_********
+- [ ] Infrastructure Team Lead: **\*\*\*\***\_\_\_\_**\*\*\*\***
+- [ ] Security Team Lead: **\*\*\*\***\_\_\_\_**\*\*\*\***
+- [ ] Operations Team Lead: **\*\*\*\***\_\_\_\_**\*\*\*\***
+- [ ] Product Owner: **\*\*\*\***\_\_\_\_**\*\*\*\***
 
 ### Post-Deployment Review
 
@@ -287,15 +279,18 @@ This checklist ensures all components are ready for production deployment to the
 **Next Review**: After production deployment  
 **Owner**: AlphaPulse Operations Team
 \n---
+
 # AlphaPulse - Installation & Local Development
 
 ## Prerequisites
+
 - Docker & Docker Compose
 - Terraform >= 1.6
 - AWS CLI (configured)
 - Python 3.12 (for local testing)
 
 ## Setup Steps
+
 1. **Clone & Config**
    ```bash
    git clone <repo-url>
@@ -312,7 +307,9 @@ This checklist ensures all components are ready for production deployment to the
    - API: http://localhost:8000
 
 ## Data Backfill
+
 To populate the system with 8 years of data:
+
 ```bash
 docker exec -it trainer python /app/scripts/data/backfill_prices.py
 ```
