@@ -136,18 +136,20 @@ echo "Starting deployment at $(date)"
 # Expand filesystem to match boot volume size
 /usr/libexec/oci-growfs -y
 
-# Open firewall
+# Disable and stop firewalld immediately to prevent D-Bus errors
+systemctl stop firewalld || true
+systemctl disable firewalld || true
+
+# Brute force open iptables
 iptables -F
+iptables -X
+iptables -t nat -F
+iptables -t nat -X
+iptables -t mangle -F
+iptables -t mangle -X
 iptables -P INPUT ACCEPT
 iptables -P FORWARD ACCEPT
 iptables -P OUTPUT ACCEPT
-# Persistent firewall changes for Oracle Linux
-if command -v firewall-cmd >/dev/null 2>&1; then
-  firewall-cmd --permanent --add-port=80/tcp
-  firewall-cmd --permanent --add-port=443/tcp
-  firewall-cmd --reload
-fi
-systemctl stop firewalld || true
 
 # Install K3s
 curl -sfL https://get.k3s.io | sh - 
