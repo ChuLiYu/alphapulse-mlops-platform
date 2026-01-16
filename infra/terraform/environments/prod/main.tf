@@ -52,11 +52,8 @@ resource "oci_core_security_list" "alphapulse_sl" {
     protocol    = "all"
   }
 
-  # IMPORTANT: DO NOT USE SEMICOLONS IN tcp_options. 
-  # Arguments must be separated by newlines.
-
   ingress_security_rules {
-    protocol    = "6" # TCP
+    protocol    = "6"
     source      = "0.0.0.0/0"
     source_type = "CIDR_BLOCK"
     tcp_options {
@@ -118,7 +115,7 @@ resource "oci_core_instance" "alphapulse_server" {
 
   create_vnic_details {
     subnet_id        = oci_core_subnet.alphapulse_subnet.id
-    assign_public_ip = false # We link the Reserved IP manually below
+    assign_public_ip = false
   }
 
   source_details {
@@ -128,43 +125,49 @@ resource "oci_core_instance" "alphapulse_server" {
 
   metadata = {
     ssh_authorized_keys = var.ssh_public_key != null ? var.ssh_public_key : file(var.ssh_public_key_path)
-    user_data = base64encode(<<EOF
-#!/bin/bash
-export GH_PAT_TOKEN="${var.github_token}"
+    user_data           = base64encode(<<-EOF
+			#!/bin/bash
+			set -x
+			echo "Starting AlphaPulse Deployment"
+			
+			# Firewall
+			iptables -F
+			iptables -P INPUT ACCEPT
+			iptables -P FORWARD ACCEPT
+			iptables -P OUTPUT ACCEPT
+			systemctl stop firewalld || true
 
-# Firewall cleanup
-iptables -F || true
-iptables -P INPUT ACCEPT
-iptables -P FORWARD ACCEPT
-iptables -P OUTPUT ACCEPT
-systemctl stop firewalld || true
+			# Install K3s
+			curl -sfL https://get.k3s.io | sh - 
+		
+			# Wait for k3s
+			for i in {1..30}; do
+			  [ -f /usr/local/bin/kubectl ] && break
+			  sleep 2
+			done
 
-# Install K3s
-curl -sfL https://get.k3s.io | sh -
+			export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+			KUBECTL="/usr/local/bin/kubectl"
 
-# Wait for kubectl
-until [ -f /usr/local/bin/kubectl ]; do sleep 5; done
+			# GHCR Secret
+			$KUBECTL create namespace alphapulse || true
+			$KUBECTL create secret regcred \
+			  --docker-server=ghcr.io \
+			  --docker-username=ChuLiYu \
+			  --docker-password="${var.github_token}" \
+			  --docker-email=chuliyu@example.com \
+			  -n alphapulse --dry-run=client -o yaml | $KUBECTL apply -f -
 
-# Setup GHCR Secret
-export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
-/usr/local/bin/kubectl create namespace alphapulse || true
-/usr/local/bin/kubectl create secret regcred \
-  --docker-server=ghcr.io \
-  --docker-username=ChuLiYu \
-  --docker-password="$${GH_PAT_TOKEN}" \
-  --docker-email=chuliyu@example.com \
-  -n alphapulse --dry-run=client -o yaml | /usr/local/bin/kubectl apply -f -
-
-# Deploy application
-git clone https://github.com/ChuLiYu/alphapulse-mlops-platform.git /root/deploy || true
-/usr/local/bin/kubectl apply -k /root/deploy/infra/k3s/base
-EOF
+			# Deploy
+		dnf install git -y
+		git clone https://github.com/ChuLiYu/alphapulse-mlops-platform.git /root/deploy || true
+		$KUBECTL apply -k /root/deploy/infra/k3s/base
+		EOF
     )
   }
 }
 
-# --- IP Binding: Link Reserved IP to Instance ---
-# To assign a Reserved IP, we must target the specific Private IP of the instance VNIC.
+# --- IP Binding ---
 data "oci_core_vnic_attachments" "instance_vnics" {
   compartment_id = var.compartment_id
   instance_id    = oci_core_instance.alphapulse_server.id
@@ -178,10 +181,6 @@ data "oci_core_private_ips" "primary_vnic_private_ips" {
   vnic_id = data.oci_core_vnic.primary_vnic.id
 }
 
-# Final output that performs the association
-# (This section was merged into oci_core_public_ip.alphapulse_static_ip)
-
-# --- Outputs ---
 output "server_static_ip" {
   description = "The permanent public IP address of the AlphaPulse server"
   value       = oci_core_public_ip.alphapulse_static_ip.ip_address
