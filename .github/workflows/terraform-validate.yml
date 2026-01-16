@@ -14,6 +14,10 @@ on:
 env:
   TF_VERSION: 1.5.0
 
+permissions:
+  contents: write
+  security-events: write
+
 jobs:
   terraform-validate:
     name: Terraform Validate
