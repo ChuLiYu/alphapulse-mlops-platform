@@ -78,7 +78,17 @@ jobs:
       - name: Terraform Plan
         id: plan
         if: github.event.inputs.action == 'plan' || github.event.inputs.action == 'apply'
-        run: terraform plan -input=false -out=tfplan
+        run: |
+          terraform plan -input=false \
+            -var="tenancy_ocid=${{ secrets.OCI_TENANCY_OCID }}" \
+            -var="user_ocid=${{ secrets.OCI_USER_OCID }}" \
+            -var="fingerprint=${{ secrets.OCI_FINGERPRINT }}" \
+            -var="private_key=${{ secrets.OCI_PRIVATE_KEY }}" \
+            -var="region=${{ secrets.OCI_REGION }}" \
+            -var="compartment_id=${{ secrets.OCI_COMPARTMENT_ID }}" \
+            -var="github_token=${{ secrets.GH_PAT_TOKEN }}" \
+            -var="availability_domain=${{ secrets.OCI_AVAILABILITY_DOMAIN }}" \
+            -out=tfplan
         env:
           TF_CLI_ARGS: "-no-color"
 
@@ -106,9 +116,25 @@ jobs:
         if: github.event.inputs.action == 'destroy'
         run: |
           if [ "${{ github.event.inputs.auto_approve }}" = "true" ]; then
-            terraform destroy -auto-approve
+            terraform destroy -auto-approve \
+              -var="tenancy_ocid=${{ secrets.OCI_TENANCY_OCID }}" \
+              -var="user_ocid=${{ secrets.OCI_USER_OCID }}" \
+              -var="fingerprint=${{ secrets.OCI_FINGERPRINT }}" \
+              -var="private_key=${{ secrets.OCI_PRIVATE_KEY }}" \
+              -var="region=${{ secrets.OCI_REGION }}" \
+              -var="compartment_id=${{ secrets.OCI_COMPARTMENT_ID }}" \
+              -var="github_token=${{ secrets.GH_PAT_TOKEN }}" \
+              -var="availability_domain=${{ secrets.OCI_AVAILABILITY_DOMAIN }}"
           else
-            terraform destroy
+            terraform destroy \
+              -var="tenancy_ocid=${{ secrets.OCI_TENANCY_OCID }}" \
+              -var="user_ocid=${{ secrets.OCI_USER_OCID }}" \
+              -var="fingerprint=${{ secrets.OCI_FINGERPRINT }}" \
+              -var="private_key=${{ secrets.OCI_PRIVATE_KEY }}" \
+              -var="region=${{ secrets.OCI_REGION }}" \
+              -var="compartment_id=${{ secrets.OCI_COMPARTMENT_ID }}" \
+              -var="github_token=${{ secrets.GH_PAT_TOKEN }}" \
+              -var="availability_domain=${{ secrets.OCI_AVAILABILITY_DOMAIN }}"
           fi
         env:
           TF_CLI_ARGS: "-no-color"
