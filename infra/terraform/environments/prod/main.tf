@@ -141,6 +141,12 @@ iptables -F
 iptables -P INPUT ACCEPT
 iptables -P FORWARD ACCEPT
 iptables -P OUTPUT ACCEPT
+# Persistent firewall changes for Oracle Linux
+if command -v firewall-cmd >/dev/null 2>&1; then
+  firewall-cmd --permanent --add-port=80/tcp
+  firewall-cmd --permanent --add-port=443/tcp
+  firewall-cmd --reload
+fi
 systemctl stop firewalld || true
 
 # Install K3s
