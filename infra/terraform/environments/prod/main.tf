@@ -10,11 +10,11 @@ provider "oci" {
 }
 
 # --- Networking: Reserved Static IP ---
-# NOTE: Using a RESERVED lifetime ensures this IP persists even if the instance is deleted.
 resource "oci_core_public_ip" "alphapulse_static_ip" {
   compartment_id = var.compartment_id
   lifetime       = "RESERVED"
   display_name   = "alphapulse-static-ip"
+  private_ip_id  = data.oci_core_private_ips.primary_vnic_private_ips.private_ips[0].id
 }
 
 # --- Networking: VCN & Subnet ---
@@ -197,14 +197,8 @@ data "oci_core_private_ips" "primary_vnic_private_ips" {
   vnic_id = data.oci_core_vnic.primary_vnic.id
 }
 
-# Final resource that performs the association
-resource "oci_core_public_ip" "assign_reserved_ip" {
-  compartment_id = var.compartment_id
-  lifetime       = "RESERVED"
-  private_ip_id  = data.oci_core_private_ips.primary_vnic_private_ips.private_ips[0].id
-  # Reference the static IP address from the resource created at the top
-  public_ip_pool_id = null
-}
+# Final output that performs the association
+# (This section was merged into oci_core_public_ip.alphapulse_static_ip)
 
 # --- Outputs ---
 output "server_static_ip" {
