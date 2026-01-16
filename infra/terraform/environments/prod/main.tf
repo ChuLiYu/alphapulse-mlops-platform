@@ -125,44 +125,47 @@ resource "oci_core_instance" "alphapulse_server" {
 
   metadata = {
     ssh_authorized_keys = var.ssh_public_key != null ? var.ssh_public_key : file(var.ssh_public_key_path)
-    user_data = base64encode(<<-EOF
-			#!/bin/bash
-			set -x
-			echo "Starting AlphaPulse Deployment"
-			
-			# Firewall
-			iptables -F
-			iptables -P INPUT ACCEPT
-			iptables -P FORWARD ACCEPT
-			iptables -P OUTPUT ACCEPT
-			systemctl stop firewalld || true
+    user_data           = base64encode(<<EOF
+#!/bin/bash
+set -x
+exec > /var/log/user_data.log 2>&1
 
-			# Install K3s
-			curl -sfL https://get.k3s.io | sh - 
-		
-			# Wait for k3s
-			for i in {1..30}; do
-			  [ -f /usr/local/bin/kubectl ] && break
-			  sleep 2
-			done
+echo "Starting deployment at $(date)"
 
-			export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
-			KUBECTL="/usr/local/bin/kubectl"
+# Open firewall
+iptables -F
+iptables -P INPUT ACCEPT
+iptables -P FORWARD ACCEPT
+iptables -P OUTPUT ACCEPT
+systemctl stop firewalld || true
 
-			# GHCR Secret
-			$KUBECTL create namespace alphapulse || true
-			$KUBECTL create secret regcred \
-			  --docker-server=ghcr.io \
-			  --docker-username=ChuLiYu \
-			  --docker-password="${var.github_token}" \
-			  --docker-email=chuliyu@example.com \
-			  -n alphapulse --dry-run=client -o yaml | $KUBECTL apply -f -
+# Install K3s
+curl -sfL https://get.k3s.io | sh - 
 
-			# Deploy
-		dnf install git -y
-		git clone https://github.com/ChuLiYu/alphapulse-mlops-platform.git /root/deploy || true
-		$KUBECTL apply -k /root/deploy/infra/k3s/base
-		EOF
+# Wait for kubectl
+timeout 300s bash -c 'until [ -f /usr/local/bin/kubectl ]; do sleep 5; done'
+
+export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+alias kubectl='/usr/local/bin/kubectl'
+
+# GHCR Secret - Using file to avoid shell expansion issues
+echo "${var.github_token}" > /root/.gh_token
+/usr/local/bin/kubectl create namespace alphapulse || true
+/usr/local/bin/kubectl create secret regcred \
+  --docker-server=ghcr.io \
+  --docker-username=ChuLiYu \
+  --docker-password="$(cat /root/.gh_token)" \
+  --docker-email=chuliyu@example.com \
+  -n alphapulse --dry-run=client -o yaml | /usr/local/bin/kubectl apply -f -
+rm /root/.gh_token
+
+# Deploy
+dnf install git -y
+git clone https://github.com/ChuLiYu/alphapulse-mlops-platform.git /root/deploy || true
+/usr/local/bin/kubectl apply -k /root/deploy/infra/k3s/base
+
+echo "Deployment finished at $(date)"
+EOF
     )
   }
 }
