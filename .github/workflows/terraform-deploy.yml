@@ -50,6 +50,7 @@ jobs:
         with:
           terraform_version: ${{ env.TF_VERSION }}
           terraform_wrapper: false
+          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -58,9 +59,14 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Configure Hetzner Cloud Credentials
+      - name: Configure OCI Credentials
         run: |
-          echo "HCLOUD_TOKEN=${{ secrets.HCLOUD_TOKEN }}" >> $GITHUB_ENV
+          echo "TF_VAR_tenancy_ocid=${{ secrets.OCI_TENANCY_OCID }}" >> $GITHUB_ENV
+          echo "TF_VAR_user_ocid=${{ secrets.OCI_USER_OCID }}" >> $GITHUB_ENV
+          echo "TF_VAR_fingerprint=${{ secrets.OCI_FINGERPRINT }}" >> $GITHUB_ENV
+          echo "TF_VAR_private_key=${{ secrets.OCI_PRIVATE_KEY }}" >> $GITHUB_ENV
+          echo "TF_VAR_region=${{ secrets.OCI_REGION }}" >> $GITHUB_ENV
+          echo "TF_VAR_compartment_id=${{ secrets.OCI_COMPARTMENT_ID }}" >> $GITHUB_ENV
 
       - name: Terraform Init
         id: init
@@ -161,7 +167,6 @@ jobs:
         if: github.event.inputs.action == 'apply'
         run: |
           echo "Cost estimation for ${{ github.event.inputs.environment }} deployment:"
-          echo "- Hetzner CPX21: €9.50/month"
-          echo "- AWS S3: ~$1.65/month"
-          echo "- Total: ~$11.15/month"
-          echo "- Savings: 85% vs AWS EKS ($73/month)"
+          echo "- Oracle Cloud (ARM64 A1): $0.00/month (Always Free Tier)"
+          echo "- Total: $0.00/month"
+          echo "- Savings: 100% vs AWS EKS ($73/month)"
