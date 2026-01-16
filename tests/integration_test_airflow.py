@@ -36,9 +36,7 @@ def get_news_count():
 def trigger_dag(dag_id):
     """Triggers the Airflow DAG."""
     print(f"Triggering DAG: {dag_id}...")
-    run_command(
-        f"docker exec airflow-scheduler airflow dags trigger {dag_id}"
-    )
+    run_command(f"docker exec airflow-scheduler airflow dags trigger {dag_id}")
 
 
 def get_latest_dag_run_state(dag_id):
@@ -64,7 +62,9 @@ def get_latest_dag_run_state(dag_id):
 
     # Using json output is safer if available, but plain is standard.
     # Let's dump to json for easier parsing.
-    cmd_json = f"docker exec airflow-scheduler airflow dags list-runs -d {dag_id} -o json"
+    cmd_json = (
+        f"docker exec airflow-scheduler airflow dags list-runs -d {dag_id} -o json"
+    )
     import json
 
     try:
