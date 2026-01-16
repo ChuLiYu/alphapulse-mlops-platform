@@ -50,8 +50,8 @@ write_files:
             retries: 5
 
         minio:
+          container_name: minio
           image: minio/minio:latest
-          container_name: alphapulse-minio
           restart: unless-stopped
           command: server /data --console-address ":9001"
           environment:

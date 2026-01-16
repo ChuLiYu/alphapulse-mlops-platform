@@ -10,6 +10,8 @@ services:
   postgres:
     image: postgres:15-alpine
     container_name: postgres
+    labels:
+      project: alphapulse
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
@@ -34,6 +36,8 @@ services:
   minio:
     image: minio/minio:latest
     container_name: minio
+    labels:
+      project: alphapulse
     command: server /data --console-address ":9001"
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
@@ -58,6 +62,8 @@ services:
       context: ..
       dockerfile: infra/docker/Dockerfile.fastapi
     container_name: fastapi
+    labels:
+      project: alphapulse
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-alphapulse}
       AWS_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-minioadmin}
@@ -91,6 +97,8 @@ services:
       context: ..
       dockerfile: infra/docker/Dockerfile.mlflow
     container_name: mlflow
+    labels:
+      project: alphapulse
     command: >
       mlflow server
       --backend-store-uri postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/mlflow
@@ -122,6 +130,8 @@ services:
   ollama:
     image: ollama/ollama:latest
     container_name: ollama
+    labels:
+      project: alphapulse
     ports:
       - "11434:11434"
     volumes:
@@ -137,6 +147,8 @@ services:
       context: ..
       dockerfile: infra/docker/Dockerfile.airflow
     container_name: airflow-webserver
+    labels:
+      project: alphapulse
     command: webserver
     restart: always
     environment:
@@ -179,6 +191,8 @@ services:
       context: ..
       dockerfile: infra/docker/Dockerfile.airflow
     container_name: airflow-scheduler
+    labels:
+      project: alphapulse
     command: scheduler
     restart: always
     environment:
@@ -213,6 +227,8 @@ services:
       context: ..
       dockerfile: infra/docker/Dockerfile.airflow
     container_name: airflow-init
+    labels:
+      project: alphapulse
     command: bash -c "/opt/airflow/scripts/create_connections.sh"
     environment:
       - AIRFLOW__CORE__EXECUTOR=LocalExecutor
@@ -236,6 +252,8 @@ services:
       context: ..
       dockerfile: infra/docker/Dockerfile.trainer
     container_name: trainer
+    labels:
+      project: alphapulse
     command: python -m training.train_server
     environment:
       PYTHONPATH: /app/src:/app
@@ -273,6 +291,8 @@ services:
   mc:
     image: minio/mc:latest
     container_name: mc
+    labels:
+      project: alphapulse
     networks:
       - alphapulse-network
     depends_on:
