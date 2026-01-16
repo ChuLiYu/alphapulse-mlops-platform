@@ -12,3 +12,9 @@ resources:
   - airflow.yaml
   - mlflow.yaml
   - trainer.yaml
+
+configMapGenerator:
+  - name: postgres-init-scripts
+    files:
+      - init-databases.sh=scripts/init-databases.sh
+      - init-db.sql=scripts/init-db.sql

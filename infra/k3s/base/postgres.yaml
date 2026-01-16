@@ -25,6 +25,13 @@ spec:
           value: "alphapulse"
         ports:
         - containerPort: 5432
+        volumeMounts:
+        - name: postgres-init
+          mountPath: /docker-entrypoint-initdb.d
+      volumes:
+      - name: postgres-init
+        configMap:
+          name: postgres-init-scripts
 ---
 apiVersion: v1
 kind: Service
