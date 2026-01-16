@@ -85,8 +85,8 @@ output "data_volume_size" {
 output "monthly_cost_estimate" {
   description = "Estimated monthly cost in EUR"
   value = {
-    server      = 9.50  # CPX21 fixed price
-    floating_ip = 0.00  # Included
+    server      = 9.50 # CPX21 fixed price
+    floating_ip = 0.00 # Included
     volume      = var.enable_data_volume ? var.data_volume_size * 0.004 : 0.00
     total       = 9.50 + (var.enable_data_volume ? var.data_volume_size * 0.004 : 0.00)
   }
@@ -106,20 +106,20 @@ output "server_info_file" {
 output "deployment_status" {
   description = "Deployment status summary"
   value = {
-    server_created     = true
-    services_deployed  = true
-    ssh_configured     = true
-    firewall_configured = true
+    server_created       = true
+    services_deployed    = true
+    ssh_configured       = true
+    firewall_configured  = true
     floating_ip_assigned = true
-    environment        = var.environment
-    timestamp          = timestamp()
+    environment          = var.environment
+    timestamp            = timestamp()
   }
 }
 
 # Connection Instructions
 output "connection_instructions" {
   description = "Instructions for connecting to the server"
-  value = <<-EOT
+  value       = <<-EOT
     To connect to the AlphaPulse server:
     
     1. SSH Access:

@@ -55,11 +55,11 @@ variable "domain_name" {
 variable "monthly_budget" {
   description = "Monthly budget for dev environment"
   type        = number
-  default     = 15.00  # $15/month budget
+  default     = 15.00 # $15/month budget
 }
 
 variable "cost_alert_threshold" {
   description = "Cost alert threshold percentage"
   type        = number
-  default     = 80  # Alert at 80% of budget
+  default     = 80 # Alert at 80% of budget
 }

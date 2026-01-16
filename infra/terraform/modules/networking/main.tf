@@ -148,64 +148,64 @@ resource "hcloud_firewall" "main" {
 
   # SSH access
   rule {
-    direction  = "in"
-    protocol   = "tcp"
-    port       = "22"
-    source_ips = ["0.0.0.0/0", "::/0"]
+    direction   = "in"
+    protocol    = "tcp"
+    port        = "22"
+    source_ips  = ["0.0.0.0/0", "::/0"]
     description = "SSH access"
   }
 
   # HTTP access
   rule {
-    direction  = "in"
-    protocol   = "tcp"
-    port       = "80"
-    source_ips = ["0.0.0.0/0", "::/0"]
+    direction   = "in"
+    protocol    = "tcp"
+    port        = "80"
+    source_ips  = ["0.0.0.0/0", "::/0"]
     description = "HTTP access"
   }
 
   # HTTPS access
   rule {
-    direction  = "in"
-    protocol   = "tcp"
-    port       = "443"
-    source_ips = ["0.0.0.0/0", "::/0"]
+    direction   = "in"
+    protocol    = "tcp"
+    port        = "443"
+    source_ips  = ["0.0.0.0/0", "::/0"]
     description = "HTTPS access"
   }
 
   # Mage.ai UI port
   rule {
-    direction  = "in"
-    protocol   = "tcp"
-    port       = "6789"
-    source_ips = ["0.0.0.0/0", "::/0"]
+    direction   = "in"
+    protocol    = "tcp"
+    port        = "6789"
+    source_ips  = ["0.0.0.0/0", "::/0"]
     description = "Mage.ai UI"
   }
 
   # MLflow UI port
   rule {
-    direction  = "in"
-    protocol   = "tcp"
-    port       = "5001"
-    source_ips = ["0.0.0.0/0", "::/0"]
+    direction   = "in"
+    protocol    = "tcp"
+    port        = "5001"
+    source_ips  = ["0.0.0.0/0", "::/0"]
     description = "MLflow UI"
   }
 
   # MinIO Console port
   rule {
-    direction  = "in"
-    protocol   = "tcp"
-    port       = "9001"
-    source_ips = ["0.0.0.0/0", "::/0"]
+    direction   = "in"
+    protocol    = "tcp"
+    port        = "9001"
+    source_ips  = ["0.0.0.0/0", "::/0"]
     description = "MinIO Console"
   }
 
   # PostgreSQL port
   rule {
-    direction  = "in"
-    protocol   = "tcp"
-    port       = "5432"
-    source_ips = ["0.0.0.0/0", "::/0"]
+    direction   = "in"
+    protocol    = "tcp"
+    port        = "5432"
+    source_ips  = ["0.0.0.0/0", "::/0"]
     description = "PostgreSQL"
   }
 

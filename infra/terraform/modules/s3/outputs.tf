@@ -53,10 +53,10 @@ output "mlflow_secret_access_key" {
 output "monthly_cost_estimate" {
   description = "Estimated monthly cost for S3 storage"
   value = {
-    standard_storage = "~$0.023 per GB"
-    glacier_storage  = "~$0.0036 per GB"
-    api_requests     = "~$0.0004 per 1000 requests"
-    data_transfer    = "~$0.09 per GB (outbound)"
+    standard_storage  = "~$0.023 per GB"
+    glacier_storage   = "~$0.0036 per GB"
+    api_requests      = "~$0.0004 per 1000 requests"
+    data_transfer     = "~$0.09 per GB (outbound)"
     estimated_monthly = "$1.15 (based on 50GB storage + minimal usage)"
   }
 }
@@ -65,14 +65,14 @@ output "monthly_cost_estimate" {
 output "bucket_configuration" {
   description = "S3 bucket configuration summary"
   value = {
-    versioning_enabled      = true
-    encryption_enabled      = true
-    public_access_blocked   = true
-    lifecycle_rules         = true
-    environment             = var.environment
-    region                  = var.aws_region
-    storage_classes         = ["STANDARD", "GLACIER"]
-    transition_days         = 90
+    versioning_enabled    = true
+    encryption_enabled    = true
+    public_access_blocked = true
+    lifecycle_rules       = true
+    environment           = var.environment
+    region                = var.aws_region
+    storage_classes       = ["STANDARD", "GLACIER"]
+    transition_days       = 90
   }
 }
 
@@ -92,7 +92,7 @@ output "mlflow_s3_configuration" {
 # Monitoring Information
 output "cloudwatch_dashboard_url" {
   description = "CloudWatch dashboard URL for S3 metrics"
-  value = "https://${var.aws_region}.console.aws.amazon.com/cloudwatch/home?region=${var.aws_region}#dashboards:name=alphapulse-s3-metrics-${var.environment}"
+  value       = "https://${var.aws_region}.console.aws.amazon.com/cloudwatch/home?region=${var.aws_region}#dashboards:name=alphapulse-s3-metrics-${var.environment}"
 }
 
 # Resource Group Information

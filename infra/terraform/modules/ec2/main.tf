@@ -52,7 +52,7 @@ resource "hcloud_ssh_key" "server_key" {
 # Hetzner Server (CPX11 for dev, CPX21 for prod)
 resource "hcloud_server" "main" {
   name        = "alphapulse-${var.environment}-server"
-  server_type = var.server_type  # cpx11: 2 vCPU, 2GB RAM, 40GB SSD, €4.51/month
+  server_type = var.server_type # cpx11: 2 vCPU, 2GB RAM, 40GB SSD, €4.51/month
   image       = "ubuntu-22.04"
   location    = var.hcloud_location
   ssh_keys    = [hcloud_ssh_key.server_key.id]
@@ -64,16 +64,16 @@ resource "hcloud_server" "main" {
 
   # User data for initial setup (cloud-init)
   user_data = templatefile("${path.module}/user_data.yaml", {
-    environment          = var.environment
-    docker_compose_file  = var.docker_compose_file
-    postgres_password    = var.postgres_password
-    minio_access_key     = var.minio_access_key
-    minio_secret_key     = var.minio_secret_key
-    mlflow_tracking_uri  = var.mlflow_tracking_uri
-    aws_s3_bucket        = var.aws_s3_bucket
-    aws_access_key_id    = var.aws_access_key_id
+    environment           = var.environment
+    docker_compose_file   = var.docker_compose_file
+    postgres_password     = var.postgres_password
+    minio_access_key      = var.minio_access_key
+    minio_secret_key      = var.minio_secret_key
+    mlflow_tracking_uri   = var.mlflow_tracking_uri
+    aws_s3_bucket         = var.aws_s3_bucket
+    aws_access_key_id     = var.aws_access_key_id
     aws_secret_access_key = var.aws_secret_access_key
-    ssh_key              = tls_private_key.server_key.public_key_openssh
+    ssh_key               = tls_private_key.server_key.public_key_openssh
   })
 
   labels = {
@@ -149,16 +149,16 @@ resource "local_file" "inventory" {
 # Output server information to local file
 resource "local_file" "server_info" {
   content = templatefile("${path.module}/server_info.tmpl", {
-    environment          = var.environment
-    server_name          = hcloud_server.main.name
-    public_ip            = hcloud_floating_ip.main.ip_address
-    private_ip           = hcloud_server.main.ipv4_address
-    server_type          = hcloud_server.main.server_type
-    server_location      = hcloud_server.main.location
-    ssh_key_path         = local_file.private_key.filename
-    enable_data_volume   = var.enable_data_volume
-    data_volume_size     = var.data_volume_size
+    environment        = var.environment
+    server_name        = hcloud_server.main.name
+    public_ip          = hcloud_floating_ip.main.ip_address
+    private_ip         = hcloud_server.main.ipv4_address
+    server_type        = hcloud_server.main.server_type
+    server_location    = hcloud_server.main.location
+    ssh_key_path       = local_file.private_key.filename
+    enable_data_volume = var.enable_data_volume
+    data_volume_size   = var.data_volume_size
   })
-  
+
   filename = "${path.module}/../../../../server_info_${var.environment}.txt"
 }

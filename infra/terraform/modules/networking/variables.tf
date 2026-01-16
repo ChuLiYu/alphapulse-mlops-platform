@@ -54,8 +54,8 @@ variable "common_tags" {
   description = "Common tags for all resources"
   type        = map(string)
   default = {
-    Project     = "AlphaPulse"
-    ManagedBy   = "Terraform"
-    Repository  = "https://github.com/your-org/alphapulse-mlops-platform"
+    Project    = "AlphaPulse"
+    ManagedBy  = "Terraform"
+    Repository = "https://github.com/your-org/alphapulse-mlops-platform"
   }
 }

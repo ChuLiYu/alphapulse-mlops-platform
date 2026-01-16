@@ -26,7 +26,7 @@ variable "server_type" {
 variable "hcloud_location" {
   description = "Hetzner Cloud location"
   type        = string
-  default     = "fsn1"  # Falkenstein, Germany
+  default     = "fsn1" # Falkenstein, Germany
 }
 
 variable "hcloud_network_id" {
@@ -122,8 +122,8 @@ variable "common_tags" {
   description = "Common tags for all resources"
   type        = map(string)
   default = {
-    Project     = "AlphaPulse"
-    ManagedBy   = "Terraform"
-    Repository  = "https://github.com/your-org/alphapulse-mlops-platform"
+    Project    = "AlphaPulse"
+    ManagedBy  = "Terraform"
+    Repository = "https://github.com/your-org/alphapulse-mlops-platform"
   }
 }

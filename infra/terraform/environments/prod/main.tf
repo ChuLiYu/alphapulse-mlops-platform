@@ -52,7 +52,7 @@ resource "oci_core_security_list" "alphapulse_sl" {
 
   # IMPORTANT: DO NOT USE SEMICOLONS IN tcp_options. 
   # Arguments must be separated by newlines.
-  
+
   ingress_security_rules {
     protocol    = "6" # TCP
     source      = "0.0.0.0/0"
@@ -126,7 +126,7 @@ resource "oci_core_instance" "alphapulse_server" {
 
   metadata = {
     ssh_authorized_keys = var.ssh_public_key != null ? var.ssh_public_key : file(var.ssh_public_key_path)
-    user_data           = base64encode(<<EOF
+    user_data = base64encode(<<EOF
 #!/bin/bash
 set -e
 # Flush and disable local firewall to allow K3s internal traffic
