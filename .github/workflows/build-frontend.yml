@@ -65,6 +65,11 @@ jobs:
     if: github.ref == 'refs/heads/main'
     
     steps:
+      - name: Pre-flight Connectivity Check
+        run: |
+          echo "Checking connectivity to ${{ secrets.PROD_HOST }}..."
+          timeout 5s nc -zv ${{ secrets.PROD_HOST }} 22 || echo "❌ Cannot reach port 22 on ${{ secrets.PROD_HOST }}. Please check if the IP is correct and Firewall/Cloudflare is open."
+          
       - name: Execute remote SSH commands to deploy
         uses: appleboy/ssh-action@v1.0.3
         with:

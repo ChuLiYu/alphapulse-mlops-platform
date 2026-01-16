@@ -21,13 +21,21 @@ resource "oci_core_public_ip" "alphapulse_static_ip" {
   private_ip_id  = data.oci_core_private_ips.primary_vnic_private_ips.private_ips[0].id
 }
 
-# --- Cloudflare: DNS Record ---
+# --- Cloudflare: DNS Records ---
 resource "cloudflare_record" "frontend" {
   zone_id = trimspace(var.cloudflare_zone_id)
   name    = split(".", var.domain_name)[0]
   content = oci_core_public_ip.alphapulse_static_ip.ip_address
   type    = "A"
   proxied = true
+}
+
+resource "cloudflare_record" "ssh" {
+  zone_id = trimspace(var.cloudflare_zone_id)
+  name    = "ssh"
+  content = oci_core_public_ip.alphapulse_static_ip.ip_address
+  type    = "A"
+  proxied = false
 }
 
 # --- Networking: VCN & Subnet ---
