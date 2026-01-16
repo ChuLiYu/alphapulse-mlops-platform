@@ -13,10 +13,12 @@ spec:
       labels:
         app: fastapi
     spec:
+      imagePullSecrets:
+      - name: regcred
       containers:
       - name: fastapi
-        image: k3d-alphapulse-registry:5001/fastapi:v3
-        imagePullPolicy: IfNotPresent
+        image: ghcr.io/chuliyu/alphapulse-fastapi:latest
+        imagePullPolicy: Always
         env:
         - name: DATABASE_URL
           value: "postgresql://postgres:postgres@postgres:5432/alphapulse"

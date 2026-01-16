@@ -13,10 +13,12 @@ spec:
       labels:
         app: mlflow
     spec:
+      imagePullSecrets:
+      - name: regcred
       containers:
       - name: mlflow
-        image: k3d-alphapulse-registry:5001/mlflow:v1-prod
-        imagePullPolicy: IfNotPresent
+        image: ghcr.io/chuliyu/alphapulse-mlflow:latest
+        imagePullPolicy: Always
         command: ["mlflow", "server"]
         args:
           - "--host"

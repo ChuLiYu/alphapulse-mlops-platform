@@ -11,6 +11,11 @@ variable "private_key" {
 variable "region" {}
 variable "compartment_id" {}
 variable "availability_domain" {}
+variable "github_token" {
+  description = "GitHub PAT for GHCR access"
+  type        = string
+  sensitive   = true
+}
 
 # Network Configuration
 variable "vcn_cidr" {

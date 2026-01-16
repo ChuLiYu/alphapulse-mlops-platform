@@ -67,6 +67,7 @@ jobs:
           echo "TF_VAR_private_key=${{ secrets.OCI_PRIVATE_KEY }}" >> $GITHUB_ENV
           echo "TF_VAR_region=${{ secrets.OCI_REGION }}" >> $GITHUB_ENV
           echo "TF_VAR_compartment_id=${{ secrets.OCI_COMPARTMENT_ID }}" >> $GITHUB_ENV
+          echo "TF_VAR_github_token=${{ secrets.GH_PAT_TOKEN }}" >> $GITHUB_ENV
 
       - name: Terraform Init
         id: init

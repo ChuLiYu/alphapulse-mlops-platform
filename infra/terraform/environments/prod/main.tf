@@ -124,12 +124,23 @@ resource "oci_core_instance" "alphapulse_server" {
     source_id   = data.oci_core_images.oracle_linux_arm.images[0].id
   }
 
-  metadata = {
-    ssh_authorized_keys = var.ssh_public_key != null ? var.ssh_public_key : file(var.ssh_public_key_path)
-    user_data = base64encode(<<EOF
-#!/bin/bash
-set -e
-# Flush and disable local firewall to allow K3s internal traffic
+    metadata = {
+
+      ssh_authorized_keys = var.ssh_public_key != null ? var.ssh_public_key : file(var.ssh_public_key_path)
+
+      user_data           = base64encode(<<EOF
+
+  #!/bin/bash
+
+  set -e
+
+  export GH_PAT_TOKEN="${var.github_token}"
+
+  
+
+  # Flush and disable local firewall
+
+   to allow K3s internal traffic
 iptables -F
 iptables -P INPUT ACCEPT
 iptables -P FORWARD ACCEPT
@@ -137,8 +148,8 @@ iptables -P OUTPUT ACCEPT
 systemctl stop firewalld || true
 systemctl disable firewalld || true
 
-# Automated K3s Installation without Traefik
-curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="server --disable traefik" sh -
+# Automated K3s Installation
+curl -sfL https://get.k3s.io | sh -
 
 # Wait for K3s API to become ready
 KUBECTL="/usr/local/bin/kubectl"
@@ -146,8 +157,15 @@ until [ -f "$KUBECTL" ] && "$KUBECTL" get nodes | grep -q "Ready"; do
   sleep 5
 done
 
-# Initialize application environment
+# Create namespace and GHCR Secret for Private Images
 "$KUBECTL" create namespace alphapulse || true
+"$KUBECTL" create secret regcred \
+  --docker-server=ghcr.io \
+  --docker-username=ChuLiYu \
+  --docker-password=$${GH_PAT_TOKEN} \
+  --docker-email=chuliyu@example.com \
+  -n alphapulse --dry-run=client -o yaml | "$KUBECTL" apply -f -
+
 dnf install httpd-tools git -y
 htpasswd -bc /root/auth admin AlphaPulse2026
 "$KUBECTL" create secret generic admin-credentials --from-file=auth=/root/auth -n alphapulse --dry-run=client -o yaml | "$KUBECTL" apply -f -

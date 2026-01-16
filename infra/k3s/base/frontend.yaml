@@ -13,11 +13,12 @@ spec:
       labels:
         app: alphapulse-frontend
     spec:
+      imagePullSecrets:
+      - name: regcred
       containers:
-      - name: alphapulse-frontend
-        image: ghcr.io/chuliyu/alphapulse-mlops-platform/frontend:latest
-        ports:
-        - containerPort: 80
+      - name: frontend
+        image: ghcr.io/chuliyu/alphapulse-frontend:latest
+        imagePullPolicy: Always
 ---
 apiVersion: v1
 kind: Service

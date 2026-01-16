@@ -13,17 +13,13 @@ spec:
       labels:
         app: trainer
     spec:
+      imagePullSecrets:
+      - name: regcred
       containers:
       - name: trainer
-        image: k3d-alphapulse-registry:5001/trainer:v1-prod
-        imagePullPolicy: IfNotPresent
-        env:
-        - name: MLFLOW_TRACKING_URI
-          value: "http://mlflow:5000"
-        - name: DATABASE_URL
-          value: "postgresql://postgres:postgres@postgres:5432/alphapulse"
-        ports:
-        - containerPort: 8080
+        image: ghcr.io/chuliyu/alphapulse-trainer:latest
+        imagePullPolicy: Always
+
 ---
 apiVersion: v1
 kind: Service

@@ -24,17 +24,12 @@ spec:
       labels:
         app: airflow
     spec:
-      initContainers:
-      - name: init-db
-        image: ghcr.io/chuliyu/alphapulse-mlops-platform/airflow:latest
-        command: ["airflow", "db", "init"]
-        envFrom:
-        - configMapRef:
-            name: airflow-config
+      imagePullSecrets:
+      - name: regcred
       containers:
       - name: airflow-webserver
         image: ghcr.io/chuliyu/alphapulse-mlops-platform/airflow:latest
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         command: ["airflow", "webserver"]
         ports:
         - containerPort: 8080
@@ -53,7 +48,7 @@ spec:
           mountPath: /opt/airflow/dags
       volumes:
       - name: dags-volume
-        emptyDir: {} # 生產環境建議改為 Git-Sync 或 PVC，目前先用空目錄避免報錯
+        emptyDir: {} # For production, consider using Git-Sync or a PVC. Currently using emptyDir to prevent errors.
 ---
 apiVersion: v1
 kind: Service
