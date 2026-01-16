@@ -26,12 +26,13 @@ metadata:
   name: alphapulse-frontend
   namespace: alphapulse
 spec:
-  type: LoadBalancer # 修正為 LoadBalancer 以讓外網存取
+  type: ClusterIP
   selector:
     app: alphapulse-frontend
   ports:
   - port: 80
     targetPort: 80
+
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress

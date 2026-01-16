@@ -148,16 +148,15 @@ timeout 300s bash -c 'until [ -f /usr/local/bin/kubectl ]; do sleep 5; done'
 export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
 alias kubectl='/usr/local/bin/kubectl'
 
-# GHCR Secret - Using file to avoid shell expansion issues
-echo "${var.github_token}" > /root/.gh_token
+# GHCR Secret
+export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
 /usr/local/bin/kubectl create namespace alphapulse || true
-/usr/local/bin/kubectl create secret regcred \
+/usr/local/bin/kubectl create secret docker-registry regcred \
   --docker-server=ghcr.io \
   --docker-username=chuliyu \
-  --docker-password="$(cat /root/.gh_token)" \
+  --docker-password="${var.github_token}" \
   --docker-email=chuliyu@example.com \
   -n alphapulse --dry-run=client -o yaml | /usr/local/bin/kubectl apply -f -
-rm /root/.gh_token
 
 # Deploy
 dnf install git -y
