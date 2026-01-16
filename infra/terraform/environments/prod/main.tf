@@ -140,15 +140,59 @@ resource "oci_core_instance" "alphapulse_server" {
 
   
 
-  # Flush and disable local firewall
+  # Flush and disable local firewall to allow K3s internal and external traffic
 
-   to allow K3s internal traffic
-iptables -F
-iptables -P INPUT ACCEPT
-iptables -P FORWARD ACCEPT
-iptables -P OUTPUT ACCEPT
-systemctl stop firewalld || true
-systemctl disable firewalld || true
+  
+
+  iptables -F
+
+  
+
+  iptables -X
+
+  
+
+  iptables -t nat -F
+
+  
+
+  iptables -t nat -X
+
+  
+
+  iptables -t mangle -F
+
+  
+
+  iptables -t mangle -X
+
+  
+
+  iptables -P INPUT ACCEPT
+
+  
+
+  iptables -P FORWARD ACCEPT
+
+  
+
+  iptables -P OUTPUT ACCEPT
+
+  
+
+  netfilter-persistent save || true
+
+  
+
+  systemctl stop firewalld || true
+
+  
+
+  systemctl disable firewalld || true
+
+  
+
+  
 
 # Automated K3s Installation
 curl -sfL https://get.k3s.io | sh -
