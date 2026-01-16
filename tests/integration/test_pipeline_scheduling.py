@@ -90,7 +90,8 @@ class TestPipelineScheduling:
         """
         try:
             from mage_ai.orchestration.db import db_connection
-            from mage_ai.orchestration.db.models.schedules import PipelineSchedule
+
+            # mage_ai legacy import removed
 
             db_connection.start_session()
 
@@ -171,12 +172,12 @@ class TestPipelineScheduling:
         避免「排程存在但管道不存在」的情況
         """
         try:
+            from mage_ai.data_preparation.models.pipeline import Pipeline
             from mage_ai.orchestration.db import db_connection
             from mage_ai.orchestration.db.models.schedules import (
                 PipelineSchedule,
                 ScheduleStatus,
             )
-            from mage_ai.data_preparation.models.pipeline import Pipeline
 
             db_connection.start_session()
 

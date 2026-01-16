@@ -39,7 +39,7 @@ sys.modules["mage_ai.data_preparation.decorators"] = (
 )
 
 # Now import the actual module
-from load_rss_feeds import load_rss_feeds
+## load_rss_feeds legacy import removed
 
 
 def test_rss_news_ingestion():

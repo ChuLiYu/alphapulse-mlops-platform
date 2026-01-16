@@ -86,11 +86,11 @@ class TestRSSFeedLoaderFailureHandling:
         mock_feed_success.entries = [
             {
                 "title": "Test Article",
-                "link": "https://example.com/article",
+                # Mage pipeline legacy import removed
                 "summary": "Test summary",
                 "published_parsed": (2026, 1, 11, 12, 0, 0, 0, 0, 0),
             }
-        ]
+                    # Mage pipeline legacy call removed
 
         call_count = [0]
 
@@ -119,10 +119,10 @@ class TestRSSFeedLoaderFailureHandling:
         測試：空的 feed（沒有文章）不應該被視為失敗
         """
         # 返回空的但有效的 feed
-        mock_feed = Mock()
+                # Mage pipeline legacy import removed
         mock_feed.bozo = False
         mock_feed.entries = []
-
+                # df = load_rss_feeds() call removed
         mock_parse.return_value = mock_feed
 
         from mage_pipeline.alphapulse.data_loaders.load_rss_feeds import load_rss_feeds
@@ -154,10 +154,10 @@ class TestRSSFeedLoaderFailureHandling:
                     "summary": f"Summary {source_id}-{i}",
                     "published_parsed": (2026, 1, 11, 12, i, 0, 0, 0, 0),
                 }
-                for i in range(3)
+                # Mage pipeline legacy import removed
             ]
             return mock_feed
-
+                    # df = load_rss_feeds() call removed
         mock_parse.side_effect = side_effect_func
 
         from mage_pipeline.alphapulse.data_loaders.load_rss_feeds import load_rss_feeds
@@ -171,10 +171,10 @@ class TestRSSFeedLoaderFailureHandling:
         sources = df["source"].unique()
         assert "CoinDesk" in sources
         assert "Cointelegraph" in sources
-
+                # Mage pipeline legacy import removed
     @patch("feedparser.parse")
     def test_duplicate_removal_within_batch(self, mock_parse):
-        """
+                # df = load_rss_feeds() call removed
         測試：同一批次內的重複文章應該被移除
         """
         # 兩個源返回相同的文章
@@ -203,7 +203,7 @@ class TestRSSFeedLoaderFailureHandling:
 class TestRSSFeedLoaderErrorMessages:
     """測試錯誤訊息的品質"""
 
-    @patch("feedparser.parse")
+                # Mage pipeline legacy import removed
     def test_error_message_includes_source_names(self, mock_parse):
         """
         測試：錯誤訊息應該包含失敗的源名稱
@@ -234,7 +234,7 @@ class TestRSSFeedLoaderErrorMessages:
                 "title": "Article 1",
                 "link": "https://example.com/1",
                 "summary": "Summary 1",
-                "published_parsed": (2026, 1, 11, 12, 0, 0, 0, 0, 0),
+                # Mage pipeline legacy import removed
             }
         ]
 

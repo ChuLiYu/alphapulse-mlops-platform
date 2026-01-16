@@ -17,7 +17,7 @@ This checklist ensures all components are ready for production deployment to the
 
 ### ✅ 2. Docker Services
 
-- [x] All services running locally: PostgreSQL, MinIO, MLflow, Mage.ai
+- [x] All services running locally: PostgreSQL, MinIO, MLflow
 - [x] Health checks passing for all services
 - [x] Service ports correctly mapped
 - [x] Volume persistence configured
@@ -124,24 +124,13 @@ This checklist ensures all components are ready for production deployment to the
    ssh root@<hetzner-ip> "cd /opt/alphapulse && docker compose exec mc /bin/sh -c 'mc mb alphapulse/alphapulse --ignore-existing'"
    ```
 
-2. **Run Initial Data Pipeline**
 
-   ```bash
-   ssh root@<hetzner-ip> "cd /opt/alphapulse && docker compose exec mage mage run alphapulse/pipelines/btc_price_pipeline"
-   ```
 
-3. **Verify Data Population**
-   ```bash
-   ssh root@<hetzner-ip> "cd /opt/alphapulse && docker compose exec postgres psql -U postgres -d alphapulse -c 'SELECT COUNT(*) FROM prices;'"
-   ```
+
 
 ### Phase 4: FastAPI Deployment
 
-1. **Start FastAPI Service**
 
-   ```bash
-   ssh root@<hetzner-ip> "cd /opt/alphapulse && docker compose exec -d mage python -m src.alphapulse.main"
-   ```
 
 2. **Verify API Accessibility**
    ```bash
@@ -151,11 +140,7 @@ This checklist ensures all components are ready for production deployment to the
 
 ### Phase 5: Monitoring Setup
 
-1. **Configure Evidently AI Monitoring**
 
-   ```bash
-   ssh root@<hetzner-ip> "cd /opt/alphapulse && docker compose exec mage python -c 'from src.alphapulse.monitoring.data_drift import DataDriftMonitor; monitor = DataDriftMonitor(); monitor.initialize_reference_data()'"
-   ```
 
 2. **Set Up Alerting**
    - Configure Slack webhook for alerts
@@ -169,7 +154,7 @@ This checklist ensures all components are ready for production deployment to the
 - [ ] PostgreSQL: `http://<hetzner-ip>:5432` (connection test)
 - [ ] MinIO: `http://<hetzner-ip>:9001` (console login)
 - [ ] MLflow: `http://<hetzner-ip>:5001` (UI accessible)
-- [ ] Mage.ai: `http://<hetzner-ip>:6789` (UI accessible)
+
 - [ ] FastAPI: `http://<hetzner-ip>:8000/health` (returns healthy)
 
 ### API Endpoint Tests

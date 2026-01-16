@@ -26,10 +26,8 @@ alphapulse-mlops-platform/
 │
 ├── config/                     # 🆕 Centralized configuration
 │   ├── dev/
-│   │   ├── mage.yaml
 │   │   └── mlflow.yaml
 │   ├── prod/
-│   │   ├── mage.yaml
 │   │   └── mlflow.yaml
 │   └── README.md
 │

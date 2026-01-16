@@ -12,20 +12,7 @@ src_path = project_root / "src"
 if str(src_path) not in sys.path:
     sys.path.insert(0, str(src_path))
 
-# Mock mage_ai module for unit tests (not needed in Docker environment)
-if "mage_ai" not in sys.modules:
-    mage_ai_mock = MagicMock()
-
-    # Create a simple pass-through decorator
-    def data_loader(func):
-        return func
-
-    mage_ai_mock.data_preparation.decorators.data_loader = data_loader
-    sys.modules["mage_ai"] = mage_ai_mock
-    sys.modules["mage_ai.data_preparation"] = mage_ai_mock.data_preparation
-    sys.modules["mage_ai.data_preparation.decorators"] = (
-        mage_ai_mock.data_preparation.decorators
-    )
+## 已移除 Mage 相关 mock 代码
 
 import json
 import os

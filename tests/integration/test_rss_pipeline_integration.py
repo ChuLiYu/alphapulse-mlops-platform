@@ -17,7 +17,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "mage_pipeline"))
 from pipelines.news_ingestion_pipeline.export_to_postgres import export_to_postgres
 
 # Import the pipeline functions
-from pipelines.news_ingestion_pipeline.load_rss_feeds import load_rss_feeds
+## pipelines legacy import removed
 
 # Configure logging
 logging.basicConfig(

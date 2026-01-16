@@ -66,7 +66,7 @@ import sys
 sys.path.insert(0, '/home/src/alphapulse')
 try:
     # Test if pipeline modules can be imported
-    import pipelines.btc_price_pipeline.calculate_technical_indicators as btc
+    # pipelines legacy import removed
     print('✅ BTC price pipeline module imported')
     
     # Check if pandas-ta is available

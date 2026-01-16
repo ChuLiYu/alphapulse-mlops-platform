@@ -1,21 +1,21 @@
 # ML Training Infrastructure Decisions & Tradeoffs
 
 **Last Updated**: 2026-01-11  
-**Context**: AlphaPulse MLOps Platform - Mage Container ML Training
+**Context**: AlphaPulse MLOps Platform - ML Training Infrastructure
 
 ---
 
 ## 🎯 Overview
 
-This document records the architectural decisions, tradeoffs, and practical considerations for implementing ML model training within the Mage.ai container environment.
+This document records the architectural decisions, tradeoffs, and practical considerations for implementing ML model training within the AlphaPulse platform environment.
 
 ---
 
 ## 📦 Package Management Decisions
 
-### Decision 1: ML Libraries in Mage Container
+### Decision 1: ML Libraries in Training Environment
 
-**Choice**: Include XGBoost, LightGBM, scikit-learn in `mage_pipeline/requirements.txt`
+**Choice**: Include XGBoost, LightGBM, scikit-learn in training requirements
 
 **Rationale**:
 
@@ -25,7 +25,7 @@ This document records the architectural decisions, tradeoffs, and practical cons
 
 **Tradeoffs**:
 
-- ❌ **Image Size**: Mage image increases from ~1.5GB to ~2.5GB (+1GB)
+  
 - ❌ **Build Time**: Docker build takes 8-12 minutes instead of 3-5 minutes
 - ❌ **Resource Usage**: Container requires more memory (2GB → 3GB recommended)
 
@@ -49,13 +49,13 @@ Financial data is notorious for noise and regime changes. We added CatBoost to t
 
 ## 🏗️ Architecture Decisions
 
-### Decision 2: Training Location - Mage Container vs Dedicated Container
+### Decision 2: Training Location - Shared vs Dedicated Container
 
 **Evaluated Options**:
 
 | Option                         | Pros                                    | Cons                                            | Choice        |
 | ------------------------------ | --------------------------------------- | ----------------------------------------------- | ------------- |
-| **A: Mage Container**          | Simple, integrated, shares data volume  | Larger image, restart affects all               | ✅ **Chosen** |
+| **A: Shared Container**        | Simple, integrated, shares data volume  | Larger image, restart affects all               | ✅ **Chosen** |
 | **B: Dedicated ML Container**  | Isolated, optimized, parallel execution | Complex orchestration, data sync overhead       | ❌            |
 | **C: Serverless (AWS Lambda)** | Cost-effective, auto-scaling            | 15-min timeout, cold starts, complex deployment | ❌            |
 
