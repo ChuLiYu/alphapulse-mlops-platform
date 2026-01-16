@@ -125,7 +125,7 @@ resource "oci_core_instance" "alphapulse_server" {
 
   metadata = {
     ssh_authorized_keys = var.ssh_public_key != null ? var.ssh_public_key : file(var.ssh_public_key_path)
-    user_data           = base64encode(<<EOF
+    user_data = base64encode(<<EOF
 #!/bin/bash
 set -x
 exec > /var/log/user_data.log 2>&1
