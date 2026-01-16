@@ -28,8 +28,8 @@ app = FastAPI(
     description="Backend infrastructure for cryptocurrency trading signal systems",
     version="1.0.0",
     openapi_url="/api/v1/openapi.json",
-    docs_url="/docs",
-    redoc_url="/redoc",
+    docs_url="/api/docs",
+    redoc_url="/api/redoc",
 )
 
 # Configure CORS

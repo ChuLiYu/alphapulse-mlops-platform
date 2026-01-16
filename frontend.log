@@ -1,0 +1,10 @@
+
+> alphapulse-frontend@0.1.0 dev
+> vite --port 5173 --host 0.0.0.0
+
+
+  VITE v5.4.21  ready in 141 ms
+
+  ➜  Local:   http://localhost:5173/
+  ➜  Network: http://192.168.0.105:5173/
+  ➜  Network: http://192.168.139.3:5173/
