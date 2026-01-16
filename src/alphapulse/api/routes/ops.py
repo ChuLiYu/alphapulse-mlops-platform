@@ -3,16 +3,17 @@ MLOps Pipeline Observability endpoints.
 """
 
 from datetime import datetime, timedelta
+
 from fastapi import APIRouter, Depends
 
-from alphapulse.api.schemas.ops import (
-    PipelineStatusResponse,
-    PipelineStage,
-    DataDrift,
-    ModelRegistryResponse,
-    ModelRegistryEntry,
-)
 from alphapulse.api.models_user import User
+from alphapulse.api.schemas.ops import (
+    DataDrift,
+    ModelRegistryEntry,
+    ModelRegistryResponse,
+    PipelineStage,
+    PipelineStatusResponse,
+)
 from alphapulse.security.auth import get_current_user_from_token
 
 router = APIRouter(prefix="/ops", tags=["mlops"])
@@ -21,9 +22,7 @@ import random
 
 
 @router.get("/pipeline-status", response_model=PipelineStatusResponse)
-async def get_pipeline_status(
-    current_user: User = Depends(get_current_user_from_token),
-):
+async def get_pipeline_status():
     """
     Get the current health status of the MLOps pipeline.
     """
@@ -49,7 +48,7 @@ async def get_pipeline_status(
 
 
 @router.get("/models", response_model=ModelRegistryResponse)
-async def get_model_registry(current_user: User = Depends(get_current_user_from_token)):
+async def get_model_registry():
     """
     Get the list of registered models and their deployment status.
     """
@@ -78,3 +77,20 @@ async def get_model_registry(current_user: User = Depends(get_current_user_from_
             ),
         ]
     )
+
+
+@router.get("/drift-analysis")
+async def get_drift_analysis():
+    """
+    Get detailed data drift analysis (Mock for Frontend).
+    """
+    return {
+        "overall_status": "stable",
+        "drift_score": 0.05,
+        "features": [
+            {"name": "price_volatility", "drift": 0.02, "status": "stable"},
+            {"name": "trading_volume", "drift": 0.12, "status": "warning"},
+            {"name": "market_sentiment", "drift": 0.04, "status": "stable"},
+        ],
+        "timestamp": datetime.utcnow()
+    }

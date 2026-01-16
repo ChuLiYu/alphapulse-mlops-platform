@@ -1,34 +1,26 @@
-import axios from 'axios';
+import axios from "axios";
 
 const apiClient = axios.create({
-  baseURL: '/api/v1',
+  baseURL: "/api/v1",
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
 });
 
-// Add a request interceptor to attach the JWT token
+// Add a request interceptor (Auth removed)
 apiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('access_token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
+    // Auth token injection removed per user request
     return config;
   },
   (error) => Promise.reject(error)
 );
 
-// Add a response interceptor to handle token expiration
+// Add a response interceptor (Auth error handling removed)
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
-    const originalRequest = error.config;
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
-      // In a real app, you would handle token refresh here
-      window.location.href = '/login';
-    }
+    // 401 handling removed
     return Promise.reject(error);
   }
 );

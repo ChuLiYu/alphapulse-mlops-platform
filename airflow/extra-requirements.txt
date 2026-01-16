@@ -1,0 +1,8 @@
+# Extra requirements for Airflow image (frequently changed)
+# Sentiment / ML
+transformers>=4.38.2
+torch==2.2.0 --index-url https://download.pytorch.org/whl/cpu
+# LLM
+langchain>=0.1.0
+openai==1.12.0
+groq==0.4.1

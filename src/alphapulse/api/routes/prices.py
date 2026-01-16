@@ -41,20 +41,14 @@ def generate_mock_prices(symbol: str, count: int = 30):
         current_price = current_price * (1 + change)
         timestamp = now - timedelta(hours=4 * (count - i))
 
-        # Create a mock object that looks like the SQLAlchemy model
-        class MockPrice:
-            def __init__(self, s, p, v, t):
-                self.id = random.randint(1000, 9999)
-                self.symbol = s
-                self.price = p
-                self.volume = v
-                self.timestamp = t
-
-        prices.append(
-            MockPrice(
-                symbol, current_price, Decimal(str(random.uniform(10, 100))), timestamp
-            )
-        )
+        # Return dicts which Pydantic can easily validate
+        prices.append({
+            "id": random.randint(1000, 9999),
+            "symbol": symbol,
+            "price": current_price,
+            "volume": Decimal(str(random.uniform(10, 100))),
+            "timestamp": timestamp
+        })
 
     return prices
 

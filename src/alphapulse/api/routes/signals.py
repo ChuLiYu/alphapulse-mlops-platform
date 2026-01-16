@@ -98,38 +98,38 @@ async def get_signals(
     if not signals and offset == 0:
         now = datetime.utcnow()
         signals = [
-            TradingSignal(
-                id=999,
-                symbol="BTC-USD",
-                signal_type="BUY",
-                confidence=Decimal("0.6240"),
-                price_at_signal=Decimal("95800.50"),
-                timestamp=now - timedelta(minutes=5),
-            ),
-            TradingSignal(
-                id=998,
-                symbol="BTC-USD",
-                signal_type="SELL",
-                confidence=Decimal("0.5840"),
-                price_at_signal=Decimal("96200.00"),
-                timestamp=now - timedelta(minutes=25),
-            ),
-            TradingSignal(
-                id=997,
-                symbol="BTC-USD",
-                signal_type="HOLD",
-                confidence=Decimal("0.4110"),
-                price_at_signal=Decimal("94500.20"),
-                timestamp=now - timedelta(hours=1),
-            ),
-            TradingSignal(
-                id=996,
-                symbol="BTC-USD",
-                signal_type="BUY",
-                confidence=Decimal("0.5510"),
-                price_at_signal=Decimal("93800.00"),
-                timestamp=now - timedelta(hours=3),
-            ),
+            {
+                "id": 999,
+                "symbol": "BTC-USD",
+                "signal_type": "BUY",
+                "confidence": Decimal("0.6240"),
+                "price_at_signal": Decimal("95800.50"),
+                "timestamp": now - timedelta(minutes=5),
+            },
+            {
+                "id": 998,
+                "symbol": "BTC-USD",
+                "signal_type": "SELL",
+                "confidence": Decimal("0.5840"),
+                "price_at_signal": Decimal("96200.00"),
+                "timestamp": now - timedelta(minutes=25),
+            },
+            {
+                "id": 997,
+                "symbol": "BTC-USD",
+                "signal_type": "HOLD",
+                "confidence": Decimal("0.4110"),
+                "price_at_signal": Decimal("94500.20"),
+                "timestamp": now - timedelta(hours=1),
+            },
+            {
+                "id": 996,
+                "symbol": "BTC-USD",
+                "signal_type": "BUY",
+                "confidence": Decimal("0.5510"),
+                "price_at_signal": Decimal("93800.00"),
+                "timestamp": now - timedelta(hours=3),
+            },
         ]
         total = len(signals)
 
@@ -231,14 +231,14 @@ async def get_latest_signal(
     if not signal:
         # Fallback to mock latest signal
         now = datetime.utcnow()
-        mock_signal = TradingSignal(
-            id=1000,
-            symbol=symbol,
-            signal_type="BUY",
-            confidence=Decimal("0.5920"),
-            price_at_signal=Decimal("95800.50"),
-            timestamp=now - timedelta(minutes=2),
-        )
+        mock_signal = {
+            "id": 1000,
+            "symbol": symbol,
+            "signal_type": "BUY",
+            "confidence": Decimal("0.5920"),
+            "price_at_signal": Decimal("95800.50"),
+            "timestamp": now - timedelta(minutes=2),
+        }
         return SignalResponse(
             success=True,
             data=mock_signal,

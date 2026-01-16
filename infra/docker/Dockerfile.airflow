@@ -14,9 +14,16 @@ RUN apt-get update \
 
 USER airflow
 
-# Copy requirements
-COPY airflow/requirements.txt /requirements.txt
 
-# Install Python dependencies
-RUN pip install --no-cache-dir -r /requirements.txt
-# Trigger CI build
+# Copy and install base requirements first (rarely changed)
+COPY airflow/base-requirements.txt /base-requirements.txt
+RUN pip install --no-cache-dir -r /base-requirements.txt
+
+# Copy and install extra requirements (frequently changed)
+COPY airflow/extra-requirements.txt /extra-requirements.txt
+RUN pip install --no-cache-dir -r /extra-requirements.txt
+
+# Copy Airflow DAGs, plugins, and src (after requirements for better cache)
+COPY airflow/dags /opt/airflow/dags
+COPY airflow/plugins /opt/airflow/plugins
+COPY src /opt/airflow/src

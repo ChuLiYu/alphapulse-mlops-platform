@@ -87,7 +87,7 @@ app.include_router(indicators.router, prefix="/api/v1", tags=["indicators"])
 app.include_router(auth.router, prefix="/api/v1", tags=["authentication"])
 app.include_router(simulation.router, prefix="/api/v1", tags=["simulation"])
 app.include_router(ops.router, prefix="/api/v1", tags=["mlops"])
-app.include_router(security.router, prefix="/api/v1", tags=["security"])
+# app.include_router(security.router, prefix="/api/v1", tags=["security"])
 
 if __name__ == "__main__":
     import uvicorn
