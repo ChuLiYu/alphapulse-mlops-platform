@@ -291,93 +291,27 @@ const App = () => {
             <AnimatePresence>
                 {showArch && (
                     <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="border-t border-slate-800 p-12 bg-black/60">
-                        {/* THE GRAPH: Precise Mermaid Re-implementation */}
-                        <div className="relative min-h-[650px]">
-                            {/* Connector Lines Layer (SVG) */}
-                            <svg className="absolute inset-0 w-full h-full pointer-events-none overflow-visible" viewBox="0 0 1200 600">
-                                <defs>
-                                    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                                        <path d="M 0 0 L 10 5 L 0 10 z" fill="#10b981" />
-                                    </marker>
-                                    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                                        <path d="M 0 0 L 10 5 L 0 10 z" fill="#0ea5e9" />
-                                    </marker>
-                                    <marker id="arrow-purple" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                                        <path d="M 0 0 L 10 5 L 0 10 z" fill="#8b5cf6" />
-                                    </marker>
-                                </defs>
-
-                                {/* S1, S2 ==> FS */}
-                                <motion.path initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} d="M 120 100 L 220 150" stroke="#0ea5e9" strokeWidth="2" fill="none" markerEnd="url(#arrow-blue)" />
-                                <motion.path initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} d="M 120 200 L 220 150" stroke="#0ea5e9" strokeWidth="2" fill="none" markerEnd="url(#arrow-blue)" />
+                        {/* THE GRAPH: High-Fidelity Mermaid Image */}
+                        <div className="relative flex justify-center py-8">
+                            <div className="relative group max-w-5xl w-full">
+                                {/* Decorative Glow Background */}
+                                <div className="absolute inset-0 bg-emerald-500/5 blur-3xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
                                 
-                                {/* FS ==> T1 (Feature Stream) */}
-                                <motion.path initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ delay: 0.5 }} d="M 320 150 L 420 150" stroke="#10b981" strokeWidth="3" fill="none" markerEnd="url(#arrow-green)" />
+                                {/* 
+                                    Using Mermaid.ink to render the diagram. 
+                                    The base64 string encodes your specific architecture logic and styling.
+                                */}
+                                <img 
+                                    src="https://mermaid.ink/img/Z3JhcGggVEQKICAgIGNsYXNzRGVmIGRhdGEgZmlsbDojRTFGNUZFLHN0cm9rZTojMDE1NzlCLHN0cm9rZS13aWR0aDoycHgsY29sb3I6IzAxNTc5QjsKICAgIGNsYXNzRGVmIGNvbXB1dGUgZmlsbDojRThGNUU5LHN0cm9rZTojMkU3RDMyLHN0cm9rZS13aWR0aDoycHgsY29sb3I6IzFCNUUyMDsKICAgIGNsYXNzRGVmIHByb2QgZmlsbDojRkZGM0UwLHN0cm9rZTojRUY2QzAwLHN0cm9rZS13aWR0aDoycHgsY29sb3I6I0U2NTEwMDsKICAgIGNsYXNzRGVmIHN0b3JhZ2UgZmlsbDojRjNFNUY1LHN0cm9rZTojN0IxRkEyLHN0cm9rZS13aWR0aDoycHgsY29sb3I6IzRBMTQ4QzsKICAgIHN1YmdyYXBoIERhdGFfSHViIFsiMS4gSW5nZXN0aW9uIExheWVyIl0KICAgICAgICBTMShCaW5hbmNlIEFQSSkKICAgICAgICBTMihOZXdzIEZlZWRzKQogICAgICAgIEZTWyhGZWF0dXJlIFN0b3JlKV0KICAgIGVuZAogICAgc3ViZ3JhcGggTUxPcHNfRW5naW5lIFsiMi4gVHJhaW5pbmcgQ29yZSJdCiAgICAgICAgVDF7e0FpcmZsb3d9fQogICAgICAgIFQyW1tUcmFpbmVyXV0KICAgICAgICBUM3tNTGZsb3d9CiAgICAgICAgVDQ+T3B0dW5hXQogICAgZW5kCiAgICBzdWJncmFwaCBQcm9kX0NsdXN0ZXIgWyIzLiBQcm9kdWN0aW9uIEFSTTY0Il0KICAgICAgICBQMVtGYXN0QVBJXQogICAgICAgIFAzKFtJbmZlcmVuY2VdKQogICAgICAgIFAyW0Rhc2hib2FyZF0KICAgIGVuZAogICAgc3ViZ3JhcGggQ2xvdWRfVGllciBbIjQuIFBlcnNpc3RlbmNlIl0KICAgICAgICBTVDFbKEFXUyBTMyldCiAgICAgICAgU1QyWyhDbG91ZGZsYXJlIFIyKV0KICAgIGVuZAogICAgUzEgJiBTMiA9PT4gRlMKICAgIEZTID09PiBUMQogICAgVDEgLS0+IFQyCiAgICBUMiA8LS0+IFQ0CiAgICBUMiAtLT4gVDMKICAgIFQzIC0uLT4gUDEKICAgIFAxIC0tPiBQMwogICAgUDMgLS0+IFAyCiAgICBGUyAtLi0+IFNUMQogICAgVDMgLS4tPiBTVDEKICAgIFAxIC0uLT4gU1QxCiAgICBTVDEgPT09IFNUMgogICAgY2xhc3MgUzEsUzIsRlMgZGF0YQogICAgY2xhc3MgVDEsVDIsVDMsVDQgY29tcHV0ZQogICAgY2xhc3MgUDEsUDIsUDMgcHJvZAogICAgY2xhc3MgU1QxLFNUMiBzdG9yYWdlCg==?theme=dark" 
+                                    alt="AlphaPulse System Architecture" 
+                                    className="relative z-10 w-full rounded-sm border border-slate-800 bg-[#0a0a0c] p-8 shadow-2xl hover:border-emerald-500/30 transition-all duration-500"
+                                />
                                 
-                                {/* T1 --> T2 --> T3 */}
-                                <motion.path initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ delay: 1 }} d="M 520 150 L 620 150" stroke="#10b981" strokeWidth="2" fill="none" markerEnd="url(#arrow-green)" />
-                                <motion.path initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ delay: 1.5 }} d="M 720 150 L 820 150" stroke="#10b981" strokeWidth="2" fill="none" markerEnd="url(#arrow-green)" />
-                                
-                                {/* T2 <-> T4 (Double Arrow) */}
-                                <motion.path initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ delay: 1.5 }} d="M 670 180 L 670 230" stroke="#10b981" strokeWidth="2" fill="none" markerEnd="url(#arrow-green)" markerStart="url(#arrow-green)" />
-                                
-                                {/* T3 -.-> P1 (Register) */}
-                                <motion.path initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ delay: 2 }} d="M 920 150 L 1020 150" stroke="#f59e0b" strokeWidth="2" strokeDasharray="5 5" fill="none" markerEnd="url(#arrow-green)" />
-                                
-                                {/* P1 --> P3 --> P2 */}
-                                <motion.path initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ delay: 2.5 }} d="M 1070 180 L 1070 230" stroke="#f59e0b" strokeWidth="2" fill="none" markerEnd="url(#arrow-green)" />
-                                <motion.path initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ delay: 3 }} d="M 1070 300 L 1070 350" stroke="#f59e0b" strokeWidth="2" fill="none" markerEnd="url(#arrow-green)" />
-
-                                {/* Secondary Flows: FS, T3, P1 -> ST1 */}
-                                <motion.path initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ delay: 3.5 }} d="M 270 180 L 270 450 L 420 450" stroke="#8b5cf6" strokeWidth="1.5" strokeDasharray="4 4" fill="none" markerEnd="url(#arrow-purple)" />
-                                <motion.path initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ delay: 3.5 }} d="M 870 180 L 870 450 L 520 450" stroke="#8b5cf6" strokeWidth="1.5" strokeDasharray="4 4" fill="none" markerEnd="url(#arrow-purple)" />
-                                <motion.path initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ delay: 3.5 }} d="M 1020 160 L 520 450" stroke="#8b5cf6" strokeWidth="1.5" strokeDasharray="4 4" fill="none" markerEnd="url(#arrow-purple)" />
-                                
-                                {/* ST1 === ST2 */}
-                                <motion.path initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ delay: 4 }} d="M 470 480 L 470 530" stroke="#8b5cf6" strokeWidth="3" fill="none" />
-                            </svg>
-
-                            {/* Node Grid Layout */}
-                            <div className="grid grid-cols-4 gap-x-20 gap-y-12 relative z-10">
-                                {/* LAYER 1: Ingestion */}
-                                <div className="space-y-12">
-                                    <div className="text-[10px] font-mono text-sky-500 font-bold tracking-widest border-b border-sky-500/20 pb-2 mb-8 uppercase">1. Ingestion Layer</div>
-                                    <div className="flex flex-col gap-6">
-                                        <ArchNode label="S1: Binance API" icon={Zap} type="data" />
-                                        <ArchNode label="S2: News Feeds" icon={Globe} type="data" />
-                                    </div>
-                                    <div className="mt-4">
-                                        <ArchNode label="FS: Feature Store" icon={DatabaseZap} type="data" />
-                                    </div>
-                                </div>
-
-                                {/* LAYER 2: Core MLOps */}
-                                <div className="space-y-12">
-                                    <div className="text-[10px] font-mono text-emerald-500 font-bold tracking-widest border-b border-emerald-500/20 pb-2 mb-8 uppercase">2. Training Core</div>
-                                    <ArchNode label="T1: Airflow" icon={Workflow} type="compute" />
-                                    <ArchNode label="T2: Trainer" icon={Binary} type="compute" />
-                                    <div className="pt-2">
-                                        <ArchNode label="T4: Optuna Tuner" icon={Activity} type="compute" />
-                                    </div>
-                                </div>
-
-                                {/* Registry & Persistence */}
-                                <div className="space-y-12">
-                                    <div className="text-[10px] font-mono text-slate-500 font-bold tracking-widest border-b border-slate-800 pb-2 mb-8 uppercase text-center">Intermediary & Cloud</div>
-                                    <ArchNode label="T3: MLflow" icon={Layers} type="compute" />
-                                    <div className="h-20"></div>
-                                    <div className="space-y-6">
-                                        <ArchNode label="ST1: AWS S3" icon={Cloud} type="storage" />
-                                        <ArchNode label="ST2: Cloudflare R2" icon={ShieldCheck} type="storage" />
-                                    </div>
-                                </div>
-
-                                {/* LAYER 3: Production */}
-                                <div className="space-y-12">
-                                    <div className="text-[10px] font-mono text-amber-500 font-bold tracking-widest border-b border-amber-500/20 pb-2 mb-8 uppercase text-right">3. Production [ARM64]</div>
-                                    <ArchNode label="P1: FastAPI Gateway" icon={Server} type="prod" />
-                                    <ArchNode label="P3: Inference Engine" icon={Zap} type="prod" />
-                                    <ArchNode label="P2: MUI Dashboard" icon={Box} type="prod" />
+                                <div className="mt-6 flex justify-center gap-8 text-[10px] font-mono uppercase tracking-widest text-slate-500">
+                                    <span className="flex items-center gap-2"><span className="w-2 h-2 bg-[#E1F5FE] rounded-full"></span> Data_Ingestion</span>
+                                    <span className="flex items-center gap-2"><span className="w-2 h-2 bg-[#E8F5E9] rounded-full"></span> MLOps_Compute</span>
+                                    <span className="flex items-center gap-2"><span className="w-2 h-2 bg-[#FFF3E0] rounded-full"></span> Prod_Runtime</span>
+                                    <span className="flex items-center gap-2"><span className="w-2 h-2 bg-[#F3E5F5] rounded-full"></span> Persistence</span>
                                 </div>
                             </div>
                         </div>

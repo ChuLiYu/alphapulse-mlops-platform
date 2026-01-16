@@ -54,10 +54,14 @@ metadata:
   name: frontend-ingress
   namespace: alphapulse
   annotations:
-    traefik.ingress.kubernetes.io/router.entrypoints: web
+    traefik.ingress.kubernetes.io/router.entrypoints: web, websecure
 spec:
+  tls:
+  - hosts:
+    - alphapulse.luichu.dev
   rules:
-  - http:
+  - host: alphapulse.luichu.dev
+    http:
       paths:
       - path: /
         pathType: Prefix

@@ -9,12 +9,25 @@ provider "oci" {
   region           = var.region
 }
 
+provider "cloudflare" {
+  api_token = var.cloudflare_api_token
+}
+
 # --- Networking: Reserved Static IP ---
 resource "oci_core_public_ip" "alphapulse_static_ip" {
   compartment_id = var.compartment_id
   lifetime       = "RESERVED"
   display_name   = "alphapulse-static-ip"
   private_ip_id  = data.oci_core_private_ips.primary_vnic_private_ips.private_ips[0].id
+}
+
+# --- Cloudflare: DNS Record ---
+resource "cloudflare_record" "frontend" {
+  zone_id = var.cloudflare_zone_id
+  name    = split(".", var.domain_name)[0]
+  value   = oci_core_public_ip.alphapulse_static_ip.ip_address
+  type    = "A"
+  proxied = true
 }
 
 # --- Networking: VCN & Subnet ---

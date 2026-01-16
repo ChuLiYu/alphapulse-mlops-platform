@@ -17,6 +17,23 @@ variable "github_token" {
   sensitive   = true
 }
 
+variable "cloudflare_api_token" {
+  description = "Cloudflare API Token with Zone.DNS and Zone.Zone permissions"
+  type        = string
+  sensitive   = true
+}
+
+variable "cloudflare_zone_id" {
+  description = "The Cloudflare Zone ID for the domain"
+  type        = string
+}
+
+variable "domain_name" {
+  description = "The domain name for the frontend (e.g., alphapulse.example.com)"
+  type        = string
+  default     = "alphapulse.luichu.dev"
+}
+
 # Network Configuration
 variable "vcn_cidr" {
   default = "10.0.0.0/16"

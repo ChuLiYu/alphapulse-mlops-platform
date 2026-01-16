@@ -57,11 +57,15 @@ metadata:
   name: mlflow-ingress
   namespace: alphapulse
   annotations:
-    traefik.ingress.kubernetes.io/router.entrypoints: web
+    traefik.ingress.kubernetes.io/router.entrypoints: web, websecure
     traefik.ingress.kubernetes.io/router.middlewares: alphapulse-admin-auth@kubernetescrd
 spec:
+  tls:
+  - hosts:
+    - alphapulse.luichu.dev
   rules:
-  - http:
+  - host: alphapulse.luichu.dev
+    http:
       paths:
       - path: /mlflow
         pathType: Prefix
