@@ -102,6 +102,16 @@ resource "oci_core_security_list" "alphapulse_sl" {
       max = 443
     }
   }
+
+  ingress_security_rules {
+    protocol    = "1" # ICMP
+    source      = "0.0.0.0/0"
+    source_type = "CIDR_BLOCK"
+    icmp_options {
+      type = 8
+      code = -1
+    }
+  }
 }
 
 resource "oci_core_subnet" "alphapulse_subnet" {

@@ -67,8 +67,22 @@ jobs:
     steps:
       - name: Pre-flight Connectivity Check
         run: |
-          echo "Checking connectivity to ${{ secrets.PROD_HOST }}..."
-          timeout 5s nc -zv ${{ secrets.PROD_HOST }} 22 || echo "❌ Cannot reach port 22 on ${{ secrets.PROD_HOST }}. Please check if the IP is correct and Firewall/Cloudflare is open."
+          echo "🌐 Testing connection to: ${{ secrets.PROD_HOST }}"
+          
+          # Try to ping (requires ICMP open)
+          ping -c 3 ${{ secrets.PROD_HOST }} || echo "⚠️ Ping failed (ICMP might be blocked)"
+          
+          # Check TCP port 22
+          if ! timeout 10s nc -zv ${{ secrets.PROD_HOST }} 22; then
+            echo "❌ ERROR: Port 22 is NOT reachable on ${{ secrets.PROD_HOST }}."
+            echo "Possible reasons:"
+            echo "1. The IP address in PROD_HOST secret is incorrect."
+            echo "2. OCI Security List is not allowing port 22."
+            echo "3. Cloudflare Proxy is still enabled for this domain (if using a domain)."
+            echo "4. The instance firewall (iptables/firewalld) is blocking connections."
+            exit 1
+          fi
+          echo "✅ Port 22 is open. Proceeding with SSH..."
           
       - name: Execute remote SSH commands to deploy
         uses: appleboy/ssh-action@v1.0.3
