@@ -99,82 +99,42 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-            - name: Build and push Trainer
+      - name: Build and push Trainer
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: infra/docker/Dockerfile.trainer
+          push: true
+          tags: ${{ env.DOCKER_REGISTRY }}/${{ github.repository_owner }}/alphapulse-trainer:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
-              uses: docker/build-push-action@v5
+      - name: Build and push Airflow
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: infra/docker/Dockerfile.airflow
+          push: true
+          tags: ${{ env.DOCKER_REGISTRY }}/${{ github.repository_owner }}/alphapulse-airflow:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
-              with:
+      - name: Build and push MLflow
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: infra/docker/Dockerfile.mlflow
+          push: true
+          tags: ${{ env.DOCKER_REGISTRY }}/${{ github.repository_owner }}/alphapulse-mlflow:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
-                context: .
-
-                file: infra/docker/Dockerfile.trainer
-
-                push: true
-
-                tags: ${{ env.DOCKER_REGISTRY }}/${{ github.repository_owner }}/alphapulse-trainer:latest
-
-                cache-from: type=gha
-
-                cache-to: type=gha,mode=max
-
-      
-
-            - name: Build and push Airflow
-
-              uses: docker/build-push-action@v5
-
-              with:
-
-                context: .
-
-                file: infra/docker/Dockerfile.airflow
-
-                push: true
-
-                tags: ${{ env.DOCKER_REGISTRY }}/${{ github.repository_owner }}/alphapulse-airflow:latest
-
-                cache-from: type=gha
-
-                cache-to: type=gha,mode=max
-
-      
-
-            - name: Build and push MLflow
-
-              uses: docker/build-push-action@v5
-
-              with:
-
-                context: .
-
-                file: infra/docker/Dockerfile.mlflow
-
-                push: true
-
-                tags: ${{ env.DOCKER_REGISTRY }}/${{ github.repository_owner }}/alphapulse-mlflow:latest
-
-                cache-from: type=gha
-
-                cache-to: type=gha,mode=max
-
-      
-
-            - name: Build and push Frontend
-
-              uses: docker/build-push-action@v5
-
-              with:
-
-                context: frontend
-
-                file: frontend/Dockerfile
-
-                push: true
-
-                tags: ${{ env.DOCKER_REGISTRY }}/${{ github.repository_owner }}/alphapulse-frontend:latest
-
-                cache-from: type=gha
-
-                cache-to: type=gha,mode=max
-
-      
+      - name: Build and push Frontend
+        uses: docker/build-push-action@v5
+        with:
+          context: frontend
+          file: frontend/Dockerfile
+          push: true
+          tags: ${{ env.DOCKER_REGISTRY }}/${{ github.repository_owner }}/alphapulse-frontend:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
