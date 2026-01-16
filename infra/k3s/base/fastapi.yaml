@@ -26,6 +26,16 @@ spec:
           value: "v1"
         ports:
         - containerPort: 8000
+        resources:
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+          requests:
+            cpu: "100m"
+            memory: "256Mi"
+        volumeMounts:
+        - name: models-volume
+          mountPath: /app/models
         livenessProbe:
           httpGet:
             path: /health
@@ -38,6 +48,10 @@ spec:
             port: 8000
           initialDelaySeconds: 15
           periodSeconds: 5
+      volumes:
+      - name: models-volume
+        persistentVolumeClaim:
+          claimName: data-pvc
 ---
 apiVersion: v1
 kind: Service

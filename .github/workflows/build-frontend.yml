@@ -51,7 +51,7 @@ jobs:
           context: .
           file: frontend/Dockerfile
           push: true
-          platforms: linux/arm64
+          platforms: linux/amd64,linux/arm64
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: |
@@ -72,10 +72,17 @@ jobs:
           username: ${{ secrets.PROD_USERNAME }}
           key: ${{ secrets.PROD_SSH_KEY }}
           script: |
-            cd ~/deploy || mkdir -p ~/deploy && cd ~/deploy
-            # Sync manifests
-            if [ -d ".git" ]; then git pull origin main; else git clone https://github.com/${{ github.repository }}.git .; fi
-            # Apply K8s changes
-            sudo kubectl apply -k infra/k3s/base
-            # Force pull the latest image by restarting the deployment
-            sudo kubectl rollout restart deployment/alphapulse-frontend -n alphapulse
+            set -e
+            DEPLOY_DIR="/root/deploy"
+            sudo mkdir -p $DEPLOY_DIR
+            sudo chown ${{ secrets.PROD_USERNAME }}:${{ secrets.PROD_USERNAME }} $DEPLOY_DIR
+            cd $DEPLOY_DIR
+            if [ -d ".git" ]; then
+              git fetch origin main
+              git reset --hard origin/main
+            else
+              rm -rf ./* ./.* 2>/dev/null || true
+              git clone https://github.com/${{ github.repository }}.git .
+            fi
+            sudo /usr/local/bin/kubectl apply -k infra/k3s/base
+            sudo /usr/local/bin/kubectl rollout restart deployment/frontend -n alphapulse

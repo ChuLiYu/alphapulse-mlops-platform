@@ -26,11 +26,18 @@ spec:
           - "--port"
           - "5000"
           - "--backend-store-uri"
-          - "postgresql://postgres:postgres@postgres:5432/alphapulse" # Sharing DB for dev
+          - "postgresql://postgres:postgres@postgres:5432/mlflow"
           - "--default-artifact-root"
           - "/mlflow/artifacts"
         ports:
         - containerPort: 5000
+        resources:
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+          requests:
+            cpu: "100m"
+            memory: "256Mi"
         volumeMounts:
         - name: mlflow-data
           mountPath: /mlflow/artifacts
@@ -58,7 +65,7 @@ metadata:
   namespace: alphapulse
   annotations:
     traefik.ingress.kubernetes.io/router.entrypoints: web, websecure
-    traefik.ingress.kubernetes.io/router.middlewares: alphapulse-admin-auth@kubernetescrd
+    traefik.ingress.kubernetes.io/router.middlewares: alphapulse-admin-auth@kubernetescrd, alphapulse-strip-mlflow-prefix@kubernetescrd
 spec:
   tls:
   - hosts:

@@ -11,6 +11,7 @@ resources:
   - frontend.yaml
   - airflow.yaml
   - mlflow.yaml
+  - mlflow-middleware.yaml
   - trainer.yaml
 
 configMapGenerator:

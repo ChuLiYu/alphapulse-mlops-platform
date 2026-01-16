@@ -21,6 +21,13 @@ spec:
         imagePullPolicy: Always
         ports:
         - containerPort: 80
+        resources:
+          limits:
+            cpu: "200m"
+            memory: "256Mi"
+          requests:
+            cpu: "50m"
+            memory: "128Mi"
         livenessProbe:
           httpGet:
             path: /
