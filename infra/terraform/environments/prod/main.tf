@@ -126,11 +126,11 @@ resource "oci_core_instance" "alphapulse_server" {
     source_id   = data.oci_core_images.oracle_linux_arm.images[0].id
   }
 
-    metadata = {
+  metadata = {
 
-      ssh_authorized_keys = var.ssh_public_key != null ? var.ssh_public_key : file(var.ssh_public_key_path)
+    ssh_authorized_keys = var.ssh_public_key != null ? var.ssh_public_key : file(var.ssh_public_key_path)
 
-      user_data           = base64encode(<<EOF
+    user_data = base64encode(<<EOF
 
   #!/bin/bash
 

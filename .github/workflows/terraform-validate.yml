@@ -40,10 +40,17 @@ jobs:
           TF_CLI_ARGS: "-no-color"
 
       - name: Terraform Format
-        run: terraform fmt -check -recursive
+        id: fmt
+        run: terraform fmt -recursive
         working-directory: infra/terraform
         env:
           TF_CLI_ARGS: "-no-color"
+
+      - name: Auto Commit Terraform Format changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "style: automated terraform fmt"
+          file_pattern: "infra/terraform/**/*.tf"
 
       - name: Terraform Validate
         run: terraform validate
