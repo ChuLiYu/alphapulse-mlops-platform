@@ -1,3 +1,5 @@
+# --- AlphaPulse MLOps Production Infrastructure ---
+# Verified: TFC VCS-driven workflow is active.
 provider "oci" {
   tenancy_ocid     = var.tenancy_ocid
   user_ocid        = var.user_ocid
