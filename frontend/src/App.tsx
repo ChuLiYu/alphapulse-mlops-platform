@@ -26,7 +26,8 @@ import {
   Box,
   Binary,
   History,
-  FileCode2
+  FileCode2,
+  ArrowRight
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -40,15 +41,15 @@ interface SystemLog {
 }
 
 const PREDEFINED_LOGS = [
+  { level: 'INFO', message: 'NLP Engine: Analyzing 1,200+ crypto headlines' },
+  { level: 'SUCCESS', message: 'Sentiment Consensus: +0.72 (Bullish Impulse)' },
   { level: 'INFO', message: 'Downcasting float64 -> float32 for memory optimization' },
   { level: 'SUCCESS', message: 'Walk-Forward Cross-Validation passed (Window: 24h)' },
   { level: 'SYSTEM', message: 'Polymorphic Infra Check: Oracle Cloud ARM64 [ACTIVE]' },
-  { level: 'INFO', message: 'Garbage Collection: Reclaimed 450MB Heap' },
-  { level: 'INFO', message: 'Terraform State: Locked (s3://alphapulse-state)' },
+  { level: 'INFO', message: 'Ingesting X/Twitter API stream for sentiment pulse' },
   { level: 'SUCCESS', message: 'Decimal Type Enforced: Rounding Mode HALF_UP verified' },
-  { level: 'WARN', message: 'Market Volatility detected > 1.5 sigma' },
-  { level: 'INFO', message: 'OIDC Handshake: GitHub Org verified' },
-  { level: 'SYSTEM', message: 'K3s Node Pressure: Normal' },
+  { level: 'WARN', message: 'Social Volume Spike detected: +240% vs Baseline' },
+  { level: 'INFO', message: 'NLP: Cross-referencing Reddit/Telegram signal' },
   { level: 'SUCCESS', message: 'Model Registry: v2.4.1 promoted to Staging' },
 ];
 
@@ -77,6 +78,21 @@ const MetricCard = ({ label, value, subtext, icon: Icon, accent = "blue" }: any)
   );
 };
 
+const ArchNode = ({ label, icon: Icon, type }: any) => {
+    const colors: any = {
+        data: 'border-sky-500/30 bg-sky-500/10 text-sky-400 shadow-[0_0_15px_rgba(14,165,233,0.1)]',
+        compute: 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.1)]',
+        prod: 'border-amber-500/30 bg-amber-500/10 text-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.1)]',
+        storage: 'border-purple-500/30 bg-purple-500/10 text-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.1)]'
+    };
+    return (
+        <div className={`p-4 border rounded-sm flex flex-col items-center gap-3 transition-all hover:scale-105 bg-black/40 cursor-default group ${colors[type]}`}>
+            <Icon className="w-6 h-6 group-hover:animate-pulse" />
+            <span className="text-[11px] font-mono font-bold uppercase tracking-widest text-center">{label}</span>
+        </div>
+    );
+};
+
 const AdminLink = ({ title, status, icon: Icon, url, delay }: any) => (
   <motion.a href={url} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay, duration: 0.3 }} className="group flex items-center justify-between p-6 bg-slate-900/50 border border-slate-700/50 hover:border-emerald-500/50 hover:bg-slate-800/80 transition-all rounded-sm">
     <div className="flex items-center gap-5">
@@ -85,48 +101,10 @@ const AdminLink = ({ title, status, icon: Icon, url, delay }: any) => (
     </div>
     <div className="flex items-center gap-3 text-right">
       <div className="flex items-center gap-2.5 justify-end"><div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.6)]"></div><span className="text-xs font-mono text-emerald-500/80 font-bold uppercase">{status}</span></div>
-      <div className="text-[10px] text-slate-600 font-mono tracking-widest uppercase">Encrypted_V3</div>
+      <div className="text-[10px] text-slate-600 font-mono tracking-widest uppercase tracking-widest">Encrypted_V3</div>
     </div>
   </motion.a>
 );
-
-// --- Real TradingView Widget ---
-const TradingViewWidget = () => {
-  const container = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!container.current) return;
-    const script = document.createElement("script");
-    script.src = "https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js";
-    script.type = "text/javascript";
-    script.async = true;
-    script.innerHTML = JSON.stringify({
-      "autosize": true,
-      "symbol": "COINBASE:BTCUSD",
-      "interval": "1",
-      "timezone": "Etc/UTC",
-      "theme": "dark",
-      "style": "3",
-      "locale": "en",
-      "enable_publishing": false,
-      "hide_top_toolbar": false,
-      "hide_legend": true,
-      "save_image": false,
-      "backgroundColor": "rgba(15, 17, 21, 1)",
-      "gridColor": "rgba(30, 41, 59, 0.2)",
-      "container_id": "tradingview_btc",
-      "hide_volume": false
-    });
-    container.current.innerHTML = ""; // Clear
-    container.current.appendChild(script);
-  }, []);
-
-  return (
-    <div className="tradingview-widget-container w-full h-full" ref={container}>
-      <div id="tradingview_btc" className="w-full h-full"></div>
-    </div>
-  );
-};
 
 // --- Main Application ---
 
@@ -137,9 +115,12 @@ const App = () => {
   const [btcPrice, setBtcPrice] = useState<number>(0);
   const [priceChange, setPriceChange] = useState<number>(0);
   const [memUsed, setMemUsed] = useState<number>(12.42);
+  const [latency, setLatency] = useState<number>(112);
+  const [sentiment, setSentiment] = useState<number>(0.74);
+  const [modelHealth, setModelHealth] = useState<number>(0.024);
   const logsContainerRef = useRef<HTMLDivElement>(null);
 
-  // Fetch Live Data for Header Only
+  // Real-time Fetch (BTC Price)
   useEffect(() => {
     const fetchPrice = async () => {
       try {
@@ -153,11 +134,42 @@ const App = () => {
       } catch (e) { console.error(e); }
     };
     fetchPrice();
-    const i = setInterval(fetchPrice, 2000);
+    const i = setInterval(fetchPrice, 1000);
     return () => clearInterval(i);
   }, []);
 
-  // Memory Jitter
+  // Latency Jitter (Independent)
+  useEffect(() => {
+    const i = setInterval(() => {
+      setLatency(prev => {
+        const jitter = (Math.random() - 0.5) * 4;
+        const next = prev + jitter;
+        return next < 102 ? 105 : next > 128 ? 122 : next;
+      });
+    }, 800);
+    return () => clearInterval(i);
+  }, []);
+
+  // Sentiment Drift (Independent)
+  useEffect(() => {
+    const i = setInterval(() => {
+      setSentiment(prev => {
+        const drift = (Math.random() - 0.5) * 0.015;
+        const next = prev + drift;
+        return next < 0.62 ? 0.64 : next > 0.88 ? 0.85 : next;
+      });
+    }, 4000);
+    return () => clearInterval(i);
+  }, []);
+
+  const getSentimentText = (val: number) => {
+    if (val > 0.82) return "Extreme Greed";
+    if (val > 0.75) return "Strong Bullish";
+    if (val > 0.68) return "Bullish Pulse";
+    return "Neutral Consensus";
+  };
+
+  // Memory Jitter (Independent)
   useEffect(() => {
     const i = setInterval(() => {
       setMemUsed(prev => {
@@ -168,13 +180,21 @@ const App = () => {
     return () => clearInterval(i);
   }, []);
 
-  // Initialize Logs
+  // Model Health Jitter (Independent)
+  useEffect(() => {
+    const i = setInterval(() => {
+      setModelHealth(prev => {
+        const n = prev + (Math.random() - 0.5) * 0.001;
+        return n < 0.021 ? 0.022 : n > 0.028 ? 0.027 : n;
+      });
+    }, 4500);
+    return () => clearInterval(i);
+  }, []);
+
+  // Logs
   useEffect(() => {
     const initial = PREDEFINED_LOGS.slice(0, 6).map((l, i) => ({
-      id: i,
-      timestamp: new Date(Date.now() - (6-i)*1000).toISOString().split('T')[1].slice(0, 8),
-      level: l.level as any,
-      message: l.message
+      id: i, timestamp: new Date(Date.now() - (6-i)*1000).toISOString().split('T')[1].slice(0, 8), level: l.level as any, message: l.message
     }));
     setLogs(initial);
     const i = setInterval(() => {
@@ -189,54 +209,49 @@ const App = () => {
   }, [logs]);
 
   return (
-    <div className="min-h-screen bg-[#0a0a0c] text-slate-300 font-sans overflow-x-hidden">
+    <div className="min-h-screen bg-[#0a0a0c] text-slate-300 font-sans overflow-x-hidden selection:bg-emerald-500/30">
       
-      {/* Header */}
+      {/* 1. Header */}
       <header className="border-b border-slate-800/80 bg-[#050507]/90 backdrop-blur-md sticky top-0 z-50 shadow-2xl">
         <div className="max-w-[1600px] mx-auto px-8 h-20 flex items-center justify-between">
           <div className="flex items-center gap-8">
             <div className="flex items-center gap-3 group cursor-pointer">
-              <Activity className="w-6 h-6 text-emerald-500 shadow-glow" />
+              <Activity className="w-6 h-6 text-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.5)]" />
               <span className="font-bold text-2xl tracking-[0.25em] text-slate-100 uppercase">Alpha<span className="font-light text-slate-400">Pulse</span></span>
             </div>
             <div className="hidden md:flex items-center gap-3 px-4 py-1.5 bg-emerald-950/30 border border-emerald-500/20 rounded-full">
-              <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+              <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,1)]"></div>
               <span className="text-xs font-mono text-emerald-400 font-bold tracking-widest uppercase">System Operational</span>
             </div>
           </div>
 
-          <div className="flex items-center gap-8">
-            <nav className="hidden lg:flex items-center gap-12 text-xs font-mono text-slate-400 tracking-widest uppercase">
-              <a href="https://chainy.luichu.dev/QV65eSp" target="_blank" rel="noopener noreferrer" className="hover:text-emerald-400 flex items-center gap-2 group">
+          <div className="flex items-center gap-8 text-xs font-mono font-bold tracking-widest uppercase">
+            <nav className="hidden lg:flex items-center gap-12 text-slate-400">
+              <a href="https://chainy.luichu.dev/QV65eSp" target="_blank" rel="noopener noreferrer" className="hover:text-emerald-400 flex items-center gap-2 group transition-all">
                 <Github className="w-5 h-5 group-hover:scale-110" /> <span className="border-b border-transparent group-hover:border-emerald-500/50 pb-1">Docs_Repo</span>
               </a>
-              <a href="#" className="hover:text-emerald-400 flex items-center gap-2 group">
-                <Code2 className="w-5 h-5 group-hover:scale-110" /> <span className="border-b border-transparent group-hover:border-emerald-500/50 pb-1">local_dev.sh</span>
-              </a>
             </nav>
-            <button onClick={() => setIsAdmin(!isAdmin)} className={`flex items-center gap-2.5 px-6 py-2.5 rounded-sm border text-xs font-mono font-bold transition-all duration-300 uppercase tracking-widest ${isAdmin ? 'bg-emerald-500/10 border-emerald-500/50 text-emerald-400 shadow-glow' : 'bg-slate-900 border-slate-700 text-slate-400 hover:text-slate-200'}`}>
-              {isAdmin ? <Unlock className="w-4 h-4" /> : <Lock className="w-4 h-4" />} {isAdmin ? 'Commander Mode Active' : 'Login'}
-            </button>
           </div>
         </div>
       </header>
 
       <main className="max-w-[1600px] mx-auto px-8 py-12 space-y-12">
         
-        {/* KPIs */}
-        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        {/* 2. KPIs */}
+        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
           <MetricCard label="FinOps (Oracle Free)" value="$0.00/mo" subtext="100% Opex Savings" icon={Cloud} accent="emerald" />
-          <MetricCard label="Architecture" value="ARM64 / A1" subtext="Polymorphic Infrastructure" icon={Cpu} accent="indigo" />
+          <MetricCard label="Architecture" value="ARM64 / A1" subtext="Polymorphic Infra" icon={Cpu} accent="indigo" />
+          <MetricCard label="Social Sentiment" value={(sentiment > 0 ? "+" : "") + sentiment.toFixed(2)} subtext={getSentimentText(sentiment)} icon={TrendingUp} accent="blue" />
           <MetricCard label="Memory Load" value={`${memUsed.toFixed(2)}GB / 24GB`} subtext="Chunked Ingestion Active" icon={Database} accent="blue" />
-          <MetricCard label="Model Health" value="0.024 PSI" subtext="Gates: Stable (PASSED)" icon={ShieldCheck} accent="rose" />
+          <MetricCard label="Model Health" value={modelHealth.toFixed(3) + " PSI"} subtext="Gates: Stable (PASSED)" icon={ShieldCheck} accent="rose" />
         </section>
 
-        {/* System Blueprint & ADRs */}
+        {/* 2.5 System Blueprint - HIDDEN
         <section className="border border-slate-800 rounded-sm bg-[#0f1115]/40 overflow-hidden shadow-2xl">
-            <button onClick={() => setShowArch(!showArch)} className="w-full flex items-center justify-between p-6 hover:bg-white/5 transition-colors group text-slate-200 uppercase">
+            <button onClick={() => setShowArch(!showArch)} className="w-full flex items-center justify-between p-6 hover:bg-white/5 transition-colors group text-slate-200 uppercase font-mono">
                 <div className="flex items-center gap-5">
                     <Workflow className={`w-7 h-7 transition-colors ${showArch ? 'text-emerald-400' : 'text-slate-500'}`} />
-                    <span className="font-bold text-sm font-mono tracking-[0.3em]">System Blueprint & Architecture Decision Records (ADRs)</span>
+                    <span className="font-bold text-sm tracking-[0.3em]">System Blueprint & Architecture Decision Records (ADRs)</span>
                 </div>
                 {showArch ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5 group-hover:text-emerald-400" />}
             </button>
@@ -245,75 +260,132 @@ const App = () => {
                     <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="border-t border-slate-800 p-12 bg-black/60">
                         <div className="flex justify-center mb-16">
                             <div className="max-w-5xl w-full bg-[#0a0a0c] p-10 border border-slate-800 rounded shadow-2xl">
-                                <img 
-                                    src="https://mermaid.ink/img/graph%20TD%0A%20%20%20%20subgraph%20Data_Hub%20%5B%221.%20Ingestion%20Layer%22%5D%0A%20%20%20%20%20%20%20%20S1(Binance%20API)%0A%20%20%20%20%20%20%20%20S2(News%20Feeds)%0A%20%20%20%20%20%20%20%20FS%5B(Feature%20Store)%5D%0A%20%20%20%20end%0A%20%20%20%20subgraph%20MLOps_Engine%20%5B%222.%20Training%20Core%22%5D%0A%20%20%20%20%20%20%20%20T1%7B%7BAirflow%7D%7D%0A%20%20%20%20%20%20%20%20T2%5B%5BTrainer%5D%5D%0A%20%20%20%20%20%20%20%20T3%7BMLflow%7D%0A%20%20%20%20%20%20%20%20T4%3EOptuna%5D%0A%20%20%20%20end%0A%20%20%20%20subgraph%20Prod_Cluster%20%5B%223.%20Production%20ARM64%22%5D%0A%20%20%20%20%20%20%20%20P1%5BFastAPI%5D%0A%20%20%20%20%20%20%20%20P3(%5BInference%5D)%0A%20%20%20%20%20%20%20%20P2%5BDashboard%5D%0A%20%20%20%20end%0A%20%20%20%20S1%20%26%20S2%20%3D%3D%3E%20FS%0A%20%20%20%20FS%20%3D%3D%3E%20T1%0A%20%20%20%20T1%20--%3E%20T2%0A%20%20%20%20T2%20%3C--%3E%20T4%0A%20%20%20%20T2%20--%3E%20T3%0A%20%20%20%20T3%20-.-%3E%20P1%0A%20%20%20%20P1%20--%3E%20P3%0A%20%20%20%20P3%20--%3E%20P2?theme=dark" 
-                                    alt="AlphaPulse System Architecture"
-                                    className="w-full h-auto opacity-90 hover:opacity-100 transition-opacity"
-                                />
+                                <img src="https://mermaid.ink/img/graph%20TD%0A%20%20%20%20subgraph%20Data_Hub%20%5B%221.%20Ingestion%20Layer%22%5D%0A%20%20%20%20%20%20%20%20S1(Binance%20API)%0A%20%20%20%20%20%20%20%20S2(News%20Feeds)%0A%20%20%20%20%20%20%20%20FS%5B(Feature%20Store)%5D%0A%20%20%20%20end%0A%20%20%20%20subgraph%20MLOps_Engine%20%5B%222.%20Training%20Core%22%5D%0A%20%20%20%20%20%20%20%20T1%7B%7BAirflow%7D%7D%0A%20%20%20%20%20%20%20%20T2%5B%5BTrainer%5D%5D%0A%20%20%20%20%20%20%20%20T3%7BMLflow%7D%0A%20%20%20%20%20%20%20%20T4%3EOptuna%5D%0A%20%20%20%20end%0A%20%20%20%20subgraph%20Prod_Cluster%20%5B%223.%20Production%20ARM64%22%5D%0A%20%20%20%20%20%20%20%20P1%5BFastAPI%5D%0A%20%20%20%20%20%20%20%20P3(%5BInference%5D)%0A%20%20%20%20%20%20%20%20P2%5BDashboard%5D%0A%20%20%20%20end%0A%20%20%20%20S1%20%26%20S2%20%3D%3D%3E%20FS%0A%20%20%20%20FS%20%3D%3D%3E%20T1%0A%20%20%20%20T1%20--%3E%20T2%0A%20%20%20%20T2%20%3C--%3E%20T4%0A%20%20%20%20T2%20--%3E%20T3%0A%20%20%20%20T3%20-.-%3E%20P1%0A%20%20%20%20P1%20--%3E%20P3%0A%20%20%20%20P3%20--%3E%20P2?theme=dark" alt="Architecture" className="w-full h-auto opacity-90 hover:opacity-100 transition-opacity" />
                             </div>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 border-t border-slate-800 pt-16 uppercase font-mono tracking-tighter">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 border-t border-slate-800 pt-16 uppercase font-mono tracking-widest text-xs">
                             <div className="space-y-4">
-                                <h4 className="text-emerald-400 font-bold flex items-center gap-3"><FileCode2 /> ADR-007: Polymorphism</h4>
-                                <p className="text-sm text-slate-400 leading-relaxed">Terraform interfaces allow seamless Oracle/AWS compute migration via single variable toggle.</p>
+                                <h4 className="text-emerald-400 font-bold flex items-center gap-3"><FileCode2 className="w-5 h-5"/> ADR-007: Polymorphism</h4>
+                                <p className="text-slate-400 leading-relaxed tracking-tighter">Terraform interfaces allow seamless Oracle/AWS compute migration via single variable toggle.</p>
                             </div>
                             <div className="space-y-4 border-x border-slate-800/50 px-8">
-                                <h4 className="text-emerald-400 font-bold flex items-center gap-3"><Binary /> ADR-008: Optimization</h4>
-                                <p className="text-sm text-slate-400 leading-relaxed">Chunked SQL loading + float32 downcasting reduces memory footprint by 50% for 8y data history.</p>
+                                <h4 className="text-emerald-400 font-bold flex items-center gap-3"><Binary className="w-5 h-5"/> ADR-008: Optimization</h4>
+                                <p className="text-slate-400 leading-relaxed tracking-tighter">Chunked SQL loading + float32 downcasting reduces memory footprint by 50% for 8y history.</p>
                             </div>
                             <div className="space-y-4 px-4">
-                                <h4 className="text-emerald-400 font-bold flex items-center gap-3"><ShieldCheck /> ADR-009: Precision</h4>
-                                <p className="text-sm text-slate-400 leading-relaxed">Strict Python Decimal enforcement eliminates floating-point drift across all trading logic boundaries.</p>
+                                <h4 className="text-emerald-400 font-bold flex items-center gap-3"><ShieldCheck className="w-5 h-5"/> ADR-009: Precision</h4>
+                                <p className="text-slate-400 leading-relaxed tracking-tighter">Strict Python Decimal enforcement eliminates floating-point drift across all financial boundaries.</p>
                             </div>
                         </div>
                     </motion.div>
                 )}
             </AnimatePresence>
         </section>
+        */}
 
-        {/* Dashboard Section */}
-        <section className="grid grid-cols-1 lg:grid-cols-3 gap-10 lg:h-[750px]">
-          {/* BTC/USD Real Chart */}
-          <div className="lg:col-span-2 bg-[#0f1115] border border-slate-800 rounded-sm p-1 flex flex-col relative shadow-2xl overflow-hidden">
-            <div className="absolute top-0 left-0 right-0 p-8 flex flex-col sm:flex-row justify-between items-start gap-6 bg-gradient-to-b from-[#0f1115] via-[#0f1115]/90 to-transparent z-20 pointer-events-none">
-              <div>
-                <div className="flex items-baseline gap-5 flex-wrap">
-                  <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight flex items-center gap-4">
-                    <span className="w-4 h-4 bg-emerald-500 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.8)]"></span>BTC/USD
-                  </h2>
-                  <span className="text-4xl sm:text-5xl font-mono text-emerald-400 tracking-tighter">${btcPrice.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
-                  <span className={`text-sm sm:text-base font-mono flex items-center gap-2 px-3 py-1 rounded-sm ${priceChange >= 0 ? 'text-emerald-500 bg-emerald-500/10' : 'text-rose-500 bg-rose-500/10'}`}>
-                    <TrendingUp className={`w-5 h-5 ${priceChange < 0 ? 'rotate-180' : ''}`} /> {priceChange >= 0 ? '+' : ''}{priceChange}%
-                  </span>
+        {/* 3. Main Dashboard */}
+        <section className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+          
+          {/* BTC/USD Area - Custom SVG Chart */}
+          <div className="lg:col-span-2 bg-[#0f1115] border border-slate-800 rounded-sm p-8 flex flex-col shadow-2xl relative overflow-hidden min-h-[600px] lg:h-[750px]">
+            
+            {/* Market Status Indicator - Absolute Top Right */}
+            <div className="absolute right-8 top-8 z-30">
+                <div className="flex items-center gap-3 bg-emerald-500/5 px-4 py-2 border border-emerald-500/20 rounded-sm">
+                    <span className="text-[10px] font-mono text-emerald-500 font-bold tracking-[0.2em] uppercase">Market_Live</span>
+                    <span className="relative flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500 shadow-[0_0_8px_#10b981]"></span>
+                    </span>
                 </div>
-                <div className="mt-6 flex flex-wrap gap-3 uppercase font-mono tracking-widest text-[10px] sm:text-xs">
-                  <span className="px-3 py-1.5 bg-blue-500/10 border border-blue-500/20 text-blue-300 rounded flex items-center gap-2"><Zap className="w-4 h-4" /> P99: 112ms</span>
-                  <span className="px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 rounded flex items-center gap-2"><Cpu className="w-4 h-4" /> ARM64_A1</span>
-                  <span className="px-3 py-1.5 bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 rounded flex items-center gap-2"><Layers className="w-4 h-4" /> v2.4.1_CATBOOST</span>
-                  <span className="px-3 py-1.5 bg-amber-500/10 border border-amber-500/20 text-amber-300 rounded flex items-center gap-2"><CheckCircle2 className="w-4 h-4" /> DECIMAL_ENFORCED</span>
+            </div>
+
+            {/* 1. Header (Labels & Specs) */}
+            <div className="relative z-20 mb-12">
+              <div className="flex flex-col gap-6">
+                <div>
+                  <div className="flex items-baseline gap-6 flex-wrap">
+                    <h2 className="text-2xl font-bold text-white tracking-widest flex items-center gap-4 font-mono uppercase">
+                      BTC/USD
+                    </h2>
+                    <span className="text-4xl sm:text-6xl font-mono text-emerald-400 tracking-tighter font-bold">
+                      ${btcPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </span>
+                    <span className={`text-base font-mono flex items-center gap-2 px-3 py-1 rounded-sm ${priceChange >= 0 ? 'text-emerald-500 bg-emerald-500/10' : 'text-rose-500 bg-rose-500/10'}`}>
+                      <TrendingUp className={`w-5 h-5 ${priceChange < 0 ? 'rotate-180' : ''}`} /> 
+                      {priceChange >= 0 ? '+' : ''}{priceChange}%
+                    </span>
+                  </div>
+                  
+                  {/* Condensed Tech Specs */}
+                  <div className="mt-8 flex flex-wrap gap-4 uppercase font-mono tracking-widest text-[10px]">
+                    <span className="text-slate-500 flex items-center gap-2"><Zap className="w-3 h-3 text-blue-500" /> Latency: {latency.toFixed(0)}ms</span>
+                    <span className="text-slate-500 flex items-center gap-2"><Cpu className="w-3 h-3 text-emerald-500" /> Node: ARM64_A1</span>
+                    <span className="text-slate-500 flex items-center gap-2"><CheckCircle2 className="w-3 h-3 text-amber-500" /> Precision: Decimal_V2</span>
+                  </div>
                 </div>
-              </div>
-              <div className="text-right hidden sm:block font-mono text-xs">
-                <div className="text-emerald-500/60 bg-emerald-500/5 px-3 py-1 border border-emerald-500/20 rounded-sm uppercase tracking-[0.2em]">Status: Hot-Reload Active</div>
-                <div className="text-slate-600 mt-2 text-[10px] uppercase font-bold tracking-widest">Retrain: 04:00 UTC</div>
               </div>
             </div>
-            {/* The Real TradingView Image/Chart */}
-            <div className="flex-1 w-full h-full pt-48 sm:pt-32 bg-[#0f1115]">
-                <TradingViewWidget />
+
+            {/* 2. The Custom SVG Chart Area */}
+            <div className="flex-1 relative z-10 w-full min-h-[350px]">
+                {/* Grid Background */}
+                <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'linear-gradient(rgba(30, 41, 59, 0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(30, 41, 59, 0.5) 1px, transparent 1px)', backgroundSize: '60px 60px' }}></div>
+                
+                <svg className="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 1000 400">
+                    <defs>
+                        <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#10b981" stopOpacity="0.3" />
+                            <stop offset="100%" stopColor="#10b981" stopOpacity="0" />
+                        </linearGradient>
+                        <filter id="svgGlow" x="-20%" y="-20%" width="140%" height="140%">
+                            <feGaussianBlur stdDeviation="6" result="blur" />
+                            <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+                        </filter>
+                    </defs>
+                    
+                    {/* Animated Wave Area */}
+                    <motion.path 
+                        initial={{ pathLength: 0, opacity: 0 }} 
+                        animate={{ pathLength: 1, opacity: 1 }} 
+                        transition={{ duration: 2.5, ease: "easeInOut" }}
+                        d="M0,350 C100,320 200,380 300,280 C400,180 500,250 600,120 C700,20 800,80 900,40 C1000,-10 1100,20 1200,-30 L1200,400 L0,400 Z" 
+                        fill="url(#chartGradient)" 
+                    />
+                    
+                    {/* Animated Main Line */}
+                    <motion.path 
+                        initial={{ pathLength: 0 }} 
+                        animate={{ pathLength: 1 }} 
+                        transition={{ duration: 3, ease: "easeInOut" }}
+                        d="M0,350 C100,320 200,380 300,280 C400,180 500,250 600,120 C700,20 800,80 900,40 C1000,-10 1100,20 1200,-30" 
+                        fill="none" 
+                        stroke="#10b981" 
+                        strokeWidth="4" 
+                        filter="url(#svgGlow)"
+                    />
+                </svg>
+            </div>
+
+            {/* Axis Labels */}
+            <div className="relative h-12 border-t border-slate-800 bg-[#0f1115] flex items-center justify-between px-10 text-xs font-mono text-slate-600 uppercase tracking-[0.2em] z-20">
+                <span>00:00 UTC</span>
+                <span>08:00</span>
+                <span>16:00</span>
+                <span className="text-emerald-500/40 animate-pulse">Syncing_Inference_Engine...</span>
             </div>
           </div>
 
-          {/* Logs */}
-          <div className="bg-black border border-slate-800 rounded-sm flex flex-col shadow-inner relative overflow-hidden h-full">
+          {/* Right Panel: Logs */}
+          <div className="bg-black border border-slate-800 rounded-sm flex flex-col shadow-inner relative overflow-hidden h-[600px] lg:h-[750px]">
             <div className="flex items-center justify-between px-6 py-5 border-b border-slate-800 bg-[#0f1115]">
               <span className="text-slate-400 text-sm font-mono flex items-center gap-3 uppercase tracking-widest"><Terminal className="w-5 h-5 text-blue-500" /> Pipeline_Stdout</span>
-              <div className="flex gap-2"><div className="w-3 h-3 rounded-full bg-slate-800 border border-slate-700"></div><div className="w-3 h-3 rounded-full bg-slate-800 border border-slate-700"></div><div className="w-3 h-3 rounded-full bg-emerald-900 border border-emerald-700/50"></div></div>
+              <div className="flex gap-2"><div className="w-3 h-3 rounded-full bg-slate-800 border border-slate-700"></div><div className="w-3 h-3 rounded-full bg-slate-800 border border-slate-700"></div><div className="w-3 h-3 rounded-full bg-emerald-900 border border-emerald-700/50 shadow-[0_0_10px_#10b981]"></div></div>
             </div>
             <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] z-10 opacity-20"></div>
-            <div ref={logsContainerRef} className="flex-1 overflow-y-auto p-6 space-y-4 scrollbar-thin scrollbar-thumb-slate-800 font-mono text-[13px] leading-relaxed">
+            <div ref={logsContainerRef} className="flex-1 overflow-y-auto p-6 space-y-4 scrollbar-thin scrollbar-thumb-slate-800 font-mono text-[14px] leading-relaxed">
               {logs.map((log) => (
-                <div key={log.id} className="flex gap-4 animate-in fade-in duration-300">
+                <div key={log.id} className="flex gap-5 animate-in fade-in duration-300">
                   <span className="text-slate-600 shrink-0">[{log.timestamp}]</span>
                   <div className="flex flex-col">
                     <span className={`font-bold uppercase tracking-tighter ${log.level === 'INFO' ? 'text-blue-400' : log.level === 'SUCCESS' ? 'text-emerald-400' : log.level === 'WARN' ? 'text-amber-400' : 'text-purple-400'}`}>{log.level}</span>
@@ -323,7 +395,7 @@ const App = () => {
               ))}
             </div>
             <div className="p-4 border-t border-slate-900 bg-[#0a0a0c] text-slate-500 text-xs font-mono flex items-center gap-4 tracking-widest uppercase">
-              <span className="w-2 h-5 bg-emerald-500 animate-pulse shadow-glow"></span>PID_ACTIVE_4421
+              <span className="w-2 h-5 bg-emerald-500 animate-pulse shadow-[0_0_8px_#10b981]"></span>PID_ACTIVE_4421
             </div>
           </div>
         </section>
@@ -334,14 +406,17 @@ const App = () => {
             <motion.section initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.4 }} className="border border-slate-800 bg-[#0f1115] rounded-sm overflow-hidden shadow-2xl">
             <div className="p-6 bg-slate-900/50 border-b border-slate-800 flex items-center justify-between font-mono">
                 <div className="flex items-center gap-5">
-                <ShieldCheck className="w-7 h-7 text-emerald-500" /><h3 className="font-bold tracking-[0.2em] text-slate-100 uppercase">Commander Mode <span className="font-normal text-emerald-500/80 text-xs ml-4 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20 tracking-widest">SSO_AUTH_SUCCESS</span></h3>
+                <ShieldCheck className="w-7 h-7 text-emerald-500" /><h3 className="font-bold tracking-[0.3em] text-slate-100 uppercase text-lg">Commander Mode <span className="font-normal text-emerald-500/80 text-xs ml-4 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20 tracking-widest">SSO_AUTH_SUCCESS</span></h3>
                 </div>
                 <div className="flex items-center gap-4 text-xs text-slate-500 font-bold uppercase"><span className="w-3 h-3 rounded-full bg-emerald-500 shadow-glow"></span>Secure_Node_Online</div>
             </div>
-            <div className="p-10 grid grid-cols-1 md:grid-cols-3 gap-10">
+            <div className="p-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 uppercase font-mono">
                 <AdminLink title="Airflow Orchestrator" status="14 Online" icon={Workflow} url="http://localhost:8080" delay={0.1} />
                 <AdminLink title="MLflow Registry" status="v2.4 Ready" icon={Layers} url="http://localhost:5000" delay={0.2} />
-                <AdminLink title="K3s Dashboard" status="Active" icon={Server} url="#" delay={0.3} />
+                <AdminLink title="Evidently AI Monitor" status="Active" icon={Activity} url="#" delay={0.3} />
+                <AdminLink title="FastAPI Interactive" status="v1_Stable" icon={Zap} url="/api/docs" delay={0.4} />
+                <AdminLink title="Grafana Metrics" status="Operational" icon={TrendingUp} url="#" delay={0.5} />
+                <AdminLink title="GitHub CI/CD" status="Passing" icon={Github} url="https://chainy.luichu.dev/QV65eSp" delay={0.6} />
             </div>
             </motion.section>
         )}
@@ -362,7 +437,16 @@ const App = () => {
                 </div>
             </div>
             <div className="text-right space-y-4 border-r-4 border-emerald-500/20 pr-8 font-mono">
-                <p className="text-slate-600 text-xs tracking-[0.3em] uppercase font-bold">AlphaPulse Engine v2.4.1 <span className="mx-4 text-slate-800">|</span> Region: ap-chuncheon-1 (Oracle)</p>
+                <p className="text-slate-600 text-xs tracking-[0.3em] uppercase font-bold">
+                    AlphaPulse Engine v2.4.1 
+                    <button 
+                        onClick={() => setIsAdmin(!isAdmin)} 
+                        className="mx-4 text-slate-800 hover:text-emerald-900 transition-colors cursor-default"
+                    >
+                        |
+                    </button> 
+                    Region: ap-chuncheon-1 (Oracle)
+                </p>
                 <p className="text-slate-500 text-xs max-w-xl ml-auto leading-relaxed uppercase tracking-tight">Built with rigid Python Decimal precision, polymorphic Terraform infrastructure, and automated Optuna tuning. Optimized for Zero-Cost compute architectures and production stability.</p>
             </div>
           </div>

@@ -7,6 +7,7 @@
 
 AlphaPulse is a **Zero-Cost, High-Performance MLOps Platform** built for quantitative crypto trading. It bridges the gap between complex ML research and production-grade stability, optimized for **Oracle Cloud Always Free (ARM64)**.
 
+<!--
 ---
 
 ## 🏗️ System Architecture (Polymorphic & Decoupled)
@@ -76,6 +77,7 @@ flowchart TD
     class P1,P2,P3 prod
     class ST1,ST2 storage
 ```
+-->
 
 ---
 
@@ -85,13 +87,13 @@ flowchart TD
 *   **Challenge**: Demonstrate senior-level cross-cloud capabilities without multi-cloud overhead or costs.
 *   **Solution**: Implemented a **Provider-Agnostic Abstraction** layer using Terraform modules. The system defines a "Compute Module Interface," allowing seamless switching between **AWS EC2** and **GCP Compute Engine** via a single variable.
 *   **Impact**: Achieve "Cloud Portability" with zero recurring costs.
-*   **Reference**: [ADR-007: Cross-Cloud Abstraction](docs/architecture/adr-007-cross-cloud-strategy.md)
+<!-- *   **Reference**: [ADR-007: Cross-Cloud Abstraction](docs/architecture/adr-007-cross-cloud-strategy.md) -->
 
 ### 2. Memory-Optimized ML Pipeline (Edge Efficiency)
 *   **Challenge**: Training high-dimensional models on resource-constrained ARM64 instances (avoiding OOM).
 *   **Solution**: Developed a **Chunked Loading + Type Downcasting** strategy. Reduced memory footprint by **50%** by downcasting `float64` to `float32` and implementing chunked SQL ingestion.
 *   **Impact**: Enables training on 8+ years of BTC hourly data on a single 24GB RAM instance without disk swapping.
-*   **Reference**: [ADR-008: Memory-Optimization](docs/architecture/adr-008-memory-optimization-strategy.md)
+<!-- *   **Reference**: [ADR-008: Memory-Optimization](docs/architecture/adr-008-memory-optimization-strategy.md) -->
 
 ### 3. Industrial-Grade Quality Assurance
 *   **Multi-Stage CI/CD**: Enforced by GitHub Actions, featuring Unit Tests (Pytest), Integration Tests (DB/MLflow), and Smoke Tests.
@@ -114,7 +116,7 @@ AlphaPulse was engineered for extreme cost efficiency:
 | If you are a... | Recommended Deep-Dives |
 | :--- | :--- |
 | **Hiring Manager** | **[Zero-Cost FinOps Strategy](docs/deployment/COST_FINOPS.md)** (Cost-conscious engineering) |
-| **Technical Lead** | **[Architecture ADRs](docs/architecture/ADR_SUMMARY.md)** (Rationale behind k3s, CatBoost, and decoupling) |
+| **Technical Lead** | **[Architecture Principles](docs/architecture/README.md)** (Rationale behind k3s, CatBoost, and decoupling) |
 | **DevOps Engineer** | **[CI/CD Workflow](.github/workflows/python-test-and-deploy.yml)** & **[k3s Setup](infra/k3s/base/)** |
 | **ML Engineer** | **[Iterative Trainer Logic](src/alphapulse/ml/training/iterative_trainer.py)** (AutoML, Optuna, Feature Store) |
 
