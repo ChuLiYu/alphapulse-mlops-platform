@@ -119,8 +119,9 @@ resource "oci_core_instance" "alphapulse_server" {
   }
 
   source_details {
-    source_type = "image"
-    source_id   = data.oci_core_images.oracle_linux_arm.images[0].id
+    source_type             = "image"
+    source_id               = data.oci_core_images.oracle_linux_arm.images[0].id
+    boot_volume_size_in_gbs = 200
   }
 
   metadata = {
@@ -131,6 +132,9 @@ set -x
 exec > /var/log/user_data.log 2>&1
 
 echo "Starting deployment at $(date)"
+
+# Expand filesystem to match boot volume size
+/usr/libexec/oci-growfs -y
 
 # Open firewall
 iptables -F
