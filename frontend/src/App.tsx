@@ -289,32 +289,30 @@ const App = () => {
           {/* BTC/USD Area - Custom SVG Chart */}
           <div className="lg:col-span-2 bg-[#0f1115] border border-slate-800 rounded-sm p-8 flex flex-col shadow-2xl relative overflow-hidden min-h-[600px] lg:h-[750px]">
             
-            {/* Market Status Indicator - Absolute Top Right */}
-            <div className="absolute right-8 top-8 z-30">
-                <div className="flex items-center gap-3 bg-emerald-500/5 px-4 py-2 border border-emerald-500/20 rounded-sm">
-                    <span className="text-[10px] font-mono text-emerald-500 font-bold tracking-[0.2em] uppercase">Market_Live</span>
-                    <span className="relative flex h-2 w-2">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500 shadow-[0_0_8px_#10b981]"></span>
-                    </span>
-                </div>
-            </div>
-
             {/* 1. Header (Labels & Specs) */}
             <div className="relative z-20 mb-12">
               <div className="flex flex-col gap-6">
                 <div>
-                  <div className="flex items-baseline gap-6 flex-wrap">
-                    <h2 className="text-2xl font-bold text-white tracking-widest flex items-center gap-4 font-mono uppercase">
+                  <div className="flex items-center gap-4 sm:gap-6 flex-wrap">
+                    <h2 className="text-xl sm:text-2xl font-bold text-white tracking-widest flex items-center gap-4 font-mono uppercase">
                       BTC/USD
                     </h2>
-                    <span className="text-4xl sm:text-6xl font-mono text-emerald-400 tracking-tighter font-bold">
+                    <span className="text-3xl sm:text-5xl font-mono text-emerald-400 tracking-tighter font-bold">
                       ${btcPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </span>
-                    <span className={`text-base font-mono flex items-center gap-2 px-3 py-1 rounded-sm ${priceChange >= 0 ? 'text-emerald-500 bg-emerald-500/10' : 'text-rose-500 bg-rose-500/10'}`}>
-                      <TrendingUp className={`w-5 h-5 ${priceChange < 0 ? 'rotate-180' : ''}`} /> 
+                    <span className={`text-sm sm:text-base font-mono flex items-center gap-2 px-3 py-1 rounded-sm ${priceChange >= 0 ? 'text-emerald-500 bg-emerald-500/10' : 'text-rose-500 bg-rose-500/10'}`}>
+                      <TrendingUp className={`w-4 h-4 sm:w-5 sm:h-5 ${priceChange < 0 ? 'rotate-180' : ''}`} /> 
                       {priceChange >= 0 ? '+' : ''}{priceChange}%
                     </span>
+
+                    {/* Market Status Indicator - Integrated into flow */}
+                    <div className="flex items-center gap-3 bg-emerald-500/5 px-3 py-1.5 border border-emerald-500/20 rounded-sm ml-auto sm:ml-0">
+                        <span className="text-[10px] font-mono text-emerald-500 font-bold tracking-[0.2em] uppercase">Market_Live</span>
+                        <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500 shadow-[0_0_8px_#10b981]"></span>
+                        </span>
+                    </div>
                   </div>
                   
                   {/* Condensed Tech Specs */}
