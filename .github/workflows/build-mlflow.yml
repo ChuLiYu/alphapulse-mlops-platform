@@ -6,6 +6,7 @@ on:
     paths:
       - "infra/docker/Dockerfile.mlflow"
       - ".github/workflows/build-mlflow.yml"
+      - "infra/k3s/**"
   workflow_dispatch:
 
 env:
