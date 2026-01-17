@@ -41,16 +41,20 @@ interface SystemLog {
 }
 
 const PREDEFINED_LOGS = [
-  { level: 'INFO', message: 'NLP Engine: Analyzing 1,200+ crypto headlines' },
-  { level: 'SUCCESS', message: 'Sentiment Consensus: +0.72 (Bullish Impulse)' },
-  { level: 'INFO', message: 'Downcasting float64 -> float32 for memory optimization' },
-  { level: 'SUCCESS', message: 'Walk-Forward Cross-Validation passed (Window: 24h)' },
-  { level: 'SYSTEM', message: 'Polymorphic Infra Check: Oracle Cloud ARM64 [ACTIVE]' },
-  { level: 'INFO', message: 'Ingesting X/Twitter API stream for sentiment pulse' },
-  { level: 'SUCCESS', message: 'Decimal Type Enforced: Rounding Mode HALF_UP verified' },
-  { level: 'WARN', message: 'Social Volume Spike detected: +240% vs Baseline' },
-  { level: 'INFO', message: 'NLP: Cross-referencing Reddit/Telegram signal' },
-  { level: 'SUCCESS', message: 'Model Registry: v2.4.1 promoted to Staging' },
+  { level: 'SYSTEM', message: 'OCI_ARM64: Hypervisor check passed. Kernel: Linux 5.15.0-1031-oracle (aarch64)' },
+  { level: 'INFO', message: 'infra-manager: Terraform state lock acquired. Verifying compartment resources...' },
+  { level: 'INFO', message: 'ingestion-svc-go: WebSocket pool initialized. [Binance: OK, Coinbase: OK]' },
+  { level: 'INFO', message: 'inference-engine: Loading model v2.4.1 (ONNX/FP16) for ARM64 NEON optimization' },
+  { level: 'WARN', message: 'data-cleaner: Missing OHLCV sequence for ETH-USD. Interpolating via linear method.' },
+  { level: 'SYSTEM', message: 'go-runtime: GC cycle completed. Reclaimed 45MB. Pause time: 1.2ms' },
+  { level: 'INFO', message: 'inference-engine: Batch #4902 complete. Throughput: 1400 req/s. Latency p99: 12ms' },
+  { level: 'DEBUG', message: 'feature-store: Flushing to Redis. Keys updated: 15,200. Memory usage: 14.2GB' },
+  { level: 'WARN', message: 'drift-monitor: Covariate shift in sentiment_score. PSI: 0.12 (Threshold: 0.10)' },
+  { level: 'SUCCESS', message: 'pipeline-orchestrator: Daily-alpha-update triggered via Airflow DAG.' },
+  { level: 'INFO', message: 'risk-engine: Recalibrated. Volatility regime: HIGH. Leverage cap: 2.5x' },
+  { level: 'INFO', message: 'compliance: Audit log sync success. Decimal precision strictly enforced.' },
+  { level: 'ERROR', message: 'feed-handler: WS disconnection (Kraken). Exponential backoff (Attempt 1/5)' },
+  { level: 'INFO', message: 'feed-handler: Reconnection successful. Resuming stream consumption.' },
 ];
 
 // --- Sub-Components ---
@@ -246,7 +250,7 @@ const App = () => {
           <MetricCard label="Model Health" value={modelHealth.toFixed(3) + " PSI"} subtext="Gates: Stable (PASSED)" icon={ShieldCheck} accent="rose" />
         </section>
 
-        {/* 2.5 System Blueprint - HIDDEN
+        {/* 2.5 System Blueprint */}
         <section className="border border-slate-800 rounded-sm bg-[#0f1115]/40 overflow-hidden shadow-2xl">
             <button onClick={() => setShowArch(!showArch)} className="w-full flex items-center justify-between p-6 hover:bg-white/5 transition-colors group text-slate-200 uppercase font-mono">
                 <div className="flex items-center gap-5">
@@ -281,7 +285,6 @@ const App = () => {
                 )}
             </AnimatePresence>
         </section>
-        */}
 
         {/* 3. Main Dashboard */}
         <section className="grid grid-cols-1 lg:grid-cols-3 gap-10">
@@ -411,9 +414,9 @@ const App = () => {
             <div className="p-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 uppercase font-mono">
                 <AdminLink title="Airflow Orchestrator" status="14 Online" icon={Workflow} url="http://localhost:8080" delay={0.1} />
                 <AdminLink title="MLflow Registry" status="v2.4 Ready" icon={Layers} url="http://localhost:5000" delay={0.2} />
-                <AdminLink title="Evidently AI Monitor" status="Active" icon={Activity} url="#" delay={0.3} />
+                <AdminLink title="Evidently AI Monitor" status="Active" icon={Activity} url="http://localhost:8000/dashboard" delay={0.3} />
                 <AdminLink title="FastAPI Interactive" status="v1_Stable" icon={Zap} url="/api/docs" delay={0.4} />
-                <AdminLink title="Grafana Metrics" status="Operational" icon={TrendingUp} url="#" delay={0.5} />
+                <AdminLink title="Grafana Metrics" status="Operational" icon={TrendingUp} url="http://localhost:3000" delay={0.5} />
                 <AdminLink title="GitHub CI/CD" status="Passing" icon={Github} url="https://chainy.luichu.dev/QV65eSp" delay={0.6} />
             </div>
             </motion.section>
