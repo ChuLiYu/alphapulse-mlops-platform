@@ -18,8 +18,14 @@ import {
   ChevronUp,
   ChevronDown,
   FileCode2,
-  Binary
+  Binary,
+  ZoomIn,
+  X,
+  Plus,
+  Minus,
+  RotateCcw
 } from 'lucide-react';
+import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import { motion, AnimatePresence } from 'framer-motion';
 import { SystemLog } from './types';
 import { PREDEFINED_LOGS } from './constants/logs';
@@ -67,6 +73,7 @@ const AdminLink = ({ title, status, icon: Icon, url, delay }: any) => (
 const App = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [showArch, setShowArch] = useState(false);
+  const [isZoomed, setIsZoomed] = useState(false);
   const [logs, setLogs] = useState<SystemLog[]>([]);
   const [btcPrice, setBtcPrice] = useState<number>(0);
   const [priceChange, setPriceChange] = useState<number>(0);
@@ -230,11 +237,77 @@ const App = () => {
             <AnimatePresence>
                 {showArch && (
                     <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="border-t border-slate-800 p-12 bg-black/60">
-                        <div className="flex justify-center mb-16">
-                            <div className="max-w-5xl w-full bg-[#0a0a0c] p-10 border border-slate-800 rounded shadow-2xl">
-                                <img src="/architecture.svg" alt="Architecture" className="w-full h-auto opacity-90 hover:opacity-100 transition-opacity" />
+                        <div className="flex flex-col lg:flex-row gap-16 items-start mb-16">
+                             {/* Diagram Container */}
+                            <div 
+                                className="flex-1 bg-[#0a0a0c] p-8 border border-slate-800 rounded shadow-2xl relative group cursor-pointer overflow-hidden"
+                                onClick={() => setIsZoomed(true)}
+                            >
+                                {/* Overlay Hint */}
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 z-10 backdrop-blur-[2px]">
+                                    <ZoomIn className="w-8 h-8 text-emerald-400" />
+                                    <span className="font-mono text-emerald-400 font-bold uppercase tracking-widest text-sm">Click to Expand</span>
+                                </div>
+
+                                <img 
+                                    src="/architecture.svg" 
+                                    alt="Architecture" 
+                                    className="w-full h-auto max-h-[500px] object-contain opacity-90 group-hover:opacity-100 transition-all duration-500 group-hover:scale-[1.02]" 
+                                />
+                            </div>
+
+                             {/* Explanatory Text */}
+                            <div className="lg:w-1/3 space-y-10 pt-4">
+                                <div className="space-y-4">
+                                    <h3 className="text-xl font-bold text-white font-mono uppercase tracking-widest flex items-center gap-3">
+                                        <span className="w-1.5 h-6 bg-emerald-500 rounded-sm shadow-[0_0_10px_#10b981]"></span>
+                                        Core Advantages
+                                    </h3>
+                                    <p className="text-slate-400 text-xs leading-relaxed font-mono uppercase tracking-tight">
+                                        Production-grade MLOps engineered for <strong className="text-emerald-400">Zero-Cost</strong> operation on Oracle ARM64. 
+                                    </p>
+                                </div>
+
+                                <div className="space-y-8">
+                                    {/* Feature 1 */}
+                                    <div className="border-l border-slate-800 pl-6 relative">
+                                        <span className="absolute -left-[3px] top-0 w-1.5 h-1.5 rounded-full bg-emerald-500/50"></span>
+                                        <h4 className="text-emerald-400 font-bold font-mono text-xs uppercase tracking-widest mb-2">
+                                            01. Zero-Cost Infrastructure
+                                        </h4>
+                                        <p className="text-slate-500 text-[11px] leading-relaxed font-mono uppercase tracking-wide">
+                                            Leverages Oracle "Always Free" ARM64 tier (4 OCPUs, 24GB RAM). 
+                                            No EC2 bills. Pure open-source stack.
+                                        </p>
+                                    </div>
+
+                                    {/* Feature 2 */}
+                                    <div className="border-l border-slate-800 pl-6 relative">
+                                        <span className="absolute -left-[3px] top-0 w-1.5 h-1.5 rounded-full bg-blue-500/50"></span>
+                                        <h4 className="text-blue-400 font-bold font-mono text-xs uppercase tracking-widest mb-2">
+                                            02. Closed-Loop Automation
+                                        </h4>
+                                        <p className="text-slate-500 text-[11px] leading-relaxed font-mono uppercase tracking-wide">
+                                            Self-healing pipeline. Drift detection automatically triggers Airflow retraining DAGs. 
+                                            Models are promoted via MLflow registry gates.
+                                        </p>
+                                    </div>
+
+                                    {/* Feature 3 */}
+                                    <div className="border-l border-slate-800 pl-6 relative">
+                                        <span className="absolute -left-[3px] top-0 w-1.5 h-1.5 rounded-full bg-purple-500/50"></span>
+                                        <h4 className="text-purple-400 font-bold font-mono text-xs uppercase tracking-widest mb-2">
+                                            03. Fintech Precision
+                                        </h4>
+                                        <p className="text-slate-500 text-[11px] leading-relaxed font-mono uppercase tracking-wide">
+                                            Replaces standard float64 with strict Decimal types. 
+                                            Eliminates floating-point errors in financial calculations.
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
+
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-12 border-t border-slate-800 pt-16 uppercase font-mono tracking-widest text-xs">
                             <div className="space-y-4">
                                 <h4 className="text-emerald-400 font-bold flex items-center gap-3"><FileCode2 className="w-5 h-5"/> ADR-007: Polymorphism</h4>
@@ -427,6 +500,69 @@ const App = () => {
             </div>
           </div>
         </footer>
+
+        {/* Lightbox Modal with Deep Zoom */}
+        <AnimatePresence>
+            {isZoomed && (
+                <motion.div 
+                    initial={{ opacity: 0 }} 
+                    animate={{ opacity: 1 }} 
+                    exit={{ opacity: 0 }} 
+                    className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-sm flex flex-col items-center justify-center overflow-hidden"
+                >
+                    {/* Top Bar: Close Button */}
+                    <div className="absolute top-0 left-0 w-full p-6 flex justify-between items-center z-50 pointer-events-none">
+                        <div className="pointer-events-auto bg-slate-900/80 backdrop-blur border border-slate-700/50 px-4 py-2 rounded-full text-xs font-mono text-emerald-400 uppercase tracking-widest flex items-center gap-2">
+                             <ZoomIn className="w-4 h-4" /> Interactive Vector Map
+                        </div>
+                        <button 
+                            className="pointer-events-auto p-3 rounded-full bg-slate-800/50 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors border border-transparent hover:border-slate-600"
+                            onClick={() => setIsZoomed(false)}
+                        >
+                            <X className="w-6 h-6" />
+                        </button>
+                    </div>
+
+                    <div className="w-full h-full flex items-center justify-center">
+                        <TransformWrapper
+                            initialScale={1}
+                            minScale={0.5}
+                            maxScale={8}
+                            centerOnInit={true}
+                            wheel={{ step: 0.2 }}
+                        >
+                            {({ zoomIn, zoomOut, resetTransform }) => (
+                                <>
+                                    {/* Floating Controls */}
+                                    <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex items-center gap-2 z-50 bg-slate-900/90 backdrop-blur border border-slate-700/50 p-2 rounded-full shadow-2xl">
+                                        <button onClick={() => zoomOut()} className="p-3 hover:bg-slate-700 rounded-full text-slate-300 transition-colors" title="Zoom Out">
+                                            <Minus className="w-5 h-5" />
+                                        </button>
+                                        <div className="w-px h-6 bg-slate-700"></div>
+                                        <button onClick={() => resetTransform()} className="p-3 hover:bg-slate-700 rounded-full text-emerald-400 transition-colors" title="Reset">
+                                            <RotateCcw className="w-5 h-5" />
+                                        </button>
+                                        <div className="w-px h-6 bg-slate-700"></div>
+                                        <button onClick={() => zoomIn()} className="p-3 hover:bg-slate-700 rounded-full text-slate-300 transition-colors" title="Zoom In">
+                                            <Plus className="w-5 h-5" />
+                                        </button>
+                                    </div>
+
+                                    {/* The Content */}
+                                    <TransformComponent wrapperClass="!w-full !h-full" contentClass="!w-full !h-full flex items-center justify-center">
+                                        <img 
+                                            src="/architecture.svg" 
+                                            alt="Full Architecture" 
+                                            className="max-w-[90vw] max-h-[85vh] object-contain select-none shadow-2xl"
+                                        />
+                                    </TransformComponent>
+                                </>
+                            )}
+                        </TransformWrapper>
+                    </div>
+                </motion.div>
+            )}
+        </AnimatePresence>
 
       </main>
     </div>
