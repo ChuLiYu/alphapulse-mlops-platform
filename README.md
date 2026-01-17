@@ -7,77 +7,68 @@
 
 AlphaPulse is a **Zero-Cost, High-Performance MLOps Platform** built for quantitative crypto trading. It bridges the gap between complex ML research and production-grade stability, optimized for **Oracle Cloud Always Free (ARM64)**.
 
-<!--
----
-
-## 🏗️ System Architecture (Polymorphic & Decoupled)
+## 🏗️ System Architecture (Production)
 
 ```mermaid
 %%{init: {'flowchart': {'curve': 'basis'}}}%%
 flowchart TD
-    %% --- Palette ---
-    classDef data fill:#E1F5FE,stroke:#01579B,stroke-width:2px,color:#01579B;
-    classDef compute fill:#E8F5E9,stroke:#2E7D32,stroke-width:2px,color:#1B5E20;
-    classDef prod fill:#FFF3E0,stroke:#EF6C00,stroke-width:2px,color:#E65100;
+    %% --- Styles ---
+    classDef ci fill:#E3F2FD,stroke:#1565C0,stroke-width:2px,color:#0D47A1;
+    classDef infra fill:#E8F5E9,stroke:#2E7D32,stroke-width:2px,color:#1B5E20;
+    classDef k8s fill:#FFF3E0,stroke:#EF6C00,stroke-width:2px,color:#E65100;
     classDef storage fill:#F3E5F5,stroke:#7B1FA2,stroke-width:2px,color:#4A148C;
 
-    %% --- 1. Ingestion Layer ---
-    subgraph Data_Hub ["1. Ingestion Layer"]
+    %% --- 1. CI/CD & Infra Layer ---
+    subgraph CICD ["1. CI/CD & Provisioning"]
         direction TB
-        S1(Binance API)
-        S2(News Feeds)
-        FS[(Postgres Feature Store)]
+        GHA[GitHub Actions<br/>(Build & Deploy)]:::ci
+        TF[Terraform<br/>(Infrastructure as Code)]:::infra
+        
+        GHA -- "SSH (Ed25519)" --> PROD
+        TF -- "Provisioning" --> PROD
     end
 
-    %% --- 2. Training Layer ---
-    subgraph MLOps_Engine ["2. Training Core"]
+    %% --- 2. Production Cluster (Oracle Cloud) ---
+    subgraph PROD ["2. Oracle Cloud (Always Free ARM64)"]
         direction TB
-        T1{{Airflow Orchestrator}}
-        T2[[Iterative Trainer]]
-        T3{MLflow Registry}
-        T4>Optuna Tuner]
+        
+        subgraph K3S ["K3s Cluster (Single Node)"]
+            direction TB
+            ING[Traefik Ingress]:::k8s
+            
+            subgraph Apps ["Application Namespace"]
+                AF[Airflow<br/>(Orchestrator)]:::k8s
+                ML[MLflow<br/>(Model Registry)]:::k8s
+                API[FastAPI<br/>(Inference)]:::k8s
+                WEB[Frontend<br/>(React/Next.js)]:::k8s
+            end
+            
+            subgraph Data ["Data Namespace"]
+                 PG[(PostgreSQL)]:::storage
+            end
+        end
     end
 
-    %% --- 3. Production Layer ---
-    subgraph Prod_Cluster ["3. Production (Oracle ARM64)"]
-        direction TB
-        P1[FastAPI Service]
-        P2[MUI Dashboard]
-        P3([Inference Engine])
-    end
-
-    %% --- 4. Storage Layer ---
-    subgraph Cloud_Tier ["4. Cloud Persistence"]
+    %% --- 3. External Storage ---
+    subgraph EXT ["3. External Persistence"]
         direction LR
-        ST1[(AWS S3)]
-        ST2[(Cloudflare R2)]
+        S3[(AWS S3 / R2)]:::storage
     end
 
-    %% --- Connections ---
-    S1 & S2 ==> FS
-    FS ==>|Feature Stream| T1
+    %% --- Flows ---
+    ING --> AF
+    ING --> ML
+    ING --> API
+    ING --> WEB
     
-    T1 --> T2
-    T2 <--> T4
-    T2 --> T3
+    AF -- "DAGs" --> API
+    AF -- "Metrics" --> ML
+    AF -- "Data" --> PG
     
-    T3 -.->|Register| P1
-    P1 --> P3
-    P3 --> P2
-
-    %% Secondary Flows
-    FS -.->|Backup| ST1
-    T3 -.->|Artifacts| ST1
-    P1 -.->|Logs| ST1
-    ST1 === ST2
-
-    %% --- Styles ---
-    class S1,S2,FS data
-    class T1,T2,T3,T4 compute
-    class P1,P2,P3 prod
-    class ST1,ST2 storage
+    ML -.->|Artifacts| S3
+    PG -.->|Backup| S3
 ```
--->
+
 
 ---
 
