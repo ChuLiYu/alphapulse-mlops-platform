@@ -1,61 +1,28 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { 
-  Terminal, 
-  Cpu, 
-  ShieldCheck, 
   Activity, 
-  Server, 
-  GitBranch, 
-  Lock, 
-  Unlock, 
-  Database, 
-  Cloud, 
-  Zap, 
-  Search,
-  TrendingUp,
+  Cpu, 
+  TrendingUp, 
+  Github, 
+  Database,
+  Cloud,
+  ShieldCheck,
+  Terminal,
+  Layers,
+  Activity as Workflow,
+  Zap,
   CheckCircle2,
   Code2,
-  Layers,
-  ChevronDown,
-  ChevronUp,
-  Github,
   Globe,
   ExternalLink,
-  Workflow,
-  DatabaseZap,
-  Box,
-  Binary,
-  History,
+  ChevronUp,
+  ChevronDown,
   FileCode2,
-  ArrowRight
+  Binary
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-
-// --- Types ---
-
-interface SystemLog {
-  id: number;
-  timestamp: string;
-  level: 'INFO' | 'SUCCESS' | 'WARN' | 'SYSTEM';
-  message: string;
-}
-
-const PREDEFINED_LOGS = [
-  { level: 'SYSTEM', message: 'OCI_ARM64: Hypervisor check passed. Kernel: Linux 5.15.0-1031-oracle (aarch64)' },
-  { level: 'INFO', message: 'infra-manager: Terraform state lock acquired. Verifying compartment resources...' },
-  { level: 'INFO', message: 'ingestion-svc-go: WebSocket pool initialized. [Binance: OK, Coinbase: OK]' },
-  { level: 'INFO', message: 'inference-engine: Loading model v2.4.1 (ONNX/FP16) for ARM64 NEON optimization' },
-  { level: 'WARN', message: 'data-cleaner: Missing OHLCV sequence for ETH-USD. Interpolating via linear method.' },
-  { level: 'SYSTEM', message: 'go-runtime: GC cycle completed. Reclaimed 45MB. Pause time: 1.2ms' },
-  { level: 'INFO', message: 'inference-engine: Batch #4902 complete. Throughput: 1400 req/s. Latency p99: 12ms' },
-  { level: 'DEBUG', message: 'feature-store: Flushing to Redis. Keys updated: 15,200. Memory usage: 14.2GB' },
-  { level: 'WARN', message: 'drift-monitor: Covariate shift in sentiment_score. PSI: 0.12 (Threshold: 0.10)' },
-  { level: 'SUCCESS', message: 'pipeline-orchestrator: Daily-alpha-update triggered via Airflow DAG.' },
-  { level: 'INFO', message: 'risk-engine: Recalibrated. Volatility regime: HIGH. Leverage cap: 2.5x' },
-  { level: 'INFO', message: 'compliance: Audit log sync success. Decimal precision strictly enforced.' },
-  { level: 'ERROR', message: 'feed-handler: WS disconnection (Kraken). Exponential backoff (Attempt 1/5)' },
-  { level: 'INFO', message: 'feed-handler: Reconnection successful. Resuming stream consumption.' },
-];
+import { SystemLog } from './types';
+import { PREDEFINED_LOGS } from './constants/logs';
 
 // --- Sub-Components ---
 
@@ -80,21 +47,6 @@ const MetricCard = ({ label, value, subtext, icon: Icon, accent = "blue" }: any)
       </div>
     </motion.div>
   );
-};
-
-const ArchNode = ({ label, icon: Icon, type }: any) => {
-    const colors: any = {
-        data: 'border-sky-500/30 bg-sky-500/10 text-sky-400 shadow-[0_0_15px_rgba(14,165,233,0.1)]',
-        compute: 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.1)]',
-        prod: 'border-amber-500/30 bg-amber-500/10 text-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.1)]',
-        storage: 'border-purple-500/30 bg-purple-500/10 text-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.1)]'
-    };
-    return (
-        <div className={`p-4 border rounded-sm flex flex-col items-center gap-3 transition-all hover:scale-105 bg-black/40 cursor-default group ${colors[type]}`}>
-            <Icon className="w-6 h-6 group-hover:animate-pulse" />
-            <span className="text-[11px] font-mono font-bold uppercase tracking-widest text-center">{label}</span>
-        </div>
-    );
 };
 
 const AdminLink = ({ title, status, icon: Icon, url, delay }: any) => (
@@ -198,12 +150,12 @@ const App = () => {
   // Logs
   useEffect(() => {
     const initial = PREDEFINED_LOGS.slice(0, 6).map((l, i) => ({
-      id: i, timestamp: new Date(Date.now() - (6-i)*1000).toISOString().split('T')[1].slice(0, 8), level: l.level as any, message: l.message
+      id: i, timestamp: new Date(Date.now() - (6-i)*1000).toISOString().split('T')[1].slice(0, 8), level: l.level, message: l.message
     }));
     setLogs(initial);
     const i = setInterval(() => {
       const log = PREDEFINED_LOGS[Math.floor(Math.random() * PREDEFINED_LOGS.length)];
-      setLogs(p => [...p.slice(-49), { id: Date.now(), timestamp: new Date().toISOString().split('T')[1].slice(0, 8), level: log.level as any, message: log.message }]);
+      setLogs(p => [...p.slice(-49), { id: Date.now(), timestamp: new Date().toISOString().split('T')[1].slice(0, 8), level: log.level, message: log.message }]);
     }, 2000);
     return () => clearInterval(i);
   }, []);
@@ -389,7 +341,14 @@ const App = () => {
                 <div key={log.id} className="flex gap-5 animate-in fade-in duration-300">
                   <span className="text-slate-600 shrink-0">[{log.timestamp}]</span>
                   <div className="flex flex-col">
-                    <span className={`font-bold uppercase tracking-tighter ${log.level === 'INFO' ? 'text-blue-400' : log.level === 'SUCCESS' ? 'text-emerald-400' : log.level === 'WARN' ? 'text-amber-400' : 'text-purple-400'}`}>{log.level}</span>
+                    <span className={`font-bold uppercase tracking-tighter ${
+                      log.level === 'INFO' ? 'text-blue-400' : 
+                      log.level === 'SUCCESS' ? 'text-emerald-400' : 
+                      log.level === 'WARN' ? 'text-amber-400' : 
+                      log.level === 'ERROR' ? 'text-rose-400' :
+                      log.level === 'DEBUG' ? 'text-slate-400' :
+                      'text-purple-400'
+                    }`}>{log.level}</span>
                     <span className="text-slate-300 break-words">{log.message}</span>
                   </div>
                 </div>

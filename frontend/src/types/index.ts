@@ -58,3 +58,11 @@ export interface SystemHealth {
     memory_usage: { percent: number };
   };
 }
+
+// frontend/src/types/logs.ts
+export interface SystemLog {
+  id: number;
+  timestamp: string;
+  level: 'INFO' | 'SUCCESS' | 'WARN' | 'SYSTEM' | 'ERROR' | 'DEBUG';
+  message: string;
+}
