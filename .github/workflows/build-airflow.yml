@@ -2,11 +2,11 @@ name: Build Airflow (ARM64)
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
     paths:
-      - 'airflow/**'
-      - 'infra/docker/Dockerfile.airflow'
-      - '.github/workflows/build-airflow.yml'
+      - "airflow/**"
+      - "infra/docker/Dockerfile.airflow"
+      - ".github/workflows/build-airflow.yml"
   workflow_dispatch:
 
 env:
@@ -64,7 +64,7 @@ jobs:
     needs: build-and-push
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
-    
+
     steps:
       - name: Execute remote SSH commands to deploy
         uses: appleboy/ssh-action@v1.0.3
@@ -72,7 +72,6 @@ jobs:
           host: ${{ secrets.PROD_HOST }}
           username: ${{ secrets.PROD_USERNAME }}
           key: ${{ secrets.PROD_SSH_KEY }}
-          passphrase: ${{ secrets.PROD_SSH_PASSPHRASE }}
           script: |
             set -e
             DEPLOY_DIR="/root/deploy"

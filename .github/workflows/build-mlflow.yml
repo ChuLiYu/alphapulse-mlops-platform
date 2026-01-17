@@ -2,10 +2,10 @@ name: Build MLflow (ARM64)
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
     paths:
-      - 'infra/docker/Dockerfile.mlflow'
-      - '.github/workflows/build-mlflow.yml'
+      - "infra/docker/Dockerfile.mlflow"
+      - ".github/workflows/build-mlflow.yml"
   workflow_dispatch:
 
 env:
@@ -63,7 +63,7 @@ jobs:
     needs: build-and-push
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
-    
+
     steps:
       - name: Execute remote SSH commands to deploy
         uses: appleboy/ssh-action@v1.0.3
@@ -71,7 +71,6 @@ jobs:
           host: ${{ secrets.PROD_HOST }}
           username: ${{ secrets.PROD_USERNAME }}
           key: ${{ secrets.PROD_SSH_KEY }}
-          passphrase: ${{ secrets.PROD_SSH_PASSPHRASE }}
           script: |
             set -e
             DEPLOY_DIR="/root/deploy"
