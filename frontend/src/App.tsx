@@ -149,14 +149,30 @@ const App = () => {
 
   // Logs
   useEffect(() => {
-    const initial = PREDEFINED_LOGS.slice(0, 6).map((l, i) => ({
-      id: i, timestamp: new Date(Date.now() - (6-i)*1000).toISOString().split('T')[1].slice(0, 8), level: l.level, message: l.message
+    // Initialize with the last few logs to show recent history
+    const historyCount = 6;
+    const startIndex = PREDEFINED_LOGS.length - historyCount;
+    const initial = PREDEFINED_LOGS.slice(startIndex).map((l, i) => ({
+      id: i, 
+      timestamp: new Date(Date.now() - (historyCount-i)*1000).toISOString().split('T')[1].slice(0, 8), 
+      level: l.level, 
+      message: l.message
     }));
     setLogs(initial);
+
+    let currentIndex = 0;
     const i = setInterval(() => {
-      const log = PREDEFINED_LOGS[Math.floor(Math.random() * PREDEFINED_LOGS.length)];
-      setLogs(p => [...p.slice(-49), { id: Date.now(), timestamp: new Date().toISOString().split('T')[1].slice(0, 8), level: log.level, message: log.message }]);
-    }, 2000);
+      const log = PREDEFINED_LOGS[currentIndex];
+      setLogs(p => [...p.slice(-49), { 
+        id: Date.now(), 
+        timestamp: new Date().toISOString().split('T')[1].slice(0, 12), // High precision time
+        level: log.level, 
+        message: log.message 
+      }]);
+      
+      // Loop sequentially
+      currentIndex = (currentIndex + 1) % PREDEFINED_LOGS.length;
+    }, 1500); // Slightly faster to show activity
     return () => clearInterval(i);
   }, []);
 
@@ -216,7 +232,7 @@ const App = () => {
                     <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="border-t border-slate-800 p-12 bg-black/60">
                         <div className="flex justify-center mb-16">
                             <div className="max-w-5xl w-full bg-[#0a0a0c] p-10 border border-slate-800 rounded shadow-2xl">
-                                <img src="https://mermaid.ink/img/graph%20TD%0A%20%20%20%20subgraph%20Data_Hub%20%5B%221.%20Ingestion%20Layer%22%5D%0A%20%20%20%20%20%20%20%20S1(Binance%20API)%0A%20%20%20%20%20%20%20%20S2(News%20Feeds)%0A%20%20%20%20%20%20%20%20FS%5B(Feature%20Store)%5D%0A%20%20%20%20end%0A%20%20%20%20subgraph%20MLOps_Engine%20%5B%222.%20Training%20Core%22%5D%0A%20%20%20%20%20%20%20%20T1%7B%7BAirflow%7D%7D%0A%20%20%20%20%20%20%20%20T2%5B%5BTrainer%5D%5D%0A%20%20%20%20%20%20%20%20T3%7BMLflow%7D%0A%20%20%20%20%20%20%20%20T4%3EOptuna%5D%0A%20%20%20%20end%0A%20%20%20%20subgraph%20Prod_Cluster%20%5B%223.%20Production%20ARM64%22%5D%0A%20%20%20%20%20%20%20%20P1%5BFastAPI%5D%0A%20%20%20%20%20%20%20%20P3(%5BInference%5D)%0A%20%20%20%20%20%20%20%20P2%5BDashboard%5D%0A%20%20%20%20end%0A%20%20%20%20S1%20%26%20S2%20%3D%3D%3E%20FS%0A%20%20%20%20FS%20%3D%3D%3E%20T1%0A%20%20%20%20T1%20--%3E%20T2%0A%20%20%20%20T2%20%3C--%3E%20T4%0A%20%20%20%20T2%20--%3E%20T3%0A%20%20%20%20T3%20-.-%3E%20P1%0A%20%20%20%20P1%20--%3E%20P3%0A%20%20%20%20P3%20--%3E%20P2?theme=dark" alt="Architecture" className="w-full h-auto opacity-90 hover:opacity-100 transition-opacity" />
+                                <img src="/architecture.svg" alt="Architecture" className="w-full h-auto opacity-90 hover:opacity-100 transition-opacity" />
                             </div>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-12 border-t border-slate-800 pt-16 uppercase font-mono tracking-widest text-xs">
