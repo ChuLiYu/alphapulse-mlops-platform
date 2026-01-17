@@ -92,16 +92,24 @@ jobs:
           key: ${{ secrets.PROD_SSH_KEY }}
           script: |
             set -e
-            DEPLOY_DIR="/root/deploy"
-            sudo mkdir -p $DEPLOY_DIR
-            sudo chown ${{ secrets.PROD_USERNAME }}:${{ secrets.PROD_USERNAME }} $DEPLOY_DIR
+            # Use home directory instead of /root to avoid permission issues
+            DEPLOY_DIR="$HOME/deploy"
+            mkdir -p $DEPLOY_DIR
             cd $DEPLOY_DIR
+            
+            echo "🚀 Starting deployment in $DEPLOY_DIR..."
+            
             if [ -d ".git" ]; then
+              echo "Pulling latest changes..."
               git fetch origin main
               git reset --hard origin/main
             else
+              echo "Cloning repository..."
               rm -rf ./* ./.* 2>/dev/null || true
-              git clone https://github.com/${{ github.repository }}.git .
+              git clone "https://github.com/${{ github.repository }}.git" .
             fi
+            
+            echo "☸️ Applying Kubernetes manifests..."
             sudo /usr/local/bin/kubectl apply -k infra/k3s/base
             sudo /usr/local/bin/kubectl rollout restart deployment/frontend -n alphapulse
+            echo "✅ Deployment finished successfully!"
