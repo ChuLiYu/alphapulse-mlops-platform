@@ -32,7 +32,7 @@ resource "cloudflare_record" "frontend" {
 
 resource "cloudflare_record" "ssh" {
   zone_id = trimspace(var.cloudflare_zone_id)
-  name    = "ssh"
+  name    = "ssh.${split(".", var.domain_name)[0]}"
   content = oci_core_public_ip.alphapulse_static_ip.ip_address
   type    = "A"
   proxied = false
