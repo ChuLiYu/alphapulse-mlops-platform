@@ -74,7 +74,7 @@ jobs:
           key: ${{ secrets.PROD_SSH_KEY }}
           script: |
             set -e
-            DEPLOY_DIR="/root/deploy"
+            DEPLOY_DIR="$HOME/deploy"
             sudo mkdir -p $DEPLOY_DIR
             sudo chown ${{ secrets.PROD_USERNAME }}:${{ secrets.PROD_USERNAME }} $DEPLOY_DIR
             cd $DEPLOY_DIR
