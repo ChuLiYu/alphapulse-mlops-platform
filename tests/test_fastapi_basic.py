@@ -61,7 +61,7 @@ def test_root_endpoint():
     data = response.json()
     assert data["name"] == "AlphaPulse Trading API"
     assert data["version"] == "1.0.0"
-    assert "/docs" in data["docs"]
+    assert "/api/docs" in data["docs"]
 
 
 def test_health_check():
@@ -160,11 +160,11 @@ def test_signal_confidence_validation():
 
 def test_api_documentation():
     """Test that OpenAPI documentation is available."""
-    response = client.get("/docs")
+    response = client.get("/api/docs")
     assert response.status_code == 200
     # Should return HTML for Swagger UI
 
-    response = client.get("/redoc")
+    response = client.get("/api/redoc")
     assert response.status_code == 200
     # Should return HTML for ReDoc
 

@@ -159,7 +159,7 @@ class TestDockerServices:
     def test_fastapi_swagger_docs(self):
         """Test FastAPI Swagger documentation is accessible."""
         try:
-            response = requests.get("http://localhost:8000/docs", timeout=10)
+            response = requests.get("http://localhost:8000/api/docs", timeout=10)
             assert (
                 response.status_code == 200
             ), f"Expected 200, got {response.status_code}"

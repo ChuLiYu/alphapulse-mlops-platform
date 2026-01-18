@@ -99,13 +99,13 @@ services:
     container_name: frontend
     labels:
       project: alphapulse
-    environment:
-      APP_URL: http://localhost
-      MAGE_URL: http://localhost:6789
-      MLFLOW_URL: http://localhost:5002
-      GRAFANA_URL: http://localhost:3100
-      FASTAPI_URL: http://localhost:8000
-      API_URL: http://localhost:8000
+     environment:
+       APP_URL: http://localhost
+       AIRFLOW_URL: http://localhost:8080
+       MLFLOW_URL: http://localhost:5002
+       GRAFANA_URL: http://localhost:3100
+       FASTAPI_URL: http://localhost:8000
+       API_URL: http://localhost:8000
     ports:
       - "3000:80"
     networks:

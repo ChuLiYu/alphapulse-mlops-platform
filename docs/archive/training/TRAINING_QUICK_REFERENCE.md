@@ -344,7 +344,7 @@ docker exec airflow-webserver \
 - **Project Repository**: [GitHub Link]
 - **Airflow UI**: http://localhost:8080
 - **MLflow UI**: http://localhost:5001
-- **FastAPI Docs**: http://localhost:8000/docs
+- **FastAPI Docs**: http://localhost:8000/api/docs
 - **PostgreSQL**: localhost:5432 (alphapulse database)
 
 ---

@@ -38,7 +38,7 @@ This checklist ensures all components are ready for production deployment to the
 - [x] API endpoints functional: health, prices, signals, indicators
 - [x] Database integration with SQLAlchemy
 - [x] CORS middleware configured
-- [x] OpenAPI documentation available at `/docs` and `/redoc`
+- [x] OpenAPI documentation available at `/api/docs` and `/api/redoc`
 
 ### ✅ 5. Security
 
@@ -129,7 +129,7 @@ This checklist ensures all components are ready for production deployment to the
 2. **Verify API Accessibility**
     ```bash
     curl http://<oracle-ip>:8000/health
-    curl http://<oracle-ip>:8000/docs
+    curl http://<oracle-ip>:8000/api/docs
     ```
 
 ### Phase 5: Monitoring Setup
@@ -145,7 +145,7 @@ This checklist ensures all components are ready for production deployment to the
 
 - [ ] PostgreSQL: `http://<oracle-ip>:5432` (connection test)
 - [ ] MinIO: `http://<oracle-ip>:9001` (console login)
-- [ ] MLflow: `http://<oracle-ip>:5001` (UI accessible)
+- [ ] MLflow: `http://<oracle-ip>:5002` (UI accessible)
 
 - [ ] FastAPI: `http://<oracle-ip>:8000/health` (returns healthy)
 

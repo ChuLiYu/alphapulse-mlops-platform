@@ -11,8 +11,8 @@ export const SERVICE_URLS = {
     AIRFLOW: config.AIRFLOW_URL,
     MLFLOW: config.MLFLOW_URL,
     GRAFANA: config.GRAFANA_URL,
-    FASTAPI_DOCS: `${config.FASTAPI_URL}/docs`,
-    EVIDENTLY: `${config.FASTAPI_URL}/monitoring`,
+    FASTAPI_DOCS: `${config.FASTAPI_URL}/api/docs`,
+    EVIDENTLY: `${config.FASTAPI_URL}/api/monitoring`,
     API_BASE: config.API_URL,
     HEALTH_CHECK: `${config.API_URL}/api/v1/health`
   };

@@ -84,7 +84,7 @@ price: Decimal = Decimal("19.99")
 
 - `/health` endpoint for Load Balancer integration
 - Pydantic models with strict type validation
-- Auto-generated Swagger/OpenAPI documentation (`/docs`)
+- Auto-generated Swagger/OpenAPI documentation (`/api/docs`)
 
 **Interview Value**:
 

@@ -43,7 +43,7 @@ os.makedirs("static/monitoring", exist_ok=True)
 
 # Mount static files for Evidently AI reports
 app.mount(
-    "/monitoring",
+    "/api/monitoring",
     StaticFiles(directory="static/monitoring", html=True),
     name="monitoring",
 )
@@ -68,7 +68,7 @@ async def root():
         "name": "AlphaPulse Trading API",
         "version": "1.0.0",
         "description": "Backend infrastructure for cryptocurrency trading signal systems",
-        "docs": "/docs",
+        "docs": "/api/docs",
         "health": "/health",
     }
 

@@ -327,7 +327,7 @@ ports:
 urls:
 	@echo "Service URLs:"
 	@echo "  FastAPI: http://localhost:8000"
-	@echo "  FastAPI Docs: http://localhost:8000/docs"
+	@echo "  FastAPI Docs: http://localhost:8000/api/docs"
 	@echo "  MLflow UI: http://localhost:5002"
 	@echo "  Airflow UI: http://localhost:8080"
 	@echo "  MinIO Console: http://localhost:9001 (user: minioadmin, pass: minioadmin)"

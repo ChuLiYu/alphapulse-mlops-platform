@@ -34,9 +34,9 @@ docker compose ps
 # Expected: postgres, fastapi, airflow, mlflow, minio all "Up"
 
 # 5. Access services
-# - FastAPI: http://localhost:8000/docs
+# - FastAPI: http://localhost:8000/api/docs
 # - Airflow UI: http://localhost:8080
-# - MLflow: http://localhost:5001
+# - MLflow: http://localhost:5002
 # - PostgreSQL: localhost:5432
 
 # 6. Run tests (verify ML libraries installed)
@@ -66,7 +66,7 @@ docker exec trainer python /app/src/alphapulse/ml/auto_train.py
 
 ### 3. Tracking & Versioning
 View training results in MLflow:
-- Open `http://localhost:5001`
+- Open `http://localhost:5002`
 - Navigate to the "auto_training_runs" experiment.
 - Compare metrics (Accuracy, F1-score, Precision).
 
