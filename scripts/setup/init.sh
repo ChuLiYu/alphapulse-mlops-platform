@@ -130,7 +130,7 @@ show_next_steps() {
     echo "   $ make status"
     echo ""
     echo "4. Access the services:"
-    echo "   - Mage.ai: http://localhost:6789"
+    echo "   - Airflow: http://localhost:8080"
     echo "   - MLflow: http://localhost:5001"
     echo "   - MinIO Console: http://localhost:9001"
     echo "     (user: minioadmin, password: minioadmin)"

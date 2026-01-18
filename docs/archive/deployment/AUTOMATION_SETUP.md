@@ -36,8 +36,8 @@ This setup enables automatic data collection for AlphaPulse MLOps platform.
 
 ```bash
 # Test price data collection
-docker cp scripts/update_price_data.py alphapulse-mage:/home/src/
-docker exec alphapulse-mage python /home/src/update_price_data.py
+docker cp scripts/update_price_data.py airflow-webserver:/opt/airflow/src/
+docker exec airflow-webserver python /opt/airflow/src/update_price_data.py
 
 # Test full workflow
 chmod +x scripts/auto_collect_data.sh
@@ -135,9 +135,9 @@ grep CRON /var/log/syslog | grep alphapulse
 ./scripts/auto_collect_data.sh
 
 # Individual components
-docker exec alphapulse-mage python /home/src/update_price_data.py
-docker exec alphapulse-mage python /home/src/collect_news_and_sentiment.py
-docker exec alphapulse-mage python /home/src/integrate_sentiment_features.py
+docker exec airflow-webserver python /opt/airflow/src/update_price_data.py
+docker exec airflow-webserver python /opt/airflow/src/collect_news_and_sentiment.py
+docker exec airflow-webserver python /opt/airflow/src/integrate_sentiment_features.py
 ```
 
 ### Disable Automation
@@ -196,7 +196,7 @@ docker exec postgres psql -U postgres -d alphapulse -c "SELECT 1"
 
 ```bash
 # Test Yahoo Finance connection
-docker exec alphapulse-mage python -c "import yfinance as yf; print(yf.Ticker('BTC-USD').history(period='1d'))"
+docker exec airflow-webserver python -c "import yfinance as yf; print(yf.Ticker('BTC-USD').history(period='1d'))"
 
 # Test RSS feeds
 curl -I https://www.coindesk.com/arc/outboundfeeds/rss/

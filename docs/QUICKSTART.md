@@ -94,7 +94,7 @@ print('Model loaded successfully:', type(model))
 ```bash
 # 1. Configure cloud provider credentials
 aws configure
-export HCLOUD_TOKEN="your_hetzner_api_token"
+# OCI credentials configured via setup_oci.sh (see setup_oci.sh.example)
 
 # 2. Deploy infrastructure
 cd infra/terraform/environments/prod

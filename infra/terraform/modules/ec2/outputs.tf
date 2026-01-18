@@ -127,7 +127,7 @@ output "connection_instructions" {
        ssh -i ${local_file.private_key.filename} root@${hcloud_floating_ip.main.ip_address}
     
     2. Service URLs:
-       - Mage.ai UI: http://${hcloud_floating_ip.main.ip_address}:6789
+       - Airflow Webserver: http://${hcloud_floating_ip.main.ip_address}:8080
        - MLflow UI: http://${hcloud_floating_ip.main.ip_address}:5001
        - MinIO Console: http://${hcloud_floating_ip.main.ip_address}:9001
        - MinIO API: http://${hcloud_floating_ip.main.ip_address}:9000

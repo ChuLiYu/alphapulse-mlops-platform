@@ -1,4 +1,4 @@
-# Cost Optimization Decision: Hetzner CPX11 vs CPX21
+# Cost Optimization Decision: Oracle Cloud Always Free vs Paid Options (Historical)
 
 ## Decision Date
 
@@ -6,11 +6,11 @@
 
 ## Decision
 
-**Use Hetzner CPX11 (€4.51/month) for development environment**
+**Use Oracle Cloud Always Free ($0.00/month) for production environment**
 
 ## Context
 
-AlphaPulse is transitioning from local Docker Compose to hybrid cloud deployment (Hetzner + AWS S3). Initial architecture specified CPX21 (€9.50/month), but analysis shows CPX11 (€4.51/month) is sufficient for development phase.
+AlphaPulse has migrated from Hetzner CPX21 to Oracle Cloud Always Free tier (4 OCPUs, 24GB RAM). Previous architecture analyzed Hetzner CPX11 vs CPX21 options, but final decision prioritized zero-cost Oracle tier.
 
 ## Analysis
 
@@ -21,18 +21,17 @@ AlphaPulse is transitioning from local Docker Compose to hybrid cloud deployment
 | PostgreSQL   | 384MB         | Alpine version with reduced buffers       |
 | MinIO        | 256MB         | Lightweight object storage                |
 | MLflow       | 384MB         | Python service with limited concurrency   |
-| Mage.ai      | 768MB         | Data pipeline engine with resource limits |
+| Airflow      | 512MB         | Data pipeline engine with resource limits |
 | Evidently AI | 256MB         | Monitoring service                        |
 | OS & Buffer  | 512MB         | System overhead                           |
-| **Total**    | **~2.5GB**    | With resource constraints                 |
+| **Total**    | **~2.3GB**    | With resource constraints                 |
 
-### Hetzner Pricing Comparison
+### Oracle Cloud Always Free Tier
 
-| Server Type | vCPU | RAM | SSD   | Monthly Cost    | Total Cost (with AWS S3) |
-| ----------- | ---- | --- | ----- | --------------- | ------------------------ |
-| **CPX11**   | 2    | 2GB | 40GB  | €4.51 ($4.51)   | **$6.16**                |
-| CPX21       | 3    | 4GB | 80GB  | €9.50 ($9.50)   | $11.15                   |
-| CPX31       | 4    | 8GB | 160GB | €18.10 ($18.10) | $19.75                   |
+| Resource | Specification | Monthly Cost    | Notes                      |
+| -------- | -------------- | --------------- | --------------------------- |
+| **Always Free** | 4 OCPUs, 24GB RAM | **$0.00** | 200GB Block Volume Storage |
+| Additional Storage | Beyond 200GB | $0.025/GB/month | Optional scaling        |
 
 ### Risk Assessment
 
@@ -47,7 +46,7 @@ AlphaPulse is transitioning from local Docker Compose to hybrid cloud deployment
 1. **Resource Limits**: Implement Docker memory limits for each service
 2. **Monitoring**: Deploy Prometheus/Grafana for real-time monitoring
 3. **Vertical Scaling**: Design for easy upgrade to CPX21 if needed
-4. **Optimization**: Tune PostgreSQL buffers, limit Mage.ai concurrency
+4. **Optimization**: Tune PostgreSQL buffers, limit Airflow concurrency
 
 ## Technical Implementation
 

@@ -44,7 +44,7 @@ velocity_t = (price_t - price_{t-n}) / n
 **Implementation Specification**:
 
 ```python
-# File: mage_pipeline/pipelines/feature_engineering/time_series_features.py
+# File: airflow/plugins/operators/time_series_features.py
 
 def calculate_price_velocity(df: pd.DataFrame, windows: list = [5, 15, 60]) -> pd.DataFrame:
     """
@@ -586,7 +586,7 @@ def calculate_sentiment_price_divergence(df: pd.DataFrame) -> pd.DataFrame:
 All custom features must be tracked for feature importance analysis:
 
 ```python
-# File: mage_pipeline/pipelines/model_training/track_features.py
+# File: airflow/plugins/operators/track_features.py
 
 import mlflow
 
@@ -741,8 +741,8 @@ def test_sentiment_volatility_interaction():
 ## Related Documentation
 
 - [ADR-005: MLOps-First Strategy](../architecture/adr-005-mlops-first-strategy.md)
-- [Technical Indicators Pipeline](../../mage_pipeline/pipelines/btc_price_pipeline/)
-- [Feature Integration Pipeline](../../mage_pipeline/pipelines/feature_integration_pipeline/)
+- [Technical Indicators Pipeline](../../airflow/dags/btc_price_dag.py)
+- [Feature Integration Pipeline](../../airflow/dags/feature_integration_dag.py)
 - [Model Training Documentation](../deployment/)
 
 ---

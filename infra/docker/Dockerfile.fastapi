@@ -48,6 +48,10 @@ COPY --from=builder /app/src/ /app/src/
 # Note: This is overridden by volume mount in dev, but needed for prod
 COPY src/alphapulse/ /app/src/alphapulse/
 
+# Create static directory and fix permissions
+RUN mkdir -p /app/src/static/monitoring && \
+    chown -R appuser:appuser /app/src
+
 # Set environment variables
 ENV PYTHONPATH=/app/src
 ENV PYTHONUNBUFFERED=1

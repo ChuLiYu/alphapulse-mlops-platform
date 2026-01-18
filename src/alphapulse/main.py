@@ -33,9 +33,9 @@ app = FastAPI(
     description="Backend infrastructure for cryptocurrency trading signal systems",
     version="1.0.0",
     root_path=root_path,
-    openapi_url="/openapi.json",
-    docs_url="/docs",
-    redoc_url="/redoc",
+    openapi_url="/api/openapi.json",
+    docs_url="/api/docs",
+    redoc_url="/api/redoc",
 )
 
 # Ensure static monitoring directory exists

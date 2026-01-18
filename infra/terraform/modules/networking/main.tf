@@ -173,13 +173,13 @@ resource "hcloud_firewall" "main" {
     description = "HTTPS access"
   }
 
-  # Mage.ai UI port
+  # Airflow Webserver port
   rule {
     direction   = "in"
     protocol    = "tcp"
-    port        = "6789"
+    port        = "8080"
     source_ips  = ["0.0.0.0/0", "::/0"]
-    description = "Mage.ai UI"
+    description = "Airflow Webserver"
   }
 
   # MLflow UI port

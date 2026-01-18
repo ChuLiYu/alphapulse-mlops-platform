@@ -11,7 +11,7 @@ In accordance with best practices, dependency configuration files have been reor
 ```
 alphapulse-mlops-platform/
 ├── requirements-training.txt         # At root directory
-└── mage_pipeline/
+└── airflow/
     ├── requirements.txt              # Mixed dependencies (Old)
     └── requirements-mage.txt         # ETL specific (New)
 ```
@@ -22,7 +22,7 @@ alphapulse-mlops-platform/
 alphapulse-mlops-platform/
 ├── training/
 │   └── requirements.txt             # Training specific dependencies
-└── mage_pipeline/
+└── airflow/
     └── requirements.txt             # ETL specific dependencies
 ```
 
@@ -38,7 +38,7 @@ alphapulse-mlops-platform/
 #### Mage Container
 
 ```dockerfile
-COPY mage_pipeline/requirements.txt /tmp/requirements.txt
+COPY airflow/requirements.txt /tmp/requirements.txt
 RUN pip install -r /tmp/requirements.txt
 ```
 
@@ -58,7 +58,7 @@ RUN pip install -r /tmp/requirements.txt
 - fastapi, uvicorn (API Server)
 - scikit-learn, pandas, numpy
 
-#### mage_pipeline/requirements.txt (ETL Specific)
+#### airflow/requirements.txt (ETL Specific)
 
 - yfinance, feedparser (Data collection)
 - transformers, torch (Sentiment analysis)
@@ -81,7 +81,7 @@ All relevant documentation has been automatically updated, including:
 ```bash
 # Verify file existence
 ls -l training/requirements.txt
-ls -l mage_pipeline/requirements.txt
+ls -l airflow/requirements.txt
 
 # Verify Dockerfile references
 grep "requirements" infra/docker/Dockerfile.trainer

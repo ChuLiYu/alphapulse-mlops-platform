@@ -1,8 +1,8 @@
 services:
   frontend-mock:
     build:
-      context: .
-      dockerfile: frontend/Dockerfile
+      context: ./frontend
+      dockerfile: Dockerfile
     ports:
       - "3000:80"
     networks:

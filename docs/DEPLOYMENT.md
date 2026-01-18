@@ -2,15 +2,15 @@
 
 ## Overview
 
-This checklist ensures all components are ready for production deployment to the hybrid cloud infrastructure (Hetzner CPX21 + AWS S3).
+This checklist ensures all components are ready for production deployment to the hybrid cloud infrastructure (Oracle Cloud Always Free + AWS S3).
 
 ## Pre-Deployment Verification
 
 ### ✅ 1. Infrastructure as Code (Terraform)
 
 - [x] Terraform modules validated (`terraform validate`)
-- [x] Multi-provider configuration (AWS + Hetzner) tested
-- [x] Cost optimization verified: $11.15/month total
+- [x] Multi-provider configuration (AWS + Oracle) tested
+- [x] Cost optimization verified: $0.00/month total (Oracle Always Free + AWS Free Tier)
 - [x] Cloud-init configuration for Docker Compose deployment
 - [x] SSH key generation and secure access configured
 - [x] Network security groups and firewall rules defined
@@ -92,45 +92,45 @@ This checklist ensures all components are ready for production deployment to the
    ```
 
 4. **Verify Infrastructure**
-   - SSH access to Hetzner CPX21 server
-   - AWS S3 bucket created
-   - Network connectivity verified
+    - SSH access to Oracle Cloud VM
+    - AWS S3 bucket created
+    - Network connectivity verified
 
 ### Phase 2: Service Deployment
 
 1. **Copy Docker Compose Configuration**
 
-   ```bash
-   scp infra/docker-compose.yml root@<hetzner-ip>:/opt/alphapulse/
-   scp .env.production root@<hetzner-ip>:/opt/alphapulse/.env
-   ```
+    ```bash
+    scp infra/docker-compose.yml opc@<oracle-ip>:/opt/alphapulse/
+    scp .env.production opc@<oracle-ip>:/opt/alphapulse/.env
+    ```
 
 2. **Start Services**
 
-   ```bash
-   ssh root@<hetzner-ip> "cd /opt/alphapulse && docker compose up -d"
-   ```
+    ```bash
+    ssh opc@<oracle-ip> "cd /opt/alphapulse && docker compose up -d"
+    ```
 
 3. **Verify Service Health**
-   ```bash
-   ssh root@<hetzner-ip> "cd /opt/alphapulse && docker compose ps"
-   ```
+    ```bash
+    ssh opc@<oracle-ip> "cd /opt/alphapulse && docker compose ps"
+    ```
 
 ### Phase 3: Data Pipeline Initialization
 
 1. **Initialize MinIO Buckets**
 
-   ```bash
-   ssh root@<hetzner-ip> "cd /opt/alphapulse && docker compose exec mc /bin/sh -c 'mc mb alphapulse/alphapulse --ignore-existing'"
-   ```
+    ```bash
+    ssh opc@<oracle-ip> "cd /opt/alphapulse && docker compose exec mc /bin/sh -c 'mc mb alphapulse/alphapulse --ignore-existing'"
+    ```
 
 ### Phase 4: FastAPI Deployment
 
 2. **Verify API Accessibility**
-   ```bash
-   curl http://<hetzner-ip>:8000/health
-   curl http://<hetzner-ip>:8000/docs
-   ```
+    ```bash
+    curl http://<oracle-ip>:8000/health
+    curl http://<oracle-ip>:8000/docs
+    ```
 
 ### Phase 5: Monitoring Setup
 
@@ -143,11 +143,11 @@ This checklist ensures all components are ready for production deployment to the
 
 ### Service Health Checks
 
-- [ ] PostgreSQL: `http://<hetzner-ip>:5432` (connection test)
-- [ ] MinIO: `http://<hetzner-ip>:9001` (console login)
-- [ ] MLflow: `http://<hetzner-ip>:5001` (UI accessible)
+- [ ] PostgreSQL: `http://<oracle-ip>:5432` (connection test)
+- [ ] MinIO: `http://<oracle-ip>:9001` (console login)
+- [ ] MLflow: `http://<oracle-ip>:5001` (UI accessible)
 
-- [ ] FastAPI: `http://<hetzner-ip>:8000/health` (returns healthy)
+- [ ] FastAPI: `http://<oracle-ip>:8000/health` (returns healthy)
 
 ### API Endpoint Tests
 
@@ -239,11 +239,11 @@ This checklist ensures all components are ready for production deployment to the
 
 ## Cost Monitoring
 
-### Monthly Budget: $15.00
+### Monthly Budget: $0.00
 
-- [ ] Hetzner CPX21: $9.50/month
-- [ ] AWS S3: $1.65/month
-- [ ] Monitoring/Alerting: $3.85/month buffer
+- [ ] Oracle Cloud Always Free: $0.00/month (4 OCPUs, 24GB RAM)
+- [ ] AWS S3: $0.00/month (Free Tier - 5GB storage)
+- [ ] Monitoring/Alerting: Built-in (no external cost)
 
 ### Cost Optimization
 

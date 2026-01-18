@@ -239,7 +239,7 @@ CREATE INDEX IF NOT EXISTS idx_pipeline_start_time ON pipeline_runs(start_time D
 -- Airflow Pipeline Compatibility Tables
 -- ================================================================================
 
--- Table: btc_price_data (for Mage BTC price pipeline compatibility)
+-- Table: btc_price_data (for Airflow BTC price pipeline compatibility)
 CREATE TABLE IF NOT EXISTS btc_price_data (
     id SERIAL PRIMARY KEY,
     date TIMESTAMP NOT NULL,
@@ -290,7 +290,7 @@ CREATE INDEX IF NOT EXISTS idx_btc_price_date ON btc_price_data(date DESC);
 CREATE INDEX IF NOT EXISTS idx_btc_price_ticker ON btc_price_data(ticker);
 CREATE INDEX IF NOT EXISTS idx_btc_price_date_ticker ON btc_price_data(date DESC, ticker);
 
--- Table: market_news (for Mage news ingestion pipeline compatibility)
+-- Table: market_news (for Airflow news ingestion pipeline compatibility)
 CREATE TABLE IF NOT EXISTS market_news (
     id SERIAL PRIMARY KEY,
     title TEXT NOT NULL,
@@ -305,7 +305,7 @@ CREATE TABLE IF NOT EXISTS market_news (
 CREATE INDEX IF NOT EXISTS idx_market_news_source ON market_news(source);
 CREATE INDEX IF NOT EXISTS idx_market_news_published_at ON market_news(published_at DESC);
 
--- Table: model_features (for Mage feature integration pipeline compatibility)
+-- Table: model_features (for Airflow feature integration pipeline compatibility)
 CREATE TABLE IF NOT EXISTS model_features (
     id SERIAL PRIMARY KEY,
     date TIMESTAMP NOT NULL,

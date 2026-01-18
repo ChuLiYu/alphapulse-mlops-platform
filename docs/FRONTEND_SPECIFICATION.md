@@ -1,8 +1,8 @@
 # AlphaPulse Frontend Specification
 
-**Version**: 2.5
-**Date**: 2026-01-16
-**Status**: Implementation Refined (v2.4.1 Parity)
+**Version**: 2.6
+**Date**: 2026-01-17
+**Status**: Implementation Refined (Docker Orchestration Enabled)
 
 ## 1. Overview
 
@@ -26,6 +26,7 @@ The design pillars are:
 - **Charts**: Recharts & Custom Animated SVGs
 - **State Management**: Redux Toolkit & React Hooks
 - **Data Ingestion**: Axios / Fetch API (Polling strategy)
+- **Deployment**: Dockerized with Nginx reverse proxy to FastAPI
 
 ---
 
@@ -81,5 +82,6 @@ A dedicated deep-dive into the machine learning lifecycle.
 | Real-time Jitter Simulation | ✅ Completed | UI vibrancy for metrics |
 | Commander Mode (Admin) | ✅ Completed | Subsystem navigation grid |
 | Data Drift Monitoring | ✅ Completed | PSI metric integration |
+| Docker Interoperability | ✅ Completed | Nginx Proxy to FastAPI (Port 3000 -> 8000) |
 | Signal X-Ray (XAI) | ⏳ Planned | Deep weights visualization |
 | Multi-Node Cluster View | ⏳ Planned | Multi-region telemetry |

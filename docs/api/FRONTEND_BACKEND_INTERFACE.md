@@ -1,7 +1,7 @@
 # Frontend-Backend API Interface
 
 **Base URL**: `/api/v1`
-**Authentication**: Bearer Token (JWT) in `Authorization` header.
+**Authentication**: (Simplified for Dev) Optional Bearer Token in `Authorization` header.
 
 ---
 
@@ -78,6 +78,24 @@
 ---
 
 ## 4. Market Data & Signals
+
+### Get Historical Prices
+- **Endpoint**: `GET /prices`
+- **Query Params**: `symbol=BTC-USD`, `limit=24`
+- **Response**:
+  ```json
+  [
+    { "time": "2026-01-17T10:00:00Z", "price": 42500.50 },
+    ...
+  ]
+  ```
+
+### Get Latest Price
+- **Endpoint**: `GET /prices/{symbol}/latest`
+- **Response**:
+  ```json
+  { "symbol": "BTC-USD", "price": 43120.15, "timestamp": "..." }
+  ```
 
 ### Get Latest Signals
 - **Endpoint**: `GET /signals`

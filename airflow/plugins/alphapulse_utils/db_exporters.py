@@ -23,7 +23,7 @@ def export_indicators_to_postgres(df: pd.DataFrame):
     # So we will construct queries or use a smarter upsert function.
     # Since PostgresUtils is a wrapper I created, I should probably improve it or use raw SQL here.
 
-    # We will use raw SQL construction for upsert behavior similar to Mage implementation
+    # We will use raw SQL construction for upsert behavior similar to Airflow DAGs
     from psycopg2.extras import execute_values
 
     engine = PostgresUtils.get_sqlalchemy_engine()

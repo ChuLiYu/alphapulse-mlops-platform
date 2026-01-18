@@ -199,7 +199,7 @@ price: Decimal = Decimal("19.99")
 
 **Pros**:
 
-- Related to data pipelines (Mage.ai)
+- Related to data pipelines (Apache Airflow)
 - Growing job market
 
 **Cons**:
@@ -263,7 +263,7 @@ price: Decimal = Decimal("19.99")
 **Priority Tasks**:
 
 1. PostgreSQL schema with Terraform
-2. Mage.ai pipeline for data ingestion
+2. Apache Airflow DAG for data ingestion
 3. "Reproducible Feature Pipeline" (not "Feature Store")
 4. Integration tests
 
@@ -305,7 +305,7 @@ price: Decimal = Decimal("19.99")
 
 ### Tier 3: Data Pipeline (P2)
 
-- **Mage.ai**: Workflow orchestration
+- **Apache Airflow**: Workflow orchestration
 - **Python**: Data processing
 
 ### Tier 4: ML Components (P3 - Supporting Role)

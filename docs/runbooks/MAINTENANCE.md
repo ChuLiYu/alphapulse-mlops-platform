@@ -64,8 +64,8 @@ docker system df
 # Check for updated Docker images
 docker-compose pull
 
-# Update Python dependencies in Mage pipeline
-docker-compose exec mage pip list --outdated
+# Update Python dependencies in Airflow
+docker-compose exec airflow-scheduler pip list --outdated
 ```
 
 ## Monthly Tasks
@@ -128,13 +128,13 @@ docker-compose exec mc /usr/bin/mc ls alphapulse/alphapulse
 # This requires custom script - see scripts/setup/mlflow_cleanup.sh
 ```
 
-### Mage.ai Maintenance
+### Airflow Maintenance
 ```bash
 # Check pipeline status
 # Access Mage UI at http://localhost:6789
 
 # View pipeline logs
-docker-compose logs mage
+docker-compose logs airflow-webserver airflow-scheduler
 ```
 
 ## Troubleshooting Common Issues

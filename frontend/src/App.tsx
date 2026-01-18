@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
-import { 
-  Activity, 
-  Cpu, 
-  TrendingUp, 
-  Github, 
+import {
+  Activity,
+  Cpu,
+  TrendingUp,
+  Github,
   Database,
   Cloud,
   ShieldCheck,
@@ -29,6 +29,7 @@ import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import { motion, AnimatePresence } from 'framer-motion';
 import { SystemLog } from './types';
 import { PREDEFINED_LOGS } from './constants/logs';
+import { SERVICE_URLS } from './config/links-runtime';
 
 // --- Sub-Components ---
 
@@ -59,7 +60,7 @@ const AdminLink = ({ title, status, icon: Icon, url, delay }: any) => (
   <motion.a href={url} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay, duration: 0.3 }} className="group flex items-center justify-between p-6 bg-slate-900/50 border border-slate-700/50 hover:border-emerald-500/50 hover:bg-slate-800/80 transition-all rounded-sm">
     <div className="flex items-center gap-5">
       <div className="p-3 bg-slate-950 rounded border border-slate-800 group-hover:border-emerald-500/30 group-hover:text-emerald-400 transition-colors"><Icon className="w-7 h-7 text-slate-400" /></div>
-      <div><div className="text-base font-bold text-slate-200 group-hover:text-white font-mono">{title}</div><div className="text-xs text-slate-500 font-mono mt-1 tracking-wider uppercase">Protocol: OIDC-PROXY</div></div>
+      <div><div className="text-base font-bold text-slate-200 group-hover:text-white font-mono">{title}</div><div className="text-xs text-slate-500 font-mono mt-1 tracking-wider uppercase">repos</div></div>
     </div>
     <div className="flex items-center gap-3 text-right">
       <div className="flex items-center gap-2.5 justify-end"><div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.6)]"></div><span className="text-xs font-mono text-emerald-500/80 font-bold uppercase">{status}</span></div>
@@ -72,6 +73,7 @@ const AdminLink = ({ title, status, icon: Icon, url, delay }: any) => (
 
 const App = () => {
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isBackendOnline, setIsBackendOnline] = useState<boolean | null>(null);
   const [showArch, setShowArch] = useState(false);
   const [isZoomed, setIsZoomed] = useState(false);
   const [logs, setLogs] = useState<SystemLog[]>([]);
@@ -82,6 +84,21 @@ const App = () => {
   const [sentiment, setSentiment] = useState<number>(0.74);
   const [modelHealth, setModelHealth] = useState<number>(0.024);
   const logsContainerRef = useRef<HTMLDivElement>(null);
+
+  // Backend Health Check
+  useEffect(() => {
+    const checkHealth = async () => {
+      try {
+        const res = await fetch(SERVICE_URLS.HEALTH_CHECK);
+        setIsBackendOnline(res.ok);
+      } catch (e) {
+        setIsBackendOnline(false);
+      }
+    };
+    checkHealth();
+    const i = setInterval(checkHealth, 5000);
+    return () => clearInterval(i);
+  }, []);
 
   // Real-time Fetch (BTC Price)
   useEffect(() => {
@@ -425,20 +442,20 @@ const App = () => {
               <div className="flex gap-2"><div className="w-3 h-3 rounded-full bg-slate-800 border border-slate-700"></div><div className="w-3 h-3 rounded-full bg-slate-800 border border-slate-700"></div><div className="w-3 h-3 rounded-full bg-emerald-900 border border-emerald-700/50 shadow-[0_0_10px_#10b981]"></div></div>
             </div>
             <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] z-10 opacity-20"></div>
-            <div ref={logsContainerRef} className="flex-1 overflow-y-auto p-6 space-y-4 scrollbar-thin scrollbar-thumb-slate-800 font-mono text-[14px] leading-relaxed">
+            <div ref={logsContainerRef} className="flex-1 overflow-y-auto overflow-x-hidden p-6 space-y-4 scrollbar-thin scrollbar-thumb-slate-800 font-mono text-[14px] leading-relaxed">
               {logs.map((log) => (
-                <div key={log.id} className="flex gap-5 animate-in fade-in duration-300">
-                  <span className="text-slate-600 shrink-0">[{log.timestamp}]</span>
-                  <div className="flex flex-col">
-                    <span className={`font-bold uppercase tracking-tighter ${
-                      log.level === 'INFO' ? 'text-blue-400' : 
-                      log.level === 'SUCCESS' ? 'text-emerald-400' : 
-                      log.level === 'WARN' ? 'text-amber-400' : 
+                <div key={log.id} className="flex gap-3 sm:gap-5 animate-in fade-in duration-300 min-w-0">
+                  <span className="text-slate-600 shrink-0 text-[11px] sm:text-xs whitespace-nowrap">[{log.timestamp}]</span>
+                  <div className="flex flex-col min-w-0 flex-1">
+                    <span className={`font-bold uppercase tracking-tighter text-[10px] sm:text-xs ${
+                      log.level === 'INFO' ? 'text-blue-400' :
+                      log.level === 'SUCCESS' ? 'text-emerald-400' :
+                      log.level === 'WARN' ? 'text-amber-400' :
                       log.level === 'ERROR' ? 'text-rose-400' :
                       log.level === 'DEBUG' ? 'text-slate-400' :
                       'text-purple-400'
                     }`}>{log.level}</span>
-                    <span className="text-slate-300 break-words">{log.message}</span>
+                    <span className="text-slate-300 break-words text-[12px] sm:text-[14px]">{log.message}</span>
                   </div>
                 </div>
               ))}
@@ -457,14 +474,19 @@ const App = () => {
                 <div className="flex items-center gap-5">
                 <ShieldCheck className="w-7 h-7 text-emerald-500" /><h3 className="font-bold tracking-[0.3em] text-slate-100 uppercase text-lg">Commander Mode <span className="font-normal text-emerald-500/80 text-xs ml-4 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20 tracking-widest">SSO_AUTH_SUCCESS</span></h3>
                 </div>
-                <div className="flex items-center gap-4 text-xs text-slate-500 font-bold uppercase"><span className="w-3 h-3 rounded-full bg-emerald-500 shadow-glow"></span>Secure_Node_Online</div>
+                <div className="flex items-center gap-4 text-xs font-bold uppercase">
+                  <span className={`w-3 h-3 rounded-full shadow-glow ${isBackendOnline ? 'bg-emerald-500 shadow-emerald-500/50' : 'bg-rose-500 shadow-rose-500/50'}`}></span>
+                  <span className={isBackendOnline ? 'text-emerald-500' : 'text-rose-500'}>
+                    {isBackendOnline === null ? 'Initializing...' : isBackendOnline ? 'Secure_Node_Online' : 'Secure_Node_Offline'}
+                  </span>
+                </div>
             </div>
             <div className="p-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 uppercase font-mono">
-                <AdminLink title="Airflow Orchestrator" status="14 Online" icon={Workflow} url="/airflow" delay={0.1} />
-                <AdminLink title="MLflow Registry" status="v2.4 Ready" icon={Layers} url="/mlflow" delay={0.2} />
-                <AdminLink title="Evidently AI Monitor" status="Active" icon={Activity} url="/api/monitoring" delay={0.3} />
-                <AdminLink title="FastAPI Interactive" status="v1_Stable" icon={Zap} url="/api/docs" delay={0.4} />
-                <AdminLink title="Grafana Metrics" status="Operational" icon={TrendingUp} url="#" delay={0.5} />
+                <AdminLink title="Airflow Orchestrator" status="2.9 Online" icon={Workflow} url={SERVICE_URLS.AIRFLOW} delay={0.1} />
+                <AdminLink title="MLflow Registry" status="v2.4 Ready" icon={Layers} url={SERVICE_URLS.MLFLOW} delay={0.2} />
+                <AdminLink title="Evidently AI Monitor" status="Active" icon={Activity} url={SERVICE_URLS.EVIDENTLY} delay={0.3} />
+                <AdminLink title="FastAPI Interactive" status={isBackendOnline ? "v1_Stable" : "Connection_Lost"} icon={Zap} url={SERVICE_URLS.FASTAPI_DOCS} delay={0.4} />
+                <AdminLink title="Grafana Metrics" status="Operational" icon={TrendingUp} url={SERVICE_URLS.GRAFANA} delay={0.5} />
                 <AdminLink title="GitHub CI/CD" status="Passing" icon={Github} url="https://chainy.luichu.dev/QV65eSp" delay={0.6} />
             </div>
             </motion.section>

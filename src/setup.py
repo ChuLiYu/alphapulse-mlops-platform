@@ -15,7 +15,7 @@ setup(
         "sqlalchemy>=2.0.0",
         "psycopg2-binary>=2.9.0",
         "requests>=2.31.0",
-        "pandas>=2.0.0",
+        "pandas>=2.1.2,<2.2",
         "numpy>=1.24.0",
         "scikit-learn>=1.3.0",
         "evidently>=0.4.0",  # ML monitoring and drift detection

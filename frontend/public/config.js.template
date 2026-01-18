@@ -1,0 +1,8 @@
+window.__CONFIG__ = {
+  APP_URL: "${APP_URL}",
+  AIRFLOW_URL: "${AIRFLOW_URL}",
+  MLFLOW_URL: "${MLFLOW_URL}",
+  GRAFANA_URL: "${GRAFANA_URL}",
+  FASTAPI_URL: "${FASTAPI_URL}",
+  API_URL: "${API_URL}"
+};

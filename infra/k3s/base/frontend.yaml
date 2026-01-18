@@ -21,6 +21,19 @@ spec:
         imagePullPolicy: Always
         ports:
         - containerPort: 80
+        env:
+        - name: APP_URL
+          value: "https://alphapulse.luichu.dev"
+        - name: AIRFLOW_URL
+          value: "https://alphapulse.luichu.dev/airflow"
+        - name: MLFLOW_URL
+          value: "https://alphapulse.luichu.dev/mlflow"
+        - name: GRAFANA_URL
+          value: "https://alphapulse.luichu.dev/grafana"
+        - name: FASTAPI_URL
+          value: "https://alphapulse.luichu.dev"
+        - name: API_URL
+          value: "https://alphapulse.luichu.dev"
         resources:
           limits:
             cpu: "200m"

@@ -1,8 +1,8 @@
 """
 Training Server for AlphaPulse ML Models
 
-Provides HTTP API endpoints for triggering model training from Mage ETL pipeline.
-Separated from Mage container for cleaner architecture and dependency management.
+Provides HTTP API endpoints for triggering model training from Airflow DAGs.
+Separated from Airflow scheduler container for cleaner architecture and dependency management.
 """
 
 import asyncio

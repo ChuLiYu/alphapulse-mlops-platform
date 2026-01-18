@@ -228,7 +228,7 @@ git checkout HEAD~1 -- <file_path>
 ## Questions?
 
 **Q: Will this break existing Mage pipelines?**  
-A: No. [`mage_pipeline/`](../mage_pipeline/) directory remains unchanged.
+A: No. [`airflow/`](../airflow/) directory contains the updated implementation.
 
 **Q: Do we need to update database connections?**  
 A: No. Connection strings are environment-variable based.

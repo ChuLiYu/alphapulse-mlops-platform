@@ -4,7 +4,7 @@ apache-airflow-providers-amazon
 apache-airflow-providers-http
 apache-airflow-providers-docker
 scikit-learn==1.5.2
-pandas
+pandas>=2.1.2,<2.2
 numpy
 pandas_ta
 yfinance==0.2.36

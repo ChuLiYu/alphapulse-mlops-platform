@@ -352,7 +352,7 @@ time ollama run llama3.2:3b "Test sentiment analysis"
 top -pid $(pgrep ollama)
 
 # Terminal 2: Run test script
-cd mage_pipeline/pipelines/reddit_sentiment_pipeline
+cd airflow/plugins/alphapulse_utils
 python test_ollama_performance.py
 
 # Expected Results:

@@ -12,7 +12,7 @@ src_path = project_root / "src"
 if str(src_path) not in sys.path:
     sys.path.insert(0, str(src_path))
 
-## 已移除 Mage 相关 mock 代码
+## Airflow 相关 mock 代码
 
 import json
 import os

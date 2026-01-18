@@ -60,7 +60,7 @@ Financial data is notorious for noise and regime changes. We added CatBoost to t
 | **B: Dedicated ML Container**  | Isolated, optimized, parallel execution | Complex orchestration, data sync overhead       | ❌            |
 | **C: Serverless (AWS Lambda)** | Cost-effective, auto-scaling            | 15-min timeout, cold starts, complex deployment | ❌            |
 
-**Final Choice**: **Option A - Mage Container**
+**Final Choice**: **Option A - Airflow Container**
 
 **Justification**:
 
@@ -284,7 +284,7 @@ mage:
 
 - ✅ Sufficient for current workload (2202 records)
 - ⚠️ May need increase if data grows >10k records
-- ✅ Leaves headroom for Mage.ai web interface
+- ✅ Leaves headroom for Airflow web interface
 
 ---
 
@@ -368,7 +368,7 @@ mage:
 
 ## 📚 References
 
-- [Mage.ai Documentation](https://docs.mage.ai/)
+- [Airflow Documentation](https://airflow.apache.org/docs/)
 - [XGBoost Docker Setup](https://xgboost.readthedocs.io/en/stable/install.html)
 - [MLflow Best Practices](https://mlflow.org/docs/latest/best-practices.html)
 - [AlphaPulse Testing Guide](./testing/COMPREHENSIVE_TESTING_GUIDE.md)

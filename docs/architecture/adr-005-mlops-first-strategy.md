@@ -87,7 +87,7 @@ df.ta.bbands(length=20, std=2, append=True)
 
 **Scope**: End-to-end ML lifecycle management
 
-- **Orchestration**: Mage.ai pipeline design and scheduling
+- **Orchestration**: Apache Airflow DAG design and scheduling
 - **Tracking**: MLflow experiment logging and model registry
 - **Feature Store**: PostgreSQL-based feature versioning
 - **Monitoring**: Evidently AI drift detection
@@ -199,7 +199,7 @@ df.ta.bbands(length=20, std=2, append=True)
 1. **Replace Technical Indicator Block** (1 hour):
 
    ```python
-   # File: mage_pipeline/pipelines/btc_price_pipeline/calculate_technical_indicators.py
+   # File: airflow/plugins/alphapulse_utils/indicators.py
    # Before: 300+ lines of custom implementation
    # After: 30 lines using pandas-ta
 

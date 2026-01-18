@@ -10,7 +10,7 @@ AlphaPulse is a **cost-optimized backend infrastructure** for cryptocurrency tra
 
 - **Backend-First Strategy**: Prioritizing Type Safety (Decimal), IaC (Terraform), and CI/CD over complex ML model research.
 - **Container Separation**: Decoupled architecture with specialized containers for ETL (Airflow) and Training (Trainer API).
-- **Hybrid Multi-Cloud**: Hetzner (Compute) + AWS (Storage) for 85% cost savings ($11.15/month).
+- **Hybrid Multi-Cloud**: Oracle Cloud (Compute) + AWS (Storage) for 100% cost savings ($0.00/month).
 - **Fintech-Grade Quality**: 100% Decimal precision, comprehensive testing (Unit/Integration/E2E), and drift monitoring.
 
 ---
@@ -18,7 +18,7 @@ AlphaPulse is a **cost-optimized backend infrastructure** for cryptocurrency tra
 ## System Architecture
 
 ### 1. Infrastructure (IaC)
-- **Terraform**: Modular setup for AWS (S3, IAM) and Hetzner (Compute).
+- **Terraform**: Modular setup for AWS (S3, IAM) and Oracle Cloud (Compute).
 - **Docker Compose**: Orchestration for local and production environments.
 - **Container Strategy**:
     - `alphapulse-airflow-*`: Robust orchestration for data pipelines (Webserver, Scheduler).
@@ -42,8 +42,8 @@ AlphaPulse is a **cost-optimized backend infrastructure** for cryptocurrency tra
 ## Roadmap & Status
 
 ### ✅ Phase 1: Infrastructure Foundation
-- [x] Terraform modules for Networking, Compute (Hetzner), and Storage (AWS S3).
-- [x] Hybrid Cloud configuration (Hetzner + AWS).
+- [x] Terraform modules for Networking, Compute (Oracle Cloud), and Storage (AWS S3).
+- [x] Hybrid Cloud configuration (Oracle Cloud + AWS).
 - [x] CI/CD Pipelines (GitHub Actions) for Terraform validation.
 
 ### ✅ Phase 2: Backend Core
@@ -70,11 +70,11 @@ AlphaPulse is a **cost-optimized backend infrastructure** for cryptocurrency tra
 - [x] **Documentation**: Updated architecture guides and reports.
 
 ### 🔄 Phase 5: Production Deployment (k3s Migration)
-- [ ] **k3s Cluster Setup**: Provision Hetzner CPX21 with k3s lightweight Kubernetes.
+- [ ] **k3s Cluster Setup**: Provision Oracle Free Tier VM with k3s lightweight Kubernetes.
 - [ ] **Kubernetes Manifests**: Create Deployments, Services, and Ingress for all tiers.
-- [ ] **Persistent Storage**: Configure Local Path Provisioner or S3-backed volumes.
+- [ ] **Persistent Storage**: Configure Local Path Provisioner or OCI Block Volume.
 - [ ] **Secret Management**: Move environment variables to K8s Secrets.
-- [ ] **Hetzner Cloud Integration**: Configure Floating IP and Load Balancer via HCloud CCM.
+- [ ] **Oracle Cloud Networking**: Configure VCN, Security Lists, and Public IP.
 
 ### 🚀 Phase 5.5: Continuous MLOps (CT/CD)
 - [ ] **CatBoost Integration**: Add CatBoost as a challenger model for better categorical and noise handling.
@@ -97,7 +97,7 @@ AlphaPulse is a **cost-optimized backend infrastructure** for cryptocurrency tra
 
 | Decision | Choice | Rationale |
 | :--- | :--- | :--- |
-| **Compute** | Hetzner CPX21 | High performance (Dedicated vCPU) at low cost (€9.50/mo). |
+| **Compute** | Oracle Cloud Always Free | Zero cost with generous resources (4 OCPUs, 24GB RAM). |
 | **Orchestration** | Airflow + Trainer | Industry standard orchestration + Decoupled training. |
 | **Precision** | `Decimal` | Essential for Fintech to avoid floating-point errors. |
 | **IaC** | Terraform | Industry standard, provider-agnostic. |

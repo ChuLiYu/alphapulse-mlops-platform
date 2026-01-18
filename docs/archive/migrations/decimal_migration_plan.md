@@ -17,13 +17,13 @@ This document outlines the strategy for migrating from Float to Decimal types fo
 
 #### 1. Database Schema (`create_feature_table.py`)
 
-- **Location**: `mage_pipeline/pipelines/feature_integration_pipeline/create_feature_table.py`
+- **Location**: `airflow/plugins/alphapulse_utils/feature_integrator.py`
 - **Float Columns**: 67+ columns using `FLOAT` type
 - **Impact**: High - affects all stored financial data
 
 #### 2. Technical Indicators Calculation (`calculate_technical_indicators.py`)
 
-- **Location**: `mage_pipeline/pipelines/btc_price_pipeline/calculate_technical_indicators.py`
+- **Location**: `airflow/plugins/alphapulse_utils/indicators.py`
 - **Float Usage**: pandas-ta returns float64 values
 - **Impact**: Medium - calculation outputs need Decimal conversion
 

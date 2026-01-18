@@ -181,7 +181,7 @@ pytest -m unit
 ### Step 1: Start Services
 
 ```bash
-cd /Users/liyu/Programing/alphapulse-mlops-platform
+cd /Users/liyu/repos/alphapulse-mlops-platform
 make up
 ```
 
@@ -264,10 +264,10 @@ make down && make up
 
 ```bash
 # Ensure PYTHONPATH is set
-export PYTHONPATH=/Users/liyu/Programing/alphapulse-mlops-platform/src:$PYTHONPATH
+export PYTHONPATH=/Users/liyu/repos/alphapulse-mlops-platform/src:$PYTHONPATH
 
 # Or run from project root
-cd /Users/liyu/Programing/alphapulse-mlops-platform
+cd /Users/liyu/repos/alphapulse-mlops-platform
 pytest tests/integration/test_docker_services.py -v
 ```
 
