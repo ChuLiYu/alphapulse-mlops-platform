@@ -148,14 +148,14 @@ def main():
 
     if all_passed:
         print("🎉 Test framework validation PASSED!")
-    print("\nNext steps if tests failed:")
-    print("1. Install dependencies: pip install -r requirements.txt")
-    print("2. Ensure database is running: docker compose up -d db")
-        print("3. Run data quality tests: make test-data")
-        print("4. Check coverage: make test-coverage")
         return 0
     else:
         print("⚠️  Test framework validation FAILED!")
+        print("\nNext steps if tests failed:")
+        print("1. Install dependencies: pip install -r requirements.txt")
+        print("2. Ensure database is running: docker compose up -d db")
+        print("3. Run data quality tests: make test-data")
+        print("4. Check coverage: make test-coverage")
         print("\nPlease fix the issues above before proceeding.")
         return 1
 
