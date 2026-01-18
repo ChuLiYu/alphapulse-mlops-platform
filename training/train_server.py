@@ -156,22 +156,34 @@ async def run_training(request: TrainingRequest):
         trainer = IterativeTrainer(config)
 
         # Force sanitize data in trainer's config or handle it during load
-        # Actually, let's inject a data cleaning step right here if possible, 
+        # Actually, let's inject a data cleaning step right here if possible,
         # but IterativeTrainer loads its own data.
-        
+
         # Let's override the trainer's prepare_features method right here to be absolutely sure
         original_prepare = trainer.prepare_features
+
         def safe_prepare(df):
             import numpy as np
+
             # Select only numbers
             X = df.select_dtypes(include=[np.number]).copy()
             # Drop known bad columns
-            bad = ["id", "loaded_at", "processed_at", "price_change_1d", "price_change_3d", "price_change_7d", config.target_column]
+            bad = [
+                "id",
+                "loaded_at",
+                "processed_at",
+                "price_change_1d",
+                "price_change_3d",
+                "price_change_7d",
+                config.target_column,
+            ]
             X = X.drop(columns=[c for c in bad if c in X.columns])
             y = df[config.target_column].copy()
-            print(f"🛠️ [SERVER DEBUG] Cleaned features: {X.columns.tolist()[:5]}... ({len(X.columns)} total)")
+            print(
+                f"🛠️ [SERVER DEBUG] Cleaned features: {X.columns.tolist()[:5]}... ({len(X.columns)} total)"
+            )
             return X, y
-        
+
         trainer.prepare_features = safe_prepare
 
         # For ultra_fast mode, apply optimized model configs
@@ -225,7 +237,7 @@ async def run_training(request: TrainingRequest):
             trainer.generate_model_configs = lambda: best_configs
 
             trainer.generate_model_configs = lambda: best_configs
-        
+
         if config.use_optuna:
             summary = trainer.run_optuna_optimization()
         else:
@@ -240,22 +252,24 @@ async def run_training(request: TrainingRequest):
         }
 
         print(f"✅ Training completed successfully!")
-        
+
         # AUTOMATIC DEPLOYMENT / SIGNAL GENERATION
         if summary.get("best_iteration"):
             print("🚀 Promoting model to production and generating signals...")
             try:
                 from alphapulse.ml.inference.engine import InferenceEngine
+
                 engine = InferenceEngine()
                 signal = engine.generate_signals()
                 print(f"📡 Automatic deployment successful! Latest signal: {signal}")
             except Exception as deploy_err:
                 print(f"⚠️ Training succeeded but auto-deployment failed: {deploy_err}")
-        
+
         print(f"   Best model: {summary.get('best_model', {}).get('name', 'N/A')}")
 
     except Exception as e:
         import traceback
+
         error_msg = str(e)
         print(f"❌ Training failed: {error_msg}")
         traceback.print_exc()

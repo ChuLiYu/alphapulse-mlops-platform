@@ -3,6 +3,7 @@
 Automated price data collection from Yahoo Finance.
 Updates the prices table with latest BTC-USD data.
 """
+
 import sys
 
 sys.path.insert(0, "/home/src/src")
@@ -90,9 +91,7 @@ def collect_latest_prices(days_back: int = 7):
             df.to_sql("temp_prices", conn, if_exists="replace", index=False)
 
             # Insert only new records
-            result = conn.execute(
-                text(
-                    """
+            result = conn.execute(text("""
                 INSERT INTO prices (timestamp, symbol, open, high, low, price, volume, created_at)
                 SELECT timestamp, symbol, open, high, low, price, volume, created_at
                 FROM temp_prices
@@ -107,9 +106,7 @@ def collect_latest_prices(days_back: int = 7):
                     high = EXCLUDED.high,
                     low = EXCLUDED.low,
                     open = EXCLUDED.open
-            """
-                )
-            )
+            """))
             conn.commit()
 
             new_count = result.rowcount
@@ -121,17 +118,13 @@ def collect_latest_prices(days_back: int = 7):
 
         # Show latest price
         with engine.connect() as conn:
-            latest = conn.execute(
-                text(
-                    """
+            latest = conn.execute(text("""
                 SELECT timestamp, price, volume 
                 FROM prices 
                 WHERE symbol = 'BTC-USD' 
                 ORDER BY timestamp DESC 
                 LIMIT 1
-            """
-                )
-            ).fetchone()
+            """)).fetchone()
 
             if latest:
                 logger.info(f"\n  📊 Latest Price:")

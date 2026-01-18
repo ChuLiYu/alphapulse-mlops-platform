@@ -2,7 +2,7 @@
 """
 Ultra Fast Model Training - Optimized Configurations Only
 
-Focuses on the most effective models, skipping experimental configurations 
+Focuses on the most effective models, skipping experimental configurations
 to quickly generate production-ready models.
 """
 
@@ -31,7 +31,7 @@ def ultra_fast_training():
 
     # Highly optimized configuration
     output_dir = os.getenv("MODEL_OUTPUT_DIR", "/app/storage/models")
-    
+
     config = TrainingConfig(
         data_source="model_features",
         target_column="target_return",

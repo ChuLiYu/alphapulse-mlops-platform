@@ -4,14 +4,20 @@ from airflow.utils.decorators import apply_defaults
 import pandas as pd
 from sqlalchemy import create_engine
 
+
 class PostgresUtils:
     @staticmethod
-    def get_sqlalchemy_engine(conn_id='postgres_default'):
+    def get_sqlalchemy_engine(conn_id="postgres_default"):
         hook = PostgresHook(postgres_conn_id=conn_id)
         return hook.get_sqlalchemy_engine()
 
     @staticmethod
-    def save_df_to_postgres(df: pd.DataFrame, table_name: str, if_exists='append', conn_id='postgres_default'):
+    def save_df_to_postgres(
+        df: pd.DataFrame,
+        table_name: str,
+        if_exists="append",
+        conn_id="postgres_default",
+    ):
         if df is None or df.empty:
             print("No data to save to Postgres")
             return
@@ -21,16 +27,27 @@ class PostgresUtils:
         print(f"Saved {len(df)} rows to table {table_name}")
 
     @staticmethod
-    def execute_sql(sql: str, conn_id='postgres_default'):
+    def execute_sql(sql: str, conn_id="postgres_default"):
         hook = PostgresHook(postgres_conn_id=conn_id)
         hook.run(sql)
+
 
 class CustomPostgresOperator(BaseOperator):
     """
     Custom wrapper to execute SQL or save DataFrames.
     """
+
     @apply_defaults
-    def __init__(self, sql=None, postgres_conn_id='postgres_default', autocommit=False, parameters=None, database=None, *args, **kwargs):
+    def __init__(
+        self,
+        sql=None,
+        postgres_conn_id="postgres_default",
+        autocommit=False,
+        parameters=None,
+        database=None,
+        *args,
+        **kwargs,
+    ):
         super().__init__(*args, **kwargs)
         self.sql = sql
         self.postgres_conn_id = postgres_conn_id
@@ -39,6 +56,8 @@ class CustomPostgresOperator(BaseOperator):
         self.database = database
 
     def execute(self, context):
-        hook = PostgresHook(postgres_conn_id=self.postgres_conn_id, schema=self.database)
+        hook = PostgresHook(
+            postgres_conn_id=self.postgres_conn_id, schema=self.database
+        )
         if self.sql:
             hook.run(self.sql, self.autocommit, parameters=self.parameters)

@@ -2,9 +2,10 @@ import pandas as pd
 from operators.postgres_operator import PostgresUtils
 from sqlalchemy import text
 
+
 def create_news_tables_if_not_exist():
     engine = PostgresUtils.get_sqlalchemy_engine()
-    
+
     queries = [
         """
         CREATE TABLE IF NOT EXISTS market_news (
@@ -30,21 +31,22 @@ def create_news_tables_if_not_exist():
             created_at TIMESTAMP DEFAULT NOW(),
             UNIQUE(article_id)
         );
-        """
+        """,
     ]
-    
+
     with engine.begin() as conn:
         for q in queries:
             conn.execute(text(q))
 
+
 def export_news_to_postgres(df: pd.DataFrame):
     if df.empty:
         return
-        
+
     create_news_tables_if_not_exist()
-    
+
     engine = PostgresUtils.get_sqlalchemy_engine()
-    
+
     # Using raw SQL for ON CONFLICT DO NOTHING
     # Assuming df has 'title', 'url', ...
     with engine.begin() as conn:
@@ -54,22 +56,26 @@ def export_news_to_postgres(df: pd.DataFrame):
                 VALUES (:title, :url, :summary, :published_at, :source)
                 ON CONFLICT (url) DO NOTHING
             """)
-            conn.execute(stmt, {
-                "title": row["title"],
-                "url": row["url"],
-                "summary": row["summary"],
-                "published_at": row["published_at"],
-                "source": row["source"]
-            })
+            conn.execute(
+                stmt,
+                {
+                    "title": row["title"],
+                    "url": row["url"],
+                    "summary": row["summary"],
+                    "published_at": row["published_at"],
+                    "source": row["source"],
+                },
+            )
+
 
 def save_sentiment_scores(df: pd.DataFrame):
     if df.empty:
         return
 
     create_news_tables_if_not_exist()
-    
+
     engine = PostgresUtils.get_sqlalchemy_engine()
-    
+
     with engine.begin() as conn:
         for _, row in df.iterrows():
             stmt = text("""
@@ -78,10 +84,13 @@ def save_sentiment_scores(df: pd.DataFrame):
                 VALUES (:article_id, :sentiment_score, :confidence, :label, :analyzed_at)
                 ON CONFLICT (article_id) DO NOTHING
             """)
-            conn.execute(stmt, {
-                "article_id": row["article_id"],
-                "sentiment_score": row["sentiment_score"],
-                "confidence": row["confidence"],
-                "label": row["label"],
-                "analyzed_at": row["analyzed_at"]
-            })
+            conn.execute(
+                stmt,
+                {
+                    "article_id": row["article_id"],
+                    "sentiment_score": row["sentiment_score"],
+                    "confidence": row["confidence"],
+                    "label": row["label"],
+                    "analyzed_at": row["analyzed_at"],
+                },
+            )

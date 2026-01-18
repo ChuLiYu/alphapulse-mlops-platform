@@ -156,16 +156,12 @@ def check_database():
         engine = create_engine(db_url)
         with engine.connect() as conn:
             # 檢查表是否存在
-            result = conn.execute(
-                text(
-                    """
+            result = conn.execute(text("""
                 SELECT table_name 
                 FROM information_schema.tables 
                 WHERE table_schema = 'public' 
                 AND table_name IN ('model_features', 'sentiment_scores', 'prices')
-            """
-                )
-            )
+            """))
             tables = [row[0] for row in result]
 
             print(f"  找到的表: {', '.join(tables)}")

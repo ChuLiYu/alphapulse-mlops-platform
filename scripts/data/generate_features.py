@@ -2,6 +2,7 @@
 """
 快速生成模型特徵數據
 """
+
 import sys
 import os
 
@@ -16,7 +17,9 @@ def generate_features():
     """從價格數據生成特徵"""
     print("🔧 開始生成特徵...")
 
-    db_url = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@postgres:5432/alphapulse")
+    db_url = os.getenv(
+        "DATABASE_URL", "postgresql://postgres:postgres@postgres:5432/alphapulse"
+    )
     engine = create_engine(db_url)
 
     try:
@@ -129,7 +132,7 @@ def generate_features():
         print("🎯 生成訓練標籤 (Future 24h Return)...")
         # 未來 24 小時的回報率
         df["target_return"] = df["close"].shift(-24) / df["close"] - 1
-        
+
         # 二元分類目標：漲 (1) 或 跌 (0)
         df["target_class"] = (df["target_return"] > 0).astype(int)
 
@@ -137,12 +140,14 @@ def generate_features():
         print("🔧 處理缺失值與無限值...")
         # 替換無限值為 0
         df = df.replace([np.inf, -np.inf], 0)
-        
+
         # 注意：不要填充 target 的 NaN，因為最後 24 小時沒有未來數據
         # 我們先填特徵的 NaN
         features = [c for c in df.columns if "target" not in c]
-        df[features] = df[features].fillna(method="bfill").fillna(method="ffill").fillna(0)
-        
+        df[features] = (
+            df[features].fillna(method="bfill").fillna(method="ffill").fillna(0)
+        )
+
         # 移除沒有標籤的行 (最後 24 行)
         df = df.dropna(subset=["target_return"])
 
