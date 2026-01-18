@@ -5,6 +5,7 @@ This module initializes the FastAPI application with proper Decimal support
 for financial data processing.
 """
 
+import os
 from decimal import Decimal
 from typing import Any
 
@@ -22,14 +23,18 @@ def decimal_encoder(obj: Any) -> Any:
     return pydantic_encoder(obj)
 
 
+# Get root path from environment (for reverse proxy)
+root_path = os.getenv("ROOT_PATH", "")
+
 # Create FastAPI application
 app = FastAPI(
     title="AlphaPulse Trading API",
     description="Backend infrastructure for cryptocurrency trading signal systems",
     version="1.0.0",
-    openapi_url="/api/v1/openapi.json",
-    docs_url="/api/docs",
-    redoc_url="/api/redoc",
+    root_path=root_path,
+    openapi_url="/openapi.json",
+    docs_url="/docs",
+    redoc_url="/redoc",
 )
 
 # Configure CORS

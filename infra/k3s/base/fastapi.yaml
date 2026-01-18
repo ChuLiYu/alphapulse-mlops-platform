@@ -24,6 +24,8 @@ spec:
           value: "postgresql://postgres:postgres@postgres:5432/alphapulse"
         - name: API_VERSION
           value: "v1"
+        - name: ROOT_PATH
+          value: "/api"
         ports:
         - containerPort: 8000
         resources:
@@ -73,6 +75,7 @@ metadata:
   namespace: alphapulse
   annotations:
     traefik.ingress.kubernetes.io/router.entrypoints: web, websecure
+    traefik.ingress.kubernetes.io/router.middlewares: alphapulse-strip-api-prefix@kubernetescrd
 spec:
   tls:
   - hosts:

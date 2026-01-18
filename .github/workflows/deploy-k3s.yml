@@ -1,0 +1,48 @@
+name: Deploy to K3s (Production)
+
+on:
+  workflow_run:
+    workflows: ["Python Test & Deploy"]
+    types:
+      - completed
+    branches: [main]
+
+jobs:
+  deploy:
+    name: Deploy to Oracle Cloud K3s
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup SSH for Oracle VM
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USERNAME }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          envs: ADMIN_PASSWORD
+          script: |
+            # 1. 進入專案目錄 (假設在 /opt/alphapulse)
+            cd /opt/alphapulse || git clone https://github.com/${{ github.repository }} /opt/alphapulse
+            cd /opt/alphapulse
+            
+            # 2. 拉取最新程式碼
+            git pull origin main
+
+            # 3. 自動生成並套用 Admin Secret (關鍵自動化步驟)
+            chmod +x infra/scripts/generate_k3s_secrets.sh
+            ADMIN_PASSWORD="${{ secrets.ADMIN_PASSWORD }}" ./infra/scripts/generate_k3s_secrets.sh --apply
+
+            # 4. 執行 Kustomize 部署
+            kubectl apply -k infra/k3s/base
+
+            # 5. 強制重啟服務以讀取新設定
+            kubectl rollout restart deployment/fastapi -n alphapulse
+            kubectl rollout restart deployment/airflow -n alphapulse
+            kubectl rollout restart deployment/mlflow -n alphapulse
+
+            # 6. 確認狀態
+            kubectl get pods -n alphapulse

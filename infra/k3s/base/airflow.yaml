@@ -43,6 +43,16 @@ spec:
         image: ghcr.io/chuliyu/alphapulse-mlops-platform/airflow:latest
         imagePullPolicy: Always
         command: ["airflow", "webserver"]
+        env:
+        - name: _AIRFLOW_WWW_USER_CREATE
+          value: "true"
+        - name: _AIRFLOW_WWW_USER_USERNAME
+          value: "admin"
+        - name: _AIRFLOW_WWW_USER_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: airflow-secrets
+              key: password
         ports:
         - containerPort: 8080
         resources:

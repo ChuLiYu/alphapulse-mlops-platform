@@ -12,6 +12,7 @@ resources:
   - airflow.yaml
   - mlflow.yaml
   - mlflow-middleware.yaml
+  - fastapi-middleware.yaml
   - trainer.yaml
 
 configMapGenerator:
