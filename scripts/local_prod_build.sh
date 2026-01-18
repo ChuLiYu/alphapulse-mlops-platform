@@ -32,7 +32,7 @@ for service in "${services[@]}"; do
     case $service in
         "frontend")
             DOCKERFILE="frontend/Dockerfile"
-            CONTEXT="."
+            CONTEXT="frontend"
             ;;
         "fastapi")
             DOCKERFILE="infra/docker/Dockerfile.fastapi"
