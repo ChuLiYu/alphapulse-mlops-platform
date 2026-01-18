@@ -37,6 +37,7 @@ setup(
         "openai>=1.12.0",
         "groq>=0.4.0",
         "pandas-ta>=0.3.14b",
+        "feedparser>=6.0.10",
         "python-dotenv>=1.0.0",
         "loguru>=0.7.0",
     ],
