@@ -77,6 +77,8 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
+          # Install from root requirements.txt first to get binary wheels for scipy/torch
+          pip install -r requirements.txt
           pip install -e ./src
           pip install pytest pytest-cov pytest-asyncio mypy isort flake8
 

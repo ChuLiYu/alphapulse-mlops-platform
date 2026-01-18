@@ -14,10 +14,12 @@ RUN apt-get update && apt-get install -y \
 # Copy requirements file
 COPY src/setup.py /app/src/
 COPY src/alphapulse/ /app/src/alphapulse/
+COPY requirements.txt /app/
 
 # Install Python dependencies
-# We install in editable mode so changes in mounted volume are reflected (though setup.py deps won't change often)
+# Install from root requirements.txt first to get binary wheels for scipy/torch
 RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r /app/requirements.txt && \
     pip install --no-cache-dir -e .
 
 # Create non-root user
