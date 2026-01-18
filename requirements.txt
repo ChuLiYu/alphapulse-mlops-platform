@@ -1,6 +1,6 @@
 # AlphaPulse Requirements
 # Force binary wheels to avoid compilation issues in CI/CD
 
-scipy>=1.11.0 --only-binary=all
+scipy>=1.12.0 --only-binary=all
 # Add other packages that might need binary wheels
 torch --index-url https://download.pytorch.org/whl/cpu --only-binary=all

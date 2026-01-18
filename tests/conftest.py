@@ -228,6 +228,13 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "data: Data quality tests")
 
 
+def pytest_sessionstart(session):
+    """Called before the test session starts."""
+    # Ensure DATABASE_URL is set for tests to avoid connecting to production or using default 'root' user
+    if "DATABASE_URL" not in os.environ:
+        os.environ["DATABASE_URL"] = "postgresql://postgres:postgres@localhost:5432/alphapulse_test"
+
+
 def pytest_collection_modifyitems(config, items):
     """Modify test collection."""
     # Skip integration tests if DOCKER_SKIP environment variable is set

@@ -133,8 +133,12 @@ class TestCalculateNewsFrequencyFeatures:
 class TestPrepareFeatures:
     """Tests for overall feature preparation."""
 
-    def test_prepare_features_basic(self):
+    @patch("alphapulse.ml.prepare_training_data.add_news_frequency_features")
+    def test_prepare_features_basic(self, mock_add_news):
         """Test basic feature preparation."""
+        # Mock add_news_frequency_features to simply return the df as is
+        mock_add_news.side_effect = lambda x: x
+
         df_prices = pd.DataFrame(
             {
                 "symbol": ["BTC-USD"] * 5,
@@ -162,8 +166,10 @@ class TestPrepareFeatures:
         assert "sentiment_avg_24h" in result.columns
         assert len(result) > 0
 
-    def test_target_calculation(self):
+    @patch("alphapulse.ml.prepare_training_data.add_news_frequency_features")
+    def test_target_calculation(self, mock_add_news):
         """Test target (next day return) calculation."""
+        mock_add_news.side_effect = lambda x: x
         df_prices = pd.DataFrame(
             {
                 "symbol": ["BTC-USD"] * 5,
@@ -200,8 +206,10 @@ class TestPrepareFeatures:
 class TestDataQuality:
     """Tests for data quality checks."""
 
-    def test_no_nan_in_features(self):
+    @patch("alphapulse.ml.prepare_training_data.add_news_frequency_features")
+    def test_no_nan_in_features(self, mock_add_news):
         """Test that feature preparation handles NaN values."""
+        mock_add_news.side_effect = lambda x: x
         df_prices = pd.DataFrame(
             {
                 "symbol": ["BTC-USD"] * 5,
@@ -227,8 +235,10 @@ class TestDataQuality:
         non_target_cols = [c for c in result.columns if c != "target"]
         assert not result[non_target_cols].isna().any().any()
 
-    def test_timestamp_ordering(self):
+    @patch("alphapulse.ml.prepare_training_data.add_news_frequency_features")
+    def test_timestamp_ordering(self, mock_add_news):
         """Test that data is properly ordered by timestamp."""
+        mock_add_news.side_effect = lambda x: x
         df_prices = pd.DataFrame(
             {
                 "symbol": ["BTC-USD"] * 5,

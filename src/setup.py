@@ -29,7 +29,7 @@ setup(
         "optuna>=3.5.0",
         "mlflow>=2.10.0",
         "joblib>=1.3.0",
-        "scipy>=1.11.0",  # For statistical tests
+        "scipy>=1.12.0",  # For statistical tests
         "psutil>=5.9.0",  # For system monitoring
         "torch>=2.2.0",
         "transformers>=4.38.0",
