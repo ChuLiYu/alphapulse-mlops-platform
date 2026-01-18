@@ -148,9 +148,9 @@ def main():
 
     if all_passed:
         print("🎉 Test framework validation PASSED!")
-        print("\nNext steps:")
-        print("1. Install dependencies: pip install -r mage_pipeline/requirements.txt")
-        print("2. Run unit tests: make test-unit")
+    print("\nNext steps if tests failed:")
+    print("1. Install dependencies: pip install -r requirements.txt")
+    print("2. Ensure database is running: docker compose up -d db")
         print("3. Run data quality tests: make test-data")
         print("4. Check coverage: make test-coverage")
         return 0

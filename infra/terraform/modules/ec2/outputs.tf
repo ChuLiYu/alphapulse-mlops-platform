@@ -50,10 +50,11 @@ output "ssh_public_key" {
 }
 
 # Service URLs
-output "mage_ui_url" {
-  description = "URL for Mage.ai UI"
-  value       = "http://${hcloud_floating_ip.main.ip_address}:6789"
+output "public_ip" {
+  description = "Public IP address of the EC2 instance"
+  value       = aws_instance.app_server.public_ip
 }
+
 
 output "mlflow_ui_url" {
   description = "URL for MLflow UI"

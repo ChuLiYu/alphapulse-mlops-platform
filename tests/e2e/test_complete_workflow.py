@@ -56,7 +56,6 @@ class TestCompleteMLWorkflow:
         services = {
             "FastAPI": "http://localhost:8000/health",
             "MLflow": "http://localhost:5001/health",
-            "Mage": "http://localhost:6789/api/status",
         }
 
         for service_name, url in services.items():
@@ -118,36 +117,6 @@ class TestCompleteMLWorkflow:
 
         except requests.exceptions.RequestException as e:
             pytest.skip(f"MLflow not available: {e}")
-
-    @pytest.mark.e2e
-    @pytest.mark.slow
-    def test_pipeline_execution(self):
-        """Test that Mage pipelines can be executed."""
-        mage_url = "http://localhost:6789"
-
-        try:
-            # Check Mage API
-            response = requests.get(f"{mage_url}/api/status", timeout=5)
-
-            if response.status_code != 200:
-                pytest.skip("Mage API not responding")
-
-            # Try to get pipeline list
-            response = requests.get(f"{mage_url}/api/pipelines", timeout=10)
-
-            if response.status_code == 200:
-                pipelines = response.json()
-                # Check if our pipelines exist
-                pipeline_names = [
-                    p.get("uuid") or p.get("name")
-                    for p in pipelines.get("pipelines", [])
-                ]
-
-                # At least one pipeline should exist
-                assert len(pipeline_names) > 0, "No pipelines found"
-
-        except requests.exceptions.RequestException as e:
-            pytest.skip(f"Mage not available: {e}")
 
 
 class TestDataQualityE2E:

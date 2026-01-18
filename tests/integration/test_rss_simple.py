@@ -116,9 +116,7 @@ if __name__ == "__main__":
         print("\nNext steps when Docker is running:")
         print("1. Start Docker daemon")
         print("2. Run: make up")
-        print("3. Run: make restart")
-        print("4. Access Mage UI at http://localhost:6789")
-        print("5. Run the news_ingestion_pipeline")
+        print("3. Check Airflow UI at http://localhost:8080")
     else:
         print("❌ RSS Feed Test FAILED")
     print("=" * 60)

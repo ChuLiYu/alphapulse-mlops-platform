@@ -66,9 +66,9 @@ Makefile text eol=lf
 /tests export-ignore
 /scripts export-ignore
 
-# Linguist overrides for GitHub language detection
-# This helps GitHub correctly identify the primary language
-mage_pipeline/* linguist-language=Python
+# Linguist overrides
+
+
 *.py linguist-language=Python
 *.yml linguist-language=YAML
 *.yaml linguist-language=YAML
