@@ -6,6 +6,8 @@ USER root
 RUN apt-get update \
   && apt-get install -y --no-install-recommends \
          build-essential \
+         gfortran \
+         libopenblas-dev \
          libpq-dev \
          git \
   && apt-get autoremove -yqq --purge \
