@@ -10,6 +10,7 @@ from decimal import Decimal
 from typing import Any
 
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from pydantic.json import pydantic_encoder
@@ -36,6 +37,12 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc",
 )
+
+# Ensure static monitoring directory exists
+os.makedirs("static/monitoring", exist_ok=True)
+
+# Mount static files for Evidently AI reports
+app.mount("/monitoring", StaticFiles(directory="static/monitoring", html=True), name="monitoring")
 
 # Configure CORS
 app.add_middleware(

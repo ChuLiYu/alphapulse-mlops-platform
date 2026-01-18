@@ -14,6 +14,7 @@ resources:
   - mlflow-middleware.yaml
   - fastapi-middleware.yaml
   - trainer.yaml
+  - grafana.yaml
 
 configMapGenerator:
   - name: postgres-init-scripts
