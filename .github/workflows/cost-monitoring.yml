@@ -211,7 +211,7 @@ jobs:
                   <ul>
                       <li><strong>Server:</strong> Hetzner CPX21 (3 vCPU, 4GB RAM, 80GB SSD)</li>
                       <li><strong>Storage:</strong> AWS S3 with lifecycle policies</li>
-                      <li><strong>Services:</strong> Mage.ai, MLflow, MinIO, PostgreSQL</li>
+                      <li><strong>Services:</strong> Airflow, MLflow, MinIO, PostgreSQL</li>
                       <li><strong>Deployment:</strong> Docker Compose on Hetzner</li>
                   </ul>
               </div>
