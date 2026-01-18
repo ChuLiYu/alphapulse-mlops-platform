@@ -324,10 +324,30 @@ services:
       "
     restart: on-failure
 
+  # Grafana for System Metrics (Standalone)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    labels:
+      project: alphapulse
+    ports:
+      - "3100:3000" # Mapped to 3100 because Frontend uses 3000
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF_SERVER_ROOT_URL=http://localhost:3100/
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - alphapulse-network
+    restart: unless-stopped
+
 volumes:
   postgres_data:
     driver: local
   minio_data:
     driver: local
   ollama_models:
+    driver: local
+  grafana_data:
     driver: local

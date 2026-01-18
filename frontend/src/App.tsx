@@ -460,11 +460,11 @@ const App = () => {
                 <div className="flex items-center gap-4 text-xs text-slate-500 font-bold uppercase"><span className="w-3 h-3 rounded-full bg-emerald-500 shadow-glow"></span>Secure_Node_Online</div>
             </div>
             <div className="p-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 uppercase font-mono">
-                <AdminLink title="Airflow Orchestrator" status="14 Online" icon={Workflow} url="http://localhost:8080" delay={0.1} />
-                <AdminLink title="MLflow Registry" status="v2.4 Ready" icon={Layers} url="http://localhost:5000" delay={0.2} />
-                <AdminLink title="Evidently AI Monitor" status="Active" icon={Activity} url="http://localhost:8000/dashboard" delay={0.3} />
+                <AdminLink title="Airflow Orchestrator" status="14 Online" icon={Workflow} url="/airflow" delay={0.1} />
+                <AdminLink title="MLflow Registry" status="v2.4 Ready" icon={Layers} url="/mlflow" delay={0.2} />
+                <AdminLink title="Evidently AI Monitor" status="Active" icon={Activity} url="/api/monitoring" delay={0.3} />
                 <AdminLink title="FastAPI Interactive" status="v1_Stable" icon={Zap} url="/api/docs" delay={0.4} />
-                <AdminLink title="Grafana Metrics" status="Operational" icon={TrendingUp} url="http://localhost:3000" delay={0.5} />
+                <AdminLink title="Grafana Metrics" status="Operational" icon={TrendingUp} url="#" delay={0.5} />
                 <AdminLink title="GitHub CI/CD" status="Passing" icon={Github} url="https://chainy.luichu.dev/QV65eSp" delay={0.6} />
             </div>
             </motion.section>

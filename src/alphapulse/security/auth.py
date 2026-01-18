@@ -194,6 +194,7 @@ def get_current_user_from_token(
     # For safety/simplicity in this "no-auth" mode, we return a constructed User object
     # This avoids database lookups if the DB is empty or locked
     from datetime import datetime
+
     return User(
         id=1,
         username="admin",
@@ -201,7 +202,7 @@ def get_current_user_from_token(
         is_active=True,
         is_superuser=True,
         hashed_password="dummy_hash_bypass",
-        created_at=datetime.utcnow()
+        created_at=datetime.utcnow(),
     )
 
 

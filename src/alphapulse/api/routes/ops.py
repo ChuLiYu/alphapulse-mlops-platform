@@ -92,5 +92,5 @@ async def get_drift_analysis():
             {"name": "trading_volume", "drift": 0.12, "status": "warning"},
             {"name": "market_sentiment", "drift": 0.04, "status": "stable"},
         ],
-        "timestamp": datetime.utcnow()
+        "timestamp": datetime.utcnow(),
     }

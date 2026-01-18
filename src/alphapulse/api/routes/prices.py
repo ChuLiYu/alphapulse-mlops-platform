@@ -42,13 +42,15 @@ def generate_mock_prices(symbol: str, count: int = 30):
         timestamp = now - timedelta(hours=4 * (count - i))
 
         # Return dicts which Pydantic can easily validate
-        prices.append({
-            "id": random.randint(1000, 9999),
-            "symbol": symbol,
-            "price": current_price,
-            "volume": Decimal(str(random.uniform(10, 100))),
-            "timestamp": timestamp
-        })
+        prices.append(
+            {
+                "id": random.randint(1000, 9999),
+                "symbol": symbol,
+                "price": current_price,
+                "volume": Decimal(str(random.uniform(10, 100))),
+                "timestamp": timestamp,
+            }
+        )
 
     return prices
 
