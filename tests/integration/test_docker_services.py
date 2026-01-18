@@ -182,15 +182,11 @@ class TestDatabaseSchema:
 
             with engine.connect() as conn:
                 # Check for key tables
-                result = conn.execute(
-                    text(
-                        """
+                result = conn.execute(text("""
                     SELECT table_name 
                     FROM information_schema.tables 
                     WHERE table_schema = 'public'
-                """
-                    )
-                )
+                """))
                 tables = [row[0] for row in result]
 
                 # Expected tables from pipelines
@@ -214,16 +210,12 @@ class TestDatabaseSchema:
             )
 
             with engine.connect() as conn:
-                result = conn.execute(
-                    text(
-                        """
+                result = conn.execute(text("""
                     SELECT column_name, data_type 
                     FROM information_schema.columns 
                     WHERE table_name = 'market_news'
                     ORDER BY ordinal_position
-                """
-                    )
-                )
+                """))
                 columns = {row[0]: row[1] for row in result}
 
                 # Check key columns exist

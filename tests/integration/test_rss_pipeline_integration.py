@@ -52,16 +52,12 @@ def test_rss_pipeline():
 
         # First, check if table exists
         with engine.connect() as conn:
-            result = conn.execute(
-                text(
-                    """
+            result = conn.execute(text("""
                 SELECT EXISTS (
                     SELECT FROM information_schema.tables 
                     WHERE table_name = 'market_news'
                 );
-            """
-                )
-            )
+            """))
             table_exists = result.scalar()
 
             if not table_exists:
@@ -77,16 +73,12 @@ def test_rss_pipeline():
 
         with engine.connect() as conn:
             # Check table now exists
-            result = conn.execute(
-                text(
-                    """
+            result = conn.execute(text("""
                 SELECT EXISTS (
                     SELECT FROM information_schema.tables 
                     WHERE table_name = 'market_news'
                 );
-            """
-                )
-            )
+            """))
             table_exists = result.scalar()
 
             if not table_exists:
@@ -101,16 +93,12 @@ def test_rss_pipeline():
             logger.info(f"Total rows in market_news: {row_count}")
 
             # Check sample data
-            result = conn.execute(
-                text(
-                    """
+            result = conn.execute(text("""
                 SELECT source, COUNT(*) as article_count, 
                        MIN(published_at) as earliest, MAX(published_at) as latest
                 FROM market_news 
                 GROUP BY source;
-            """
-                )
-            )
+            """))
 
             logger.info("Data distribution by source:")
             for row in result:
@@ -120,16 +108,12 @@ def test_rss_pipeline():
                 )
 
             # Show sample articles
-            result = conn.execute(
-                text(
-                    """
+            result = conn.execute(text("""
                 SELECT title, source, published_at, url 
                 FROM market_news 
                 ORDER BY published_at DESC 
                 LIMIT 3;
-            """
-                )
-            )
+            """))
 
             logger.info("Sample articles (most recent):")
             for row in result:
@@ -162,15 +146,11 @@ def test_database_connection():
             logger.info(f"PostgreSQL version: {version}")
 
             # List all tables
-            result = conn.execute(
-                text(
-                    """
+            result = conn.execute(text("""
                 SELECT table_name 
                 FROM information_schema.tables 
                 WHERE table_schema = 'public';
-            """
-                )
-            )
+            """))
 
             tables = [row[0] for row in result]
             logger.info(f"Existing tables: {tables}")

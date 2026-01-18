@@ -3,6 +3,7 @@
 Validate that the test framework is properly set up.
 This script checks the structure and configuration of the testing framework.
 """
+
 import os
 import sys
 from pathlib import Path

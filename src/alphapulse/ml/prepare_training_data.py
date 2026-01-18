@@ -35,13 +35,11 @@ def load_data():
         # Join sentiment_scores with market_news to get published_at if needed,
         # but analyzed_at is usually good enough for feature engineered time.
         # We use analyzed_at because that's when the info becomes available to the system.
-        query_sentiment = text(
-            """
+        query_sentiment = text("""
             SELECT ss.sentiment_score, ss.confidence, ss.label, ss.analyzed_at
             FROM sentiment_scores ss
             ORDER BY ss.analyzed_at
-        """
-        )
+        """)
         df_sentiment = pd.read_sql(query_sentiment, db)
         df_sentiment["analyzed_at"] = pd.to_datetime(df_sentiment["analyzed_at"])
 
@@ -150,15 +148,13 @@ def add_news_frequency_features(price_df):
         max_date = price_df["timestamp"].max()
 
         # Load news data
-        query = text(
-            """
+        query = text("""
             SELECT published_at, source
             FROM market_news
             WHERE published_at >= :min_date
                 AND published_at <= :max_date
             ORDER BY published_at
-        """
-        )
+        """)
 
         news_df = pd.read_sql(
             query, engine, params={"min_date": min_date, "max_date": max_date}

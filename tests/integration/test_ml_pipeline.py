@@ -29,9 +29,7 @@ def test_database():
 
         # Create tables
         with engine.connect() as conn:
-            conn.execute(
-                text(
-                    """
+            conn.execute(text("""
                 CREATE TABLE prices (
                     id INTEGER PRIMARY KEY,
                     symbol TEXT,
@@ -43,13 +41,9 @@ def test_database():
                     created_at TIMESTAMP,
                     updated_at TIMESTAMP
                 )
-            """
-                )
-            )
+            """))
 
-            conn.execute(
-                text(
-                    """
+            conn.execute(text("""
                 CREATE TABLE technical_indicators (
                     id INTEGER PRIMARY KEY,
                     symbol TEXT,
@@ -68,13 +62,9 @@ def test_database():
                     adx_14 REAL,
                     calculation_version TEXT
                 )
-            """
-                )
-            )
+            """))
 
-            conn.execute(
-                text(
-                    """
+            conn.execute(text("""
                 CREATE TABLE sentiment_scores (
                     id INTEGER PRIMARY KEY,
                     sentiment_score REAL,
@@ -82,32 +72,22 @@ def test_database():
                     label TEXT,
                     analyzed_at TIMESTAMP
                 )
-            """
-                )
-            )
+            """))
 
             # Insert sample data
             dates = pd.date_range("2024-01-01", periods=100, freq="D")
             for i, date in enumerate(dates):
-                conn.execute(
-                    text(
-                        f"""
+                conn.execute(text(f"""
                     INSERT INTO prices (symbol, price, volume, timestamp, source)
                     VALUES ('BTC-USD', {50000 + i * 100}, 1000000, '{date}', 'test')
-                """
-                    )
-                )
+                """))
 
-                conn.execute(
-                    text(
-                        f"""
+                conn.execute(text(f"""
                     INSERT INTO technical_indicators 
                     (symbol, timestamp, rsi_14, macd, sma_7, ema_12, ema_26, atr_14, obv, adx_14)
                     VALUES ('BTC-USD', '{date}', {50 + i % 20}, {100 + i}, 
                             {50000}, {50000}, {50000}, {1000}, {1000000}, {30})
-                """
-                    )
-                )
+                """))
 
             conn.commit()
 
@@ -287,29 +267,21 @@ class TestDatabaseConnectivity:
             engine = create_engine(db_url)
             with engine.connect() as conn:
                 # Check for prices table
-                result = conn.execute(
-                    text(
-                        """
+                result = conn.execute(text("""
                     SELECT EXISTS (
                         SELECT FROM information_schema.tables 
                         WHERE table_name = 'prices'
                     )
-                """
-                    )
-                )
+                """))
                 assert result.fetchone()[0] is True
 
                 # Check for technical_indicators table
-                result = conn.execute(
-                    text(
-                        """
+                result = conn.execute(text("""
                     SELECT EXISTS (
                         SELECT FROM information_schema.tables 
                         WHERE table_name = 'technical_indicators'
                     )
-                """
-                    )
-                )
+                """))
                 assert result.fetchone()[0] is True
         except Exception as e:
             pytest.skip(f"Database not available: {e}")

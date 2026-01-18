@@ -80,15 +80,13 @@ class ModelPredictor:
         """
         engine = create_engine(self.db_connection_string)
 
-        query = text(
-            """
+        query = text("""
             SELECT *
             FROM model_features
             WHERE ticker = :ticker
             ORDER BY date DESC
             LIMIT :limit
-        """
-        )
+        """)
 
         with engine.connect() as conn:
             df = pd.read_sql(

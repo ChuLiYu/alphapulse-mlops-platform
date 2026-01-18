@@ -250,7 +250,9 @@ class TestPipelineExecutionHistory:
 
             # 這是警告而不是錯誤，因為新部署的系統可能沒有執行歷史
             if pipelines_never_run:
-                print(f"⚠️ 警告：以下管道從未執行過:\n" + "\n".join(pipelines_never_run))
+                print(
+                    f"⚠️ 警告：以下管道從未執行過:\n" + "\n".join(pipelines_never_run)
+                )
                 print("這可能是正常的（如果是新部署）或表示排程未正常工作")
             else:
                 print("✅ 所有活躍管道都有執行歷史")

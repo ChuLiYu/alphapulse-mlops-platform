@@ -164,36 +164,24 @@ class TestDataQualityE2E:
             engine = create_engine(db_url)
             with engine.connect() as conn:
                 # Check for recent data
-                result = conn.execute(
-                    text(
-                        """
+                result = conn.execute(text("""
                     SELECT COUNT(*) FROM prices 
                     WHERE timestamp > NOW() - INTERVAL '30 days'
-                """
-                    )
-                )
+                """))
                 recent_count = result.fetchone()[0]
 
                 # Check for no null prices
-                result = conn.execute(
-                    text(
-                        """
+                result = conn.execute(text("""
                     SELECT COUNT(*) FROM prices 
                     WHERE price IS NULL OR price <= 0
-                """
-                    )
-                )
+                """))
                 null_count = result.fetchone()[0]
                 assert null_count == 0, f"Found {null_count} invalid price records"
 
                 # Check for reasonable price ranges (BTC should be > $1000)
-                result = conn.execute(
-                    text(
-                        """
+                result = conn.execute(text("""
                     SELECT MIN(price), MAX(price) FROM prices
-                """
-                    )
-                )
+                """))
                 min_price, max_price = result.fetchone()
                 assert min_price > 1000, f"Suspicious min price: {min_price}"
                 assert max_price < 1000000, f"Suspicious max price: {max_price}"
@@ -212,27 +200,19 @@ class TestDataQualityE2E:
             engine = create_engine(db_url)
             with engine.connect() as conn:
                 # Check RSI is in valid range (0-100)
-                result = conn.execute(
-                    text(
-                        """
+                result = conn.execute(text("""
                     SELECT COUNT(*) FROM technical_indicators 
                     WHERE rsi_14 < 0 OR rsi_14 > 100
-                """
-                    )
-                )
+                """))
                 invalid_rsi = result.fetchone()[0]
                 assert invalid_rsi == 0, f"Found {invalid_rsi} invalid RSI values"
 
                 # Check for data consistency
-                result = conn.execute(
-                    text(
-                        """
+                result = conn.execute(text("""
                     SELECT COUNT(*) FROM technical_indicators ti
                     LEFT JOIN prices p ON ti.symbol = p.symbol AND ti.timestamp = p.timestamp
                     WHERE p.id IS NULL
-                """
-                    )
-                )
+                """))
                 orphaned = result.fetchone()[0]
                 assert orphaned == 0, f"Found {orphaned} orphaned indicator records"
 

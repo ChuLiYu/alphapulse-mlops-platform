@@ -133,12 +133,10 @@ class InferenceEngine:
             signal_type = "SELL"
 
         with self.engine.connect() as conn:
-            insert_query = text(
-                """
+            insert_query = text("""
                 INSERT INTO trading_signals (symbol, signal_type, confidence, price_at_signal, timestamp, is_shadow, model_version)
                 VALUES (:symbol, :signal_type, :confidence, :price, :ts, :shadow, :ver)
-            """
-            )
+            """)
             conn.execute(
                 insert_query,
                 {

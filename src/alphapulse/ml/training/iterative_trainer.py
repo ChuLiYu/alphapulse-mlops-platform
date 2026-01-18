@@ -935,7 +935,9 @@ class IterativeTrainer:
                     json.dump(summary_dict, f, indent=2, default=str)
                 print(f"📄 Summary saved: {summary_path}")
             except Exception as summary_err:
-                print(f"⚠️ Warning: Could not save training_summary.json: {summary_err}")
+                print(
+                    f"⚠️ Warning: Could not save training_summary.json: {summary_err}"
+                )
 
         return summary
 

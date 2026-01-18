@@ -19,7 +19,6 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error
 
 from alphapulse.ml.backtest import BacktestConfig, Backtester
 
-
 # Default best config (fallback if no config file exists)
 DEFAULT_CONFIG = {
     "model_name": "xgboost_conservative",
