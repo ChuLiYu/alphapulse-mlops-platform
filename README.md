@@ -21,8 +21,8 @@ flowchart TD
     %% --- 1. CI/CD & Infra Layer ---
     subgraph CICD ["1. CI/CD & Provisioning"]
         direction TB
-        GHA[GitHub Actions<br/>(Build & Deploy)]:::ci
-        TF[Terraform<br/>(Infrastructure as Code)]:::infra
+        GHA["GitHub Actions<br/>(Build & Deploy)"]:::ci
+        TF["Terraform<br/>(Infrastructure as Code)"]:::infra
         
         GHA -- "SSH (Ed25519)" --> PROD
         TF -- "Provisioning" --> PROD
@@ -37,10 +37,10 @@ flowchart TD
             ING[Traefik Ingress]:::k8s
             
             subgraph Apps ["Application Namespace"]
-                AF[Airflow<br/>(Orchestrator)]:::k8s
-                ML[MLflow<br/>(Model Registry)]:::k8s
-                API[FastAPI<br/>(Inference)]:::k8s
-                WEB[Frontend<br/>(React/Next.js)]:::k8s
+                AF["Airflow<br/>(Orchestrator)"]:::k8s
+                ML["MLflow<br/>(Model Registry)"]:::k8s
+                API["FastAPI<br/>(Inference)"]:::k8s
+                WEB["Frontend<br/>(React/Next.js)"]:::k8s
             end
             
             subgraph Data ["Data Namespace"]
@@ -52,7 +52,7 @@ flowchart TD
     %% --- 3. External Storage ---
     subgraph EXT ["3. External Persistence"]
         direction LR
-        S3[(AWS S3 / R2)]:::storage
+        S3[("AWS S3 / R2")]:::storage
     end
 
     %% --- Flows ---
