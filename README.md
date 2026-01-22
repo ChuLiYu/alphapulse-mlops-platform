@@ -40,11 +40,15 @@ flowchart TD
                 AF["Airflow<br/>(Orchestrator)"]:::k8s
                 ML["MLflow<br/>(Model Registry)"]:::k8s
                 API["FastAPI<br/>(Inference)"]:::k8s
-                WEB["Frontend<br/>(React/Next.js)"]:::k8s
+                WEB["Frontend<br/>(React/Vite)"]:::k8s
+                GF["Grafana<br/>(Monitoring)"]:::k8s
+                TR["Trainer<br/>(Training Engine)"]:::k8s
+                OL["Ollama<br/>(LLM Inference)"]:::k8s
             end
             
             subgraph Data ["Data Namespace"]
                  PG[(PostgreSQL)]:::storage
+                 MI[(MinIO / S3)]:::storage
             end
         end
     end
@@ -56,16 +60,25 @@ flowchart TD
     end
 
     %% --- Flows ---
+    ING --> WEB
     ING --> AF
     ING --> ML
+    ING --> GF
     ING --> API
-    ING --> WEB
     
-    AF -- "DAGs" --> API
-    AF -- "Metrics" --> ML
+    AF -- "Triggers" --> TR
     AF -- "Data" --> PG
+    AF -- "Tasks" --> OL
     
-    ML -.->|Artifacts| S3
+    TR -- "Logs" --> ML
+    TR -- "Metrics" --> PG
+    
+    API -- "Inference" --> ML
+    WEB -- "UI" --> API
+    WEB -- "Charts" --> GF
+    
+    ML -.->|Artifacts| MI
+    MI -.->|Backup| S3
     PG -.->|Backup| S3
 ```
 
