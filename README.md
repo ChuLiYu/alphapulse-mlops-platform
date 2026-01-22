@@ -21,8 +21,11 @@ flowchart TD
     %% --- 1. CI/CD & Infra Layer ---
     subgraph CICD ["1. CI/CD & Provisioning"]
         direction TB
-        GHA["GitHub Actions<br/>(Build & Deploy)"]:::ci
         TF["Terraform<br/>(Infrastructure as Code)"]:::infra
+        GHA["GitHub Actions<br/>(Build & Deploy)"]:::ci
+        
+        %% Force Vertical Stack: TF above GHA to clear SSH path
+        TF ~~~ GHA
         
         GHA -- "SSH (Ed25519)" --> PROD
         TF -- "Provisioning" --> PROD
