@@ -133,10 +133,10 @@ data "oci_core_images" "oracle_linux_arm" {
   sort_order               = "DESC"
 }
 
-resource "oci_core_instance" "alphapulse_server" {
+resource "oci_core_instance" "alphapulse_server_v2" {
   availability_domain = var.availability_domain
   compartment_id      = var.compartment_id
-  display_name        = "alphapulse-k3s-server"
+  display_name        = "alphapulse-k3s-v2"
   shape               = var.instance_shape
 
   shape_config {
@@ -220,7 +220,7 @@ EOF
 # --- IP Binding ---
 data "oci_core_vnic_attachments" "instance_vnics" {
   compartment_id = var.compartment_id
-  instance_id    = oci_core_instance.alphapulse_server.id
+  instance_id    = oci_core_instance.alphapulse_server_v2.id
 }
 
 data "oci_core_vnic" "primary_vnic" {
