@@ -30,8 +30,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { SystemLog } from './types';
 import { PREDEFINED_LOGS } from './constants/logs';
 import { SERVICE_URLS } from './config/links-runtime';
+import DemoModeBanner from './components/DemoModeBanner';
 
 // --- Sub-Components ---
+// ... (rest of the sub-components)
 
 const MetricCard = ({ label, value, subtext, icon: Icon, accent = "blue" }: any) => {
   const colorClasses: any = {
@@ -87,6 +89,10 @@ const App = () => {
 
   // Backend Health Check
   useEffect(() => {
+    if (SERVICE_URLS.IS_DEMO_MODE) {
+      setIsBackendOnline(true);
+      return;
+    }
     const checkHealth = async () => {
       try {
         const res = await fetch(SERVICE_URLS.HEALTH_CHECK);
@@ -111,12 +117,15 @@ const App = () => {
           if (prev !== 0) setPriceChange(parseFloat(((p - prev) / prev * 100).toFixed(3)));
           return p;
         });
-      } catch (e) { console.error(e); }
+      } catch (e) { 
+        console.warn("Coinbase API failed, using fallback/demo price");
+        if (btcPrice === 0) setBtcPrice(95420.69 + (Math.random() - 0.5) * 100);
+      }
     };
     fetchPrice();
-    const i = setInterval(fetchPrice, 1000);
+    const i = setInterval(fetchPrice, 2000); // Slower in demo
     return () => clearInterval(i);
-  }, []);
+  }, [btcPrice]);
 
   // Latency Jitter (Independent)
   useEffect(() => {
@@ -206,6 +215,7 @@ const App = () => {
 
   return (
     <div className="min-h-screen bg-[#0a0a0c] text-slate-300 font-sans overflow-x-hidden selection:bg-emerald-500/30">
+      {SERVICE_URLS.IS_DEMO_MODE && <DemoModeBanner />}
       
       {/* 1. Header */}
       <header className="border-b border-slate-800/80 bg-[#050507]/90 backdrop-blur-md sticky top-0 z-50 shadow-2xl">

@@ -4,5 +4,6 @@ window.__CONFIG__ = {
   MLFLOW_URL: "${MLFLOW_URL}",
   GRAFANA_URL: "${GRAFANA_URL}",
   FASTAPI_URL: "${FASTAPI_URL}",
-  API_URL: "${API_URL}"
+  API_URL: "${API_URL}",
+  DEMO_MODE: "${DEMO_MODE}"
 };

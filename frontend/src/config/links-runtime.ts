@@ -4,7 +4,8 @@
     MLFLOW_URL: 'http://localhost:5002',
     GRAFANA_URL: 'http://localhost:3100',
     FASTAPI_URL: 'http://localhost:8000',
-    API_URL: 'http://localhost:8000'
+    API_URL: 'http://localhost:8000',
+    DEMO_MODE: 'true'
   };
 
 export const SERVICE_URLS = {
@@ -14,7 +15,8 @@ export const SERVICE_URLS = {
     FASTAPI_DOCS: `${config.FASTAPI_URL}/api/docs`,
     EVIDENTLY: `${config.FASTAPI_URL}/api/monitoring`,
     API_BASE: config.API_URL,
-    HEALTH_CHECK: `${config.API_URL}/api/v1/health`
+    HEALTH_CHECK: `${config.API_URL}/api/v1/health`,
+    IS_DEMO_MODE: config.DEMO_MODE === 'true' || config.DEMO_MODE === true
   };
 
 export default SERVICE_URLS;

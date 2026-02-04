@@ -5,16 +5,17 @@ import {
   DriftAnalysis,
   PipelineStatus,
 } from "../api/dashboard";
+import { SERVICE_URLS } from "../config/links-runtime";
 
 // --- Local Mock Data (Fallback) ---
-const MOCK_PRICES = [
-  { time: "00:00", price: 92000 },
-  { time: "04:00", price: 93500 },
-  { time: "08:00", price: 93000 },
-  { time: "12:00", price: 95000 },
-  { time: "16:00", price: 94800 },
-  { time: "20:00", price: 96200 },
-  { time: "23:59", price: 95800 },
+const getMockPrices = () => [
+  { time: "00:00", price: 92000 + Math.random() * 500 },
+  { time: "04:00", price: 93500 + Math.random() * 500 },
+  { time: "08:00", price: 93000 + Math.random() * 500 },
+  { time: "12:00", price: 95000 + Math.random() * 500 },
+  { time: "16:00", price: 94800 + Math.random() * 500 },
+  { time: "20:00", price: 96200 + Math.random() * 500 },
+  { time: "23:59", price: 95800 + Math.random() * 500 },
 ];
 
 const MOCK_SIGNALS: Signal[] = [
@@ -66,18 +67,24 @@ const MOCK_DRIFT: DriftAnalysis = {
 
 // --- Hook ---
 export const useDashboardData = () => {
-  const [prices, setPrices] = useState<any[]>(MOCK_PRICES);
+  const [prices, setPrices] = useState<any[]>(getMockPrices());
   const [signals, setSignals] = useState<Signal[]>(MOCK_SIGNALS);
   const [pipeline, setPipeline] = useState<PipelineStatus>(MOCK_PIPELINE);
   const [drift, setDrift] = useState<DriftAnalysis>(MOCK_DRIFT);
 
   const [loading, setLoading] = useState(true);
-  const [usingMock, setUsingMock] = useState(false);
+  const [usingMock, setUsingMock] = useState(SERVICE_URLS.IS_DEMO_MODE);
 
   useEffect(() => {
     let mounted = true;
 
     const fetchData = async () => {
+      // If forced demo mode, just skip fetch and use mocks
+      if (SERVICE_URLS.IS_DEMO_MODE) {
+        setLoading(false);
+        return;
+      }
+
       try {
         setLoading(true);
         // Execute all requests in parallel
@@ -92,7 +99,7 @@ export const useDashboardData = () => {
         if (!mounted) return;
 
         // Process Prices
-        if (pricesData.status === "fulfilled" && pricesData.value.success) {
+        if (pricesData.status === "fulfilled" && pricesData.value.success && pricesData.value.data.length > 0) {
           // Transform backend price format to Recharts format
           const formattedPrices = pricesData.value.data
             .map((p: any) => ({
@@ -103,32 +110,29 @@ export const useDashboardData = () => {
               price: Number(p.price),
             }))
             .reverse(); // Assuming API returns newest first
-          setPrices(formattedPrices.length > 0 ? formattedPrices : MOCK_PRICES);
+          setPrices(formattedPrices);
         } else {
-          console.warn("Using fallback prices");
           setUsingMock(true);
         }
 
         // Process Signals
-        if (signalsData.status === "fulfilled" && signalsData.value.success) {
+        if (signalsData.status === "fulfilled" && signalsData.value.success && signalsData.value.data.length > 0) {
           setSignals(signalsData.value.data);
         } else {
           setUsingMock(true);
         }
 
-        // Process Pipeline (If backend endpoint exists, otherwise use mock)
-        if (pipelineData.status === "fulfilled") {
+        // Process Pipeline
+        if (pipelineData.status === "fulfilled" && pipelineData.value && pipelineData.value.stages) {
           setPipeline(pipelineData.value);
         } else {
-          // Expected failure if endpoint not implemented yet
           setUsingMock(true);
         }
 
-        // Process Drift (If backend endpoint exists, otherwise use mock)
-        if (driftData.status === "fulfilled") {
+        // Process Drift
+        if (driftData.status === "fulfilled" && driftData.value && driftData.value.features) {
           setDrift(driftData.value);
         } else {
-          // Expected failure if endpoint not implemented yet
           setUsingMock(true);
         }
       } catch (error) {
@@ -146,5 +150,5 @@ export const useDashboardData = () => {
     };
   }, []);
 
-  return { prices, signals, pipeline, drift, loading, usingMock };
+  return { prices, signals, pipeline, drift, loading, usingMock, isDemo: SERVICE_URLS.IS_DEMO_MODE };
 };
