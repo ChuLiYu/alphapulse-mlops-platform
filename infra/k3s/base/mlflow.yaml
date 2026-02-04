@@ -4,7 +4,7 @@ metadata:
   name: mlflow
   namespace: alphapulse
 spec:
-  replicas: 0
+  replicas: 1
   selector:
     matchLabels:
       app: mlflow
@@ -34,10 +34,10 @@ spec:
         resources:
           limits:
             cpu: "500m"
-            memory: "512Mi"
+            memory: "1Gi"
           requests:
             cpu: "100m"
-            memory: "256Mi"
+            memory: "512Mi"
         volumeMounts:
         - name: mlflow-data
           mountPath: /mlflow/artifacts

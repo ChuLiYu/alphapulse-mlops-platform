@@ -16,70 +16,10 @@ metadata:
   name: airflow
   namespace: alphapulse
 spec:
-  replicas: 0
+  replicas: 1
   selector:
     matchLabels:
       app: airflow
-  template:
-    metadata:
-      labels:
-        app: airflow
-    spec:
-      imagePullSecrets:
-      - name: regcred
-      initContainers:
-      - name: wait-for-db
-        image: postgres:16-alpine
-        command: ['sh', '-c', 'until pg_isready -h postgres -p 5432; do echo waiting for database; sleep 2; done;']
-      - name: airflow-init
-        image: ghcr.io/chuliyu/alphapulse-mlops-platform/airflow:latest
-        imagePullPolicy: Always
-        command: ["airflow", "db", "migrate"]
-        envFrom:
-        - configMapRef:
-            name: airflow-config
-      containers:
-      - name: airflow-webserver
-        image: ghcr.io/chuliyu/alphapulse-mlops-platform/airflow:latest
-        imagePullPolicy: Always
-        command: ["airflow", "webserver"]
-        env:
-        - name: _AIRFLOW_WWW_USER_CREATE
-          value: "true"
-        - name: _AIRFLOW_WWW_USER_USERNAME
-          value: "admin"
-        - name: _AIRFLOW_WWW_USER_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: airflow-secrets
-              key: password
-        ports:
-        - containerPort: 8080
-        resources:
-          limits:
-            cpu: "800m"
-            memory: "1Gi"
-          requests:
-            cpu: "200m"
-            memory: "512Mi"
-        envFrom:
-        - configMapRef:
-            name: airflow-config
-      - name: airflow-scheduler
-        image: ghcr.io/chuliyu/alphapulse-mlops-platform/airflow:latest
-        imagePullPolicy: Always
-        command: ["airflow", "scheduler"]
-        resources:
-          limits:
-            cpu: "800m"
-            memory: "1Gi"
-          requests:
-            cpu: "200m"
-            memory: "512Mi"
-        envFrom:
-        - configMapRef:
-            name: airflow-config
-      # Removed emptyDir mount to use DAGs from image
 ---
 apiVersion: v1
 kind: Service
@@ -88,6 +28,19 @@ metadata:
   namespace: alphapulse
 spec:
   type: ClusterIP # 確保內部存取
+  selector:
+    app: airflow
+  ports:
+  - port: 8080
+    targetPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: airflow-webserver
+  namespace: alphapulse
+spec:
+  type: ClusterIP
   selector:
     app: airflow
   ports:

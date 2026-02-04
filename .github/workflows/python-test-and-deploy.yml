@@ -126,6 +126,7 @@ jobs:
           context: .
           file: infra/docker/Dockerfile.fastapi
           push: true
+          platforms: linux/amd64,linux/arm64
           tags: ${{ env.DOCKER_REGISTRY }}/${{ env.REPO_LOWER }}/fastapi:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -136,6 +137,7 @@ jobs:
           context: .
           file: infra/docker/Dockerfile.trainer
           push: true
+          platforms: linux/amd64,linux/arm64
           tags: ${{ env.DOCKER_REGISTRY }}/${{ env.REPO_LOWER }}/trainer:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -146,6 +148,7 @@ jobs:
           context: .
           file: infra/docker/Dockerfile.airflow
           push: true
+          platforms: linux/amd64,linux/arm64
           tags: ${{ env.DOCKER_REGISTRY }}/${{ env.REPO_LOWER }}/airflow:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -156,6 +159,7 @@ jobs:
           context: .
           file: infra/docker/Dockerfile.mlflow
           push: true
+          platforms: linux/amd64,linux/arm64
           tags: ${{ env.DOCKER_REGISTRY }}/${{ env.REPO_LOWER }}/mlflow:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -166,6 +170,7 @@ jobs:
           context: frontend
           file: frontend/Dockerfile
           push: true
+          platforms: linux/amd64,linux/arm64
           tags: ${{ env.DOCKER_REGISTRY }}/${{ env.REPO_LOWER }}/frontend:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max

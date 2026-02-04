@@ -23,7 +23,7 @@ metadata:
   name: grafana
   namespace: alphapulse
 spec:
-  replicas: 0
+  replicas: 1
   selector:
     matchLabels:
       app: grafana
@@ -38,15 +38,6 @@ spec:
         ports:
         - containerPort: 3000
         env:
-        - name: GF_SECURITY_ADMIN_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: admin-credentials  # Attempt to reuse, but Grafana might need plain text or specific format. 
-                                       # Ideally use a separate secret or init script.
-                                       # For simplicity in this stack, we'll let user set it manually or via env.
-              key: password            # We'll use the 'airflow-secrets' logic (plain text) if available, 
-                                       # but admin-credentials is for basic auth (htpasswd).
-                                       # Let's use a specific grafana secret or default.
         - name: GF_SECURITY_ADMIN_PASSWORD
           valueFrom:
             secretKeyRef:

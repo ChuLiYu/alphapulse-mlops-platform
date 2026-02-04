@@ -315,6 +315,12 @@ shell-api:
 	@echo "$(BLUE)Opening shell in FastAPI...$(NC)"
 	@cd infra && docker compose exec fastapi bash
 
+# ================================================================================
+# Monitoring
+# ================================================================================
+
+.PHONY: ports urls ps status check-oci-cost
+
 ports:
 	@echo "Service Ports:"
 	@echo "  FastAPI: 8000"
@@ -331,6 +337,10 @@ urls:
 	@echo "  MLflow UI: http://localhost:5002"
 	@echo "  Airflow UI: http://localhost:8080"
 	@echo "  MinIO Console: http://localhost:9001 (user: minioadmin, pass: minioadmin)"
+
+check-oci-cost:
+	@chmod +x scripts/monitoring/check_oci_cost.sh
+	@./scripts/monitoring/check_oci_cost.sh
 
 # ================================================================================
 # ML Training Automation
