@@ -1,0 +1,394 @@
+[0m[33mRunning plan in HCP Terraform. Output will stream here. Pressing Ctrl-C
+will stop streaming the logs, but will not stop the plan running remotely.[0m
+
+Preparing the remote plan...
+[0m
+The remote workspace is configured to work with configuration at
+infra/terraform/environments/prod relative to the target repository.
+
+Terraform will upload the contents of the following directory,
+excluding files or directories as defined by a .terraformignore file
+at /Users/liyu/repos/alphapulse-mlops-platform/.terraformignore (if it is present),
+in order to capture the filesystem context the remote workspace expects:
+    /Users/liyu/repos/alphapulse-mlops-platform
+
+[0m[33mTo view this run in a browser, visit:[0m
+[0m[33mhttps://app.terraform.io/app/lui-personal/prod-core-oci-arm64-free-tier/runs/run-jNB5kuvqMvUuoHSx[0m
+[0m
+Waiting for the plan to start...
+
+Terraform v1.14.3
+on linux_amd64
+Initializing plugins and modules...
+[1mdata.oci_core_images.oracle_linux_arm: Refreshing...[0m[0m
+[1mdata.oci_core_images.oracle_linux_arm: Refresh complete after 0s [id=CoreImagesDataSource-1023418339][0m[0m
+
+Terraform used the selected providers to generate the following execution
+plan. Resource actions are indicated with the following symbols:
+  [32m+[0m create[0m
+ [36m<=[0m read (data resources)[0m
+
+Terraform will perform the following actions:
+
+[1m  # data.oci_core_private_ips.primary_vnic_private_ips[0m will be read during apply
+[0m [36m<=[0m[0m data "oci_core_private_ips" "primary_vnic_private_ips" {
+      [32m+[0m[0m id          = (known after apply)
+      [32m+[0m[0m private_ips = (known after apply)
+      [32m+[0m[0m vnic_id     = (known after apply)
+    }
+
+[1m  # data.oci_core_vnic.primary_vnic[0m will be read during apply
+[0m [36m<=[0m[0m data "oci_core_vnic" "primary_vnic" {
+      [32m+[0m[0m availability_domain    = (known after apply)
+      [32m+[0m[0m compartment_id         = (known after apply)
+      [32m+[0m[0m defined_tags           = (known after apply)
+      [32m+[0m[0m display_name           = (known after apply)
+      [32m+[0m[0m freeform_tags          = (known after apply)
+      [32m+[0m[0m hostname_label         = (known after apply)
+      [32m+[0m[0m id                     = (known after apply)
+      [32m+[0m[0m ipv6addresses          = (known after apply)
+      [32m+[0m[0m is_primary             = (known after apply)
+      [32m+[0m[0m mac_address            = (known after apply)
+      [32m+[0m[0m nsg_ids                = (known after apply)
+      [32m+[0m[0m private_ip_address     = (known after apply)
+      [32m+[0m[0m public_ip_address      = (known after apply)
+      [32m+[0m[0m route_table_id         = (known after apply)
+      [32m+[0m[0m security_attributes    = (known after apply)
+      [32m+[0m[0m skip_source_dest_check = (known after apply)
+      [32m+[0m[0m state                  = (known after apply)
+      [32m+[0m[0m subnet_id              = (known after apply)
+      [32m+[0m[0m time_created           = (known after apply)
+      [32m+[0m[0m vlan_id                = (known after apply)
+      [32m+[0m[0m vnic_id                = (known after apply)
+    }
+
+[1m  # data.oci_core_vnic_attachments.instance_vnics[0m will be read during apply
+[0m [36m<=[0m[0m data "oci_core_vnic_attachments" "instance_vnics" {
+      [32m+[0m[0m compartment_id   = "ocid1.compartment.oc1..aaaaaaaadu5qdcthiuxcyybpiozzca27tlu2ef7dpgxlk67p42o3wln6ehia"
+      [32m+[0m[0m id               = (known after apply)
+      [32m+[0m[0m instance_id      = (known after apply)
+      [32m+[0m[0m vnic_attachments = (known after apply)
+    }
+
+[1m  # cloudflare_record.frontend[0m will be created
+[0m  [32m+[0m[0m resource "cloudflare_record" "frontend" {
+      [32m+[0m[0m allow_overwrite = false
+      [32m+[0m[0m content         = (known after apply)
+      [32m+[0m[0m created_on      = (known after apply)
+      [32m+[0m[0m hostname        = (known after apply)
+      [32m+[0m[0m id              = (known after apply)
+      [32m+[0m[0m metadata        = (known after apply)
+      [32m+[0m[0m modified_on     = (known after apply)
+      [32m+[0m[0m name            = "alphapulse"
+      [32m+[0m[0m proxiable       = (known after apply)
+      [32m+[0m[0m proxied         = true
+      [32m+[0m[0m ttl             = (known after apply)
+      [32m+[0m[0m type            = "A"
+      [32m+[0m[0m value           = (known after apply)
+      [32m+[0m[0m zone_id         = (sensitive value)
+    }
+
+[1m  # cloudflare_record.ssh[0m will be created
+[0m  [32m+[0m[0m resource "cloudflare_record" "ssh" {
+      [32m+[0m[0m allow_overwrite = false
+      [32m+[0m[0m content         = (known after apply)
+      [32m+[0m[0m created_on      = (known after apply)
+      [32m+[0m[0m hostname        = (known after apply)
+      [32m+[0m[0m id              = (known after apply)
+      [32m+[0m[0m metadata        = (known after apply)
+      [32m+[0m[0m modified_on     = (known after apply)
+      [32m+[0m[0m name            = "ssh.alphapulse"
+      [32m+[0m[0m proxiable       = (known after apply)
+      [32m+[0m[0m proxied         = false
+      [32m+[0m[0m ttl             = (known after apply)
+      [32m+[0m[0m type            = "A"
+      [32m+[0m[0m value           = (known after apply)
+      [32m+[0m[0m zone_id         = (sensitive value)
+    }
+
+[1m  # oci_core_instance.alphapulse_server[0m will be created
+[0m  [32m+[0m[0m resource "oci_core_instance" "alphapulse_server" {
+      [32m+[0m[0m availability_domain                 = "WDMG:CA-TORONTO-1-AD-1"
+      [32m+[0m[0m boot_volume_id                      = (known after apply)
+      [32m+[0m[0m capacity_reservation_id             = (known after apply)
+      [32m+[0m[0m compartment_id                      = "ocid1.compartment.oc1..aaaaaaaadu5qdcthiuxcyybpiozzca27tlu2ef7dpgxlk67p42o3wln6ehia"
+      [32m+[0m[0m compute_cluster_id                  = (known after apply)
+      [32m+[0m[0m dedicated_vm_host_id                = (known after apply)
+      [32m+[0m[0m defined_tags                        = (known after apply)
+      [32m+[0m[0m display_name                        = "alphapulse-k3s-server"
+      [32m+[0m[0m extended_metadata                   = (known after apply)
+      [32m+[0m[0m fault_domain                        = (known after apply)
+      [32m+[0m[0m freeform_tags                       = (known after apply)
+      [32m+[0m[0m hostname_label                      = (known after apply)
+      [32m+[0m[0m id                                  = (known after apply)
+      [32m+[0m[0m image                               = (known after apply)
+      [32m+[0m[0m instance_configuration_id           = (known after apply)
+      [32m+[0m[0m ipxe_script                         = (known after apply)
+      [32m+[0m[0m is_ai_enterprise_enabled            = (known after apply)
+      [32m+[0m[0m is_cross_numa_node                  = (known after apply)
+      [32m+[0m[0m is_pv_encryption_in_transit_enabled = (known after apply)
+      [32m+[0m[0m launch_mode                         = (known after apply)
+      [32m+[0m[0m metadata                            = {
+          [32m+[0m[0m "ssh_authorized_keys" = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC/vVcYyJwhoklRsMEYcZ0J2VFL/zbXEZFCIK4QOOPy2evaQkV/0cTAUY09hFO8TZvcrUvT1JEyJqI+RoJdvVnD5SKXuECy/EG/usN+vfRGE5wQmIu5HTbtU7tBUkJ5ID2F1hQrZ0bsg1gTTNTajrB7dpygvpLbn1281qKJWd7TBpSmgCvAQ1M44jCioSdniylLPd+9eqz5cnLf87hPXdrbXLAjAOZwzGvQr/e4eSABeGtoLX6dr8fh8pHHbvDGAzjOUZJ1IScPFR6SkIWd4iWAw/8/t/+fgTG7xN9SiIJ+2BVyIx4MQrav1LckrHyl2UvmJE/Sr70ynw1KfmM/MkaYoxMSIUJvt5hQrtsLVX9dfRcz/swxsSAoxVzAJ89lV8iJYgKF+0eDGsnBP9CuR8Of3BKOymtT+7kecLdGKAHhXvKYz8rQ1j8KbZW2VyErfH13E70ZyTr/ylIp2vFwoDaLItF8wGKvX2FFMoiJeRpk9sFX9sJs6Jq1rBKEV5EP2Ek= liyu@LiYus-Air.lan"
+          [32m+[0m[0m "user_data"           = (sensitive value)
+        }
+      [32m+[0m[0m private_ip                          = (known after apply)
+      [32m+[0m[0m public_ip                           = (known after apply)
+      [32m+[0m[0m region                              = (known after apply)
+      [32m+[0m[0m security_attributes                 = (known after apply)
+      [32m+[0m[0m security_attributes_state           = (known after apply)
+      [32m+[0m[0m shape                               = "VM.Standard.A1.Flex"
+      [32m+[0m[0m state                               = (known after apply)
+      [32m+[0m[0m subnet_id                           = (known after apply)
+      [32m+[0m[0m system_tags                         = (known after apply)
+      [32m+[0m[0m time_created                        = (known after apply)
+      [32m+[0m[0m time_maintenance_reboot_due         = (known after apply)
+
+      [32m+[0m[0m agent_config (known after apply)
+
+      [32m+[0m[0m availability_config (known after apply)
+
+      [32m+[0m[0m create_vnic_details {
+          [32m+[0m[0m assign_ipv6ip          = (known after apply)
+          [32m+[0m[0m assign_public_ip       = "false"
+          [32m+[0m[0m defined_tags           = (known after apply)
+          [32m+[0m[0m display_name           = (known after apply)
+          [32m+[0m[0m freeform_tags          = (known after apply)
+          [32m+[0m[0m hostname_label         = (known after apply)
+          [32m+[0m[0m nsg_ids                = (known after apply)
+          [32m+[0m[0m private_ip             = (known after apply)
+          [32m+[0m[0m security_attributes    = (known after apply)
+          [32m+[0m[0m skip_source_dest_check = (known after apply)
+          [32m+[0m[0m subnet_cidr            = (known after apply)
+          [32m+[0m[0m subnet_id              = (known after apply)
+          [32m+[0m[0m vlan_id                = (known after apply)
+
+          [32m+[0m[0m ipv6address_ipv6subnet_cidr_pair_details (known after apply)
+        }
+
+      [32m+[0m[0m instance_options (known after apply)
+
+      [32m+[0m[0m launch_options (known after apply)
+
+      [32m+[0m[0m launch_volume_attachments (known after apply)
+
+      [32m+[0m[0m licensing_configs (known after apply)
+
+      [32m+[0m[0m placement_constraint_details (known after apply)
+
+      [32m+[0m[0m platform_config (known after apply)
+
+      [32m+[0m[0m preemptible_instance_config (known after apply)
+
+      [32m+[0m[0m shape_config {
+          [32m+[0m[0m baseline_ocpu_utilization     = (known after apply)
+          [32m+[0m[0m gpu_description               = (known after apply)
+          [32m+[0m[0m gpus                          = (known after apply)
+          [32m+[0m[0m local_disk_description        = (known after apply)
+          [32m+[0m[0m local_disks                   = (known after apply)
+          [32m+[0m[0m local_disks_total_size_in_gbs = (known after apply)
+          [32m+[0m[0m max_vnic_attachments          = (known after apply)
+          [32m+[0m[0m memory_in_gbs                 = 24
+          [32m+[0m[0m networking_bandwidth_in_gbps  = (known after apply)
+          [32m+[0m[0m nvmes                         = (known after apply)
+          [32m+[0m[0m ocpus                         = 4
+          [32m+[0m[0m processor_description         = (known after apply)
+          [32m+[0m[0m resource_management           = (known after apply)
+          [32m+[0m[0m vcpus                         = (known after apply)
+        }
+
+      [32m+[0m[0m source_details {
+          [32m+[0m[0m boot_volume_size_in_gbs = "200"
+          [32m+[0m[0m boot_volume_vpus_per_gb = (known after apply)
+          [32m+[0m[0m source_id               = "ocid1.image.oc1.ca-toronto-1.aaaaaaaaglmfhbjc7je2tm5s44rni5teixbqyiutbdjmbuy7c3x4ezvrlepa"
+          [32m+[0m[0m source_type             = "image"
+
+          [32m+[0m[0m instance_source_image_filter_details (known after apply)
+        }
+    }
+
+[1m  # oci_core_internet_gateway.alphapulse_ig[0m will be created
+[0m  [32m+[0m[0m resource "oci_core_internet_gateway" "alphapulse_ig" {
+      [32m+[0m[0m compartment_id = "ocid1.compartment.oc1..aaaaaaaadu5qdcthiuxcyybpiozzca27tlu2ef7dpgxlk67p42o3wln6ehia"
+      [32m+[0m[0m defined_tags   = (known after apply)
+      [32m+[0m[0m display_name   = "alphapulse-ig"
+      [32m+[0m[0m enabled        = true
+      [32m+[0m[0m freeform_tags  = (known after apply)
+      [32m+[0m[0m id             = (known after apply)
+      [32m+[0m[0m route_table_id = (known after apply)
+      [32m+[0m[0m state          = (known after apply)
+      [32m+[0m[0m time_created   = (known after apply)
+      [32m+[0m[0m vcn_id         = (known after apply)
+    }
+
+[1m  # oci_core_public_ip.alphapulse_static_ip[0m will be created
+[0m  [32m+[0m[0m resource "oci_core_public_ip" "alphapulse_static_ip" {
+      [32m+[0m[0m assigned_entity_id   = (known after apply)
+      [32m+[0m[0m assigned_entity_type = (known after apply)
+      [32m+[0m[0m availability_domain  = (known after apply)
+      [32m+[0m[0m compartment_id       = "ocid1.compartment.oc1..aaaaaaaadu5qdcthiuxcyybpiozzca27tlu2ef7dpgxlk67p42o3wln6ehia"
+      [32m+[0m[0m defined_tags         = (known after apply)
+      [32m+[0m[0m display_name         = "alphapulse-static-ip"
+      [32m+[0m[0m freeform_tags        = (known after apply)
+      [32m+[0m[0m id                   = (known after apply)
+      [32m+[0m[0m ip_address           = (known after apply)
+      [32m+[0m[0m lifetime             = "RESERVED"
+      [32m+[0m[0m private_ip_id        = (known after apply)
+      [32m+[0m[0m public_ip_pool_id    = (known after apply)
+      [32m+[0m[0m scope                = (known after apply)
+      [32m+[0m[0m state                = (known after apply)
+      [32m+[0m[0m time_created         = (known after apply)
+    }
+
+[1m  # oci_core_route_table.alphapulse_rt[0m will be created
+[0m  [32m+[0m[0m resource "oci_core_route_table" "alphapulse_rt" {
+      [32m+[0m[0m compartment_id = "ocid1.compartment.oc1..aaaaaaaadu5qdcthiuxcyybpiozzca27tlu2ef7dpgxlk67p42o3wln6ehia"
+      [32m+[0m[0m defined_tags   = (known after apply)
+      [32m+[0m[0m display_name   = "alphapulse-rt"
+      [32m+[0m[0m freeform_tags  = (known after apply)
+      [32m+[0m[0m id             = (known after apply)
+      [32m+[0m[0m state          = (known after apply)
+      [32m+[0m[0m time_created   = (known after apply)
+      [32m+[0m[0m vcn_id         = (known after apply)
+
+      [32m+[0m[0m route_rules {
+          [32m+[0m[0m cidr_block        = (known after apply)
+          [32m+[0m[0m description       = (known after apply)
+          [32m+[0m[0m destination       = "0.0.0.0/0"
+          [32m+[0m[0m destination_type  = "CIDR_BLOCK"
+          [32m+[0m[0m network_entity_id = (known after apply)
+          [32m+[0m[0m route_type        = (known after apply)
+        }
+    }
+
+[1m  # oci_core_security_list.alphapulse_sl[0m will be created
+[0m  [32m+[0m[0m resource "oci_core_security_list" "alphapulse_sl" {
+      [32m+[0m[0m compartment_id = "ocid1.compartment.oc1..aaaaaaaadu5qdcthiuxcyybpiozzca27tlu2ef7dpgxlk67p42o3wln6ehia"
+      [32m+[0m[0m defined_tags   = (known after apply)
+      [32m+[0m[0m display_name   = "alphapulse-sl"
+      [32m+[0m[0m freeform_tags  = (known after apply)
+      [32m+[0m[0m id             = (known after apply)
+      [32m+[0m[0m state          = (known after apply)
+      [32m+[0m[0m time_created   = (known after apply)
+      [32m+[0m[0m vcn_id         = (known after apply)
+
+      [32m+[0m[0m egress_security_rules {
+          [32m+[0m[0m description      = (known after apply)
+          [32m+[0m[0m destination      = "0.0.0.0/0"
+          [32m+[0m[0m destination_type = (known after apply)
+          [32m+[0m[0m protocol         = "all"
+          [32m+[0m[0m stateless        = (known after apply)
+        }
+
+      [32m+[0m[0m ingress_security_rules {
+          [32m+[0m[0m description = (known after apply)
+          [32m+[0m[0m protocol    = "1"
+          [32m+[0m[0m source      = "0.0.0.0/0"
+          [32m+[0m[0m source_type = "CIDR_BLOCK"
+          [32m+[0m[0m stateless   = false
+
+          [32m+[0m[0m icmp_options {
+              [32m+[0m[0m code = -1
+              [32m+[0m[0m type = 8
+            }
+        }
+      [32m+[0m[0m ingress_security_rules {
+          [32m+[0m[0m description = (known after apply)
+          [32m+[0m[0m protocol    = "6"
+          [32m+[0m[0m source      = "0.0.0.0/0"
+          [32m+[0m[0m source_type = "CIDR_BLOCK"
+          [32m+[0m[0m stateless   = false
+
+          [32m+[0m[0m tcp_options {
+              [32m+[0m[0m max = 22
+              [32m+[0m[0m min = 22
+            }
+        }
+      [32m+[0m[0m ingress_security_rules {
+          [32m+[0m[0m description = (known after apply)
+          [32m+[0m[0m protocol    = "6"
+          [32m+[0m[0m source      = "0.0.0.0/0"
+          [32m+[0m[0m source_type = "CIDR_BLOCK"
+          [32m+[0m[0m stateless   = false
+
+          [32m+[0m[0m tcp_options {
+              [32m+[0m[0m max = 443
+              [32m+[0m[0m min = 443
+            }
+        }
+      [32m+[0m[0m ingress_security_rules {
+          [32m+[0m[0m description = (known after apply)
+          [32m+[0m[0m protocol    = "6"
+          [32m+[0m[0m source      = "0.0.0.0/0"
+          [32m+[0m[0m source_type = "CIDR_BLOCK"
+          [32m+[0m[0m stateless   = false
+
+          [32m+[0m[0m tcp_options {
+              [32m+[0m[0m max = 80
+              [32m+[0m[0m min = 80
+            }
+        }
+    }
+
+[1m  # oci_core_subnet.alphapulse_subnet[0m will be created
+[0m  [32m+[0m[0m resource "oci_core_subnet" "alphapulse_subnet" {
+      [32m+[0m[0m availability_domain        = (known after apply)
+      [32m+[0m[0m cidr_block                 = "10.0.1.0/24"
+      [32m+[0m[0m compartment_id             = "ocid1.compartment.oc1..aaaaaaaadu5qdcthiuxcyybpiozzca27tlu2ef7dpgxlk67p42o3wln6ehia"
+      [32m+[0m[0m defined_tags               = (known after apply)
+      [32m+[0m[0m dhcp_options_id            = (known after apply)
+      [32m+[0m[0m display_name               = "alphapulse-public-subnet"
+      [32m+[0m[0m dns_label                  = (known after apply)
+      [32m+[0m[0m freeform_tags              = (known after apply)
+      [32m+[0m[0m id                         = (known after apply)
+      [32m+[0m[0m ipv4cidr_blocks            = (known after apply)
+      [32m+[0m[0m ipv6cidr_block             = (known after apply)
+      [32m+[0m[0m ipv6cidr_blocks            = (known after apply)
+      [32m+[0m[0m ipv6virtual_router_ip      = (known after apply)
+      [32m+[0m[0m prohibit_internet_ingress  = (known after apply)
+      [32m+[0m[0m prohibit_public_ip_on_vnic = (known after apply)
+      [32m+[0m[0m route_table_id             = (known after apply)
+      [32m+[0m[0m security_list_ids          = (known after apply)
+      [32m+[0m[0m state                      = (known after apply)
+      [32m+[0m[0m subnet_domain_name         = (known after apply)
+      [32m+[0m[0m time_created               = (known after apply)
+      [32m+[0m[0m vcn_id                     = (known after apply)
+      [32m+[0m[0m virtual_router_ip          = (known after apply)
+      [32m+[0m[0m virtual_router_mac         = (known after apply)
+    }
+
+[1m  # oci_core_vcn.alphapulse_vcn[0m will be created
+[0m  [32m+[0m[0m resource "oci_core_vcn" "alphapulse_vcn" {
+      [32m+[0m[0m byoipv6cidr_blocks               = (known after apply)
+      [32m+[0m[0m cidr_block                       = "10.0.0.0/16"
+      [32m+[0m[0m cidr_blocks                      = (known after apply)
+      [32m+[0m[0m compartment_id                   = "ocid1.compartment.oc1..aaaaaaaadu5qdcthiuxcyybpiozzca27tlu2ef7dpgxlk67p42o3wln6ehia"
+      [32m+[0m[0m default_dhcp_options_id          = (known after apply)
+      [32m+[0m[0m default_route_table_id           = (known after apply)
+      [32m+[0m[0m default_security_list_id         = (known after apply)
+      [32m+[0m[0m defined_tags                     = (known after apply)
+      [32m+[0m[0m display_name                     = "alphapulse-vcn"
+      [32m+[0m[0m dns_label                        = "alphapulse"
+      [32m+[0m[0m freeform_tags                    = (known after apply)
+      [32m+[0m[0m id                               = (known after apply)
+      [32m+[0m[0m ipv6cidr_blocks                  = (known after apply)
+      [32m+[0m[0m ipv6private_cidr_blocks          = (known after apply)
+      [32m+[0m[0m is_ipv6enabled                   = (known after apply)
+      [32m+[0m[0m is_oracle_gua_allocation_enabled = (known after apply)
+      [32m+[0m[0m security_attributes              = (known after apply)
+      [32m+[0m[0m state                            = (known after apply)
+      [32m+[0m[0m time_created                     = (known after apply)
+      [32m+[0m[0m vcn_domain_name                  = (known after apply)
+
+      [32m+[0m[0m byoipv6cidr_details (known after apply)
+    }
+
+[1mPlan:[0m [0m9 to add, 0 to change, 0 to destroy.
+
+Changes to Outputs:
+  [32m+[0m[0m server_static_ip = (known after apply)
+[90m
+─────────────────────────────────────────────────────────────────────────────[0m
+
+Note: You didn't use the -out option to save this plan, so Terraform can't
+guarantee to take exactly these actions if you run "terraform apply" now.
