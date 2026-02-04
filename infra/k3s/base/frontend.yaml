@@ -34,6 +34,8 @@ spec:
           value: "https://alphapulse.luichu.dev"
         - name: API_URL
           value: "https://alphapulse.luichu.dev"
+        - name: DEMO_MODE
+          value: "true"
         resources:
           limits:
             cpu: "200m"
