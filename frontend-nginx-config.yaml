@@ -1,0 +1,61 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: frontend-nginx-config
+  namespace: alphapulse
+data:
+  default.conf: |
+    server {
+        listen       80;
+        server_name  _;
+        absolute_redirect off;
+
+        # Resolver for Kubernetes DNS
+        resolver 10.43.0.10 valid=30s;
+
+        location / {
+            root   /usr/share/nginx/html;
+            index  index.html index.htm;
+            try_files $uri $uri/ /index.html;
+        }
+
+        # FastAPI Backend (Dynamic)
+        location /api/ {
+            set $fastapi_backend fastapi;
+            proxy_pass http://$fastapi_backend:8000;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection 'upgrade';
+            proxy_set_header Host $host;
+            proxy_cache_bypass $http_upgrade;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+
+        # Airflow Webserver (Dynamic)
+        location = /airflow {
+            return 301 /airflow/;
+        }
+        location /airflow {
+            absolute_redirect off;
+            set $airflow_backend airflow-webserver;
+            proxy_pass http://$airflow_backend:8080;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection 'upgrade';
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_set_header X-Forwarded-Host $http_host;
+            proxy_set_header X-Forwarded-Port $server_port;
+            proxy_set_header X-Script-Name /airflow;
+            proxy_redirect off;
+        }
+
+        error_page   500 502 503 504  /50x.html;
+        location = /50x.html {
+            root   /usr/share/nginx/html;
+        }
+    }
