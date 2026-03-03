@@ -8,6 +8,8 @@
 
 AlphaPulse is a production-grade DataOps & MLOps platform for financial market data — featuring end-to-end ELT pipelines, financial-precision data modeling, and cloud-agnostic infrastructure built with Terraform, Airflow, and Kubernetes.
 
+> **📅 Current Status (Mar 2026)**: Phase 5 In Progress - K3s Cluster Migration
+
 > **🚀 Live Demo**: [https://alphapulse.luichu.dev/](https://alphapulse.luichu.dev/) (Deployed on Oracle Cloud + Cloudflare)
 
 ---
@@ -191,6 +193,39 @@ cd alphapulse-mlops-platform
 *   **Live App**: [alphapulse.luichu.dev](https://alphapulse.luichu.dev/)
 
 ---
+---
+
+## ⚠️ Known Limitations & Technical Debt
+
+### Production Limitations
+- **Single-Node K3s**: Production uses single-node cluster without HA
+- **Demo Mode Fallback**: Frontend relies on mock data when backend is offline
+- **Synchronous DB Sessions**: Partial code uses sync SQLAlchemy Session
+
+### Frontend Improvements Needed
+- React Router installed but multi-page routing not fully implemented
+- Redux Toolkit installed but not extensively used (mainly local state)
+- Some feature directories (`features/auth/`, `features/market/`, `features/signals/`) are empty
+
+### Backend Improvements Needed
+- Health metrics endpoint (`/health/metrics`) needs: uptime, memory, CPU, connection tracking
+- Alerting system (Slack/Email) not yet integrated with drift detection
+
+---
+
+## 🚧 Development Status
+
+| Component | Status |
+|-----------|--------|
+| Backend API (FastAPI) | ✅ Stable |
+| Frontend (React) | ✅ Stable (Demo mode available) |
+| ML Training Pipeline | ✅ Stable |
+| Docker Compose (Local) | ✅ Stable |
+| K3s Deployment | 🔄 In Progress |
+| Production Monitoring | 🔄 Improving |
+
+---
+
 **Core Values**: Financial Precision, Cost-Conscious Engineering, Architectural Decoupling.
 **Technical Focus**: MLOps, DataOps, ETL, ELT, Data Pipeline, Feature Store, Model Registry, CI/CD for ML, Data Governance, Scalability, Observability, Cost Optimization, Infrastructure as Code (IaC), Monitoring, Alerting, Data Quality, Data Validation, Workflow Orchestration, Batch Processing, Real-time Processing, Data Lake, Data Warehouse.
 **Fintech Domain**: Quantitative Trading, Algorithmic Trading, Risk Management, Backtesting, PnL Analysis, Financial Time-series, Technical Indicators, Sentiment Analysis, Market Data Engineering, Decimal Precision, Portfolio Management, Trading Strategy, Crypto-Fintech.

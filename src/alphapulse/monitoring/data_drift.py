@@ -18,6 +18,8 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import Any, Dict, List, Optional, Tuple
 
+from alphapulse.monitoring.alerting import AlertLevel, alert_manager
+
 import numpy as np
 import pandas as pd
 
@@ -416,7 +418,9 @@ class DataDriftMonitor:
                         "overall_status_numeric": (
                             0
                             if summary.get("overall_status") == "PASS"
-                            else 1 if summary.get("overall_status") == "WARNING" else 2
+                            else 1
+                            if summary.get("overall_status") == "WARNING"
+                            else 2
                         ),
                     }
                 )
@@ -461,15 +465,30 @@ class DataDriftMonitor:
         summary = drift_result.get("summary", {})
 
         if summary.get("overall_status") == "FAIL":
-            # Generate alert for critical drift
             alert_message = self._create_alert_message(drift_result)
             print(f"ALERT: Critical data drift detected!\n{alert_message}")
-            # TODO: Integrate with alerting system (Slack, Email, etc.)
+            alert_manager.send_alert(
+                level=AlertLevel.CRITICAL,
+                title="Data Drift Detected",
+                message=alert_message,
+                metadata={
+                    "status": "FAIL",
+                    "timestamp": str(drift_result.get("timestamp", "")),
+                },
+            )
             return True
         elif summary.get("overall_status") == "WARNING":
-            # Generate warning for moderate drift
             warning_message = self._create_warning_message(drift_result)
             print(f"WARNING: Moderate data drift detected.\n{warning_message}")
+            alert_manager.send_alert(
+                level=AlertLevel.WARNING,
+                title="Moderate Data Drift",
+                message=warning_message,
+                metadata={
+                    "status": "WARNING",
+                    "timestamp": str(drift_result.get("timestamp", "")),
+                },
+            )
             return True
 
         return False
@@ -482,18 +501,18 @@ class DataDriftMonitor:
         message = f"""
         ⚠️ CRITICAL DATA DRIFT ALERT ⚠️
         
-        Time: {drift_result.get('timestamp', 'Unknown')}
-        Status: {summary.get('overall_status', 'UNKNOWN')}
+        Time: {drift_result.get("timestamp", "Unknown")}
+        Status: {summary.get("overall_status", "UNKNOWN")}
         
         Drift Details:
         - Drifted Columns: {len(drifted_columns)}
-        - Failed Tests: {len(summary.get('failed_tests', []))}
+        - Failed Tests: {len(summary.get("failed_tests", []))}
         
         Top Drifted Columns:
-        {', '.join(drifted_columns[:5]) if drifted_columns else 'None'}
+        {", ".join(drifted_columns[:5]) if drifted_columns else "None"}
         
-        Reference Data: {drift_result.get('reference_data_points', 0)} points
-        Current Data: {drift_result.get('current_data_points', 0)} points
+        Reference Data: {drift_result.get("reference_data_points", 0)} points
+        Current Data: {drift_result.get("current_data_points", 0)} points
         
         Action Required: Investigate data pipeline and model performance.
         """
@@ -507,12 +526,12 @@ class DataDriftMonitor:
         message = f"""
         ⚠️ DATA DRIFT WARNING ⚠️
         
-        Time: {drift_result.get('timestamp', 'Unknown')}
-        Status: {summary.get('overall_status', 'UNKNOWN')}
+        Time: {drift_result.get("timestamp", "Unknown")}
+        Status: {summary.get("overall_status", "UNKNOWN")}
         
         Drift Details:
-        - Drifted Columns: {len(summary.get('drifted_columns', []))}
-        - Failed Tests: {len(summary.get('failed_tests', []))}
+        - Drifted Columns: {len(summary.get("drifted_columns", []))}
+        - Failed Tests: {len(summary.get("failed_tests", []))}
         
         Monitor closely. Consider retraining model if drift persists.
         """
