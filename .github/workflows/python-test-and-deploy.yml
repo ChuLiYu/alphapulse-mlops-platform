@@ -33,12 +33,13 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-          cache: "pip"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
 
       - name: Install linting tools
         run: |
-          python -m pip install --upgrade pip
-          pip install black
+          uv pip install --system black
 
       - name: Lint with black
         run: |
@@ -72,7 +73,9 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-          cache: "pip"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
 
       - name: Install system dependencies
         run: |
@@ -81,11 +84,9 @@ jobs:
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          # Install from root requirements.txt first to get binary wheels for scipy/torch
-          pip install -r requirements.txt
-          pip install -e ./src
-          pip install pytest pytest-cov pytest-asyncio mypy isort flake8
+          uv pip install --system -r requirements.txt
+          uv pip install --system -e ./src
+          uv pip install --system pytest pytest-cov pytest-asyncio mypy isort flake8
 
       - name: Run unit tests
         env:
