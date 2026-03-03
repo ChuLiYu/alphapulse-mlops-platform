@@ -6,7 +6,7 @@
 [![Cost: $0/mo](https://img.shields.io/badge/FinOps-Zero--Cost-success?style=flat-square)](docs/deployment/COST_FINOPS.md)
 [![Fintech: Decimal Precision](https://img.shields.io/badge/Fintech-Decimal_Precision-blue?style=flat-square)](src/alphapulse/data/processor.py)
 
-AlphaPulse is a **Zero-Cost, High-Performance MLOps Platform** built for quantitative crypto trading. It bridges the gap between complex ML research and production-grade stability, optimized for **Oracle Cloud Always Free (ARM64)**.
+AlphaPulse is a production-grade DataOps & MLOps platform for financial market data — featuring end-to-end ELT pipelines, financial-precision data modeling, and cloud-agnostic infrastructure built with Terraform, Airflow, and Kubernetes.
 
 > **📅 Current Status (Mar 2026)**: Phase 5 In Progress - K3s Cluster Migration
 
