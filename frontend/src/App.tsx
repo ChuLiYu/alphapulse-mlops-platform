@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { Routes, Route } from 'react-router-dom';
 import {
   Activity,
   Cpu,
@@ -31,6 +32,8 @@ import { SystemLog } from './types';
 import { PREDEFINED_LOGS } from './constants/logs';
 import { SERVICE_URLS } from './config/links-runtime';
 import DemoModeBanner from './components/DemoModeBanner';
+import Dashboard from './pages/Dashboard';
+import MLOpsConsole from './pages/MLOpsConsole';
 
 // --- Sub-Components ---
 // ... (rest of the sub-components)
@@ -242,7 +245,9 @@ const App = () => {
       </header>
 
       <main className="max-w-[1600px] mx-auto px-8 py-12 space-y-12">
-        
+        <Routes>
+          <Route path="/" element={
+        <>
         {/* 2. KPIs */}
         <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
           <MetricCard label="FinOps (Oracle Free)" value="$0.00/mo" subtext="100% Opex Savings" icon={Cloud} accent="emerald" />
@@ -595,7 +600,10 @@ const App = () => {
                 </motion.div>
             )}
         </AnimatePresence>
-
+        </>
+          } />
+          <Route path="/status" element={<MLOpsConsole />} />
+        </Routes>
       </main>
     </div>
   );

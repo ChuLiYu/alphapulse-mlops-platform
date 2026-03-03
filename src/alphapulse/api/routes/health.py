@@ -5,16 +5,22 @@ These endpoints are critical for production deployment and
 infrastructure monitoring (AWS ELB/ALB, Kubernetes liveness probes).
 """
 
+import time
+import psutil
 from datetime import datetime
 from typing import Dict
 
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
+from sqlalchemy import text
 
 from alphapulse.api.database import get_db
 from alphapulse.api.schemas.health import HealthDetailed, HealthStatus
 
 router = APIRouter()
+
+# Store application start time for uptime calculation
+APP_START_TIME = time.time()
 
 
 @router.get("/health", response_model=HealthStatus)
@@ -40,44 +46,31 @@ async def health_check():
 
 @router.get("/health/detailed", response_model=HealthDetailed)
 async def health_detailed(db: Session = Depends(get_db)):
-    """
-    Detailed health check with component status.
-
-    This endpoint checks:
-    1. Database connectivity
-    2. Other external dependencies (if any)
-    3. Service health metrics
-
-    Args:
-        db: Database session dependency
-
-    Returns:
-        HealthDetailed: Detailed health status with component checks
-    """
     components: Dict[str, str] = {
         "api": "healthy",
-        "database": "unhealthy",  # Default to unhealthy until verified
+        "database": "unhealthy",
     }
 
-    # Check database connectivity
     try:
-        db.execute("SELECT 1")
+        db.execute(text("SELECT 1"))
         components["database"] = "healthy"
         database_message = "Database connection successful"
     except Exception as e:
         database_message = f"Database error: {str(e)}"
 
-    # Determine overall status
     overall_status = (
         "healthy"
         if all(status == "healthy" for status in components.values())
         else "unhealthy"
     )
 
+    uptime_seconds = time.time() - APP_START_TIME
+
     return HealthDetailed(
         overall=overall_status,
         components=components,
         timestamp=datetime.utcnow(),
+        uptime=uptime_seconds,
         message=f"Database: {database_message}",
     )
 
@@ -122,22 +115,26 @@ async def liveness_probe():
 
 @router.get("/health/metrics")
 async def health_metrics():
-    """
-    Health metrics endpoint for monitoring systems.
+    process = psutil.Process()
 
-    Returns basic metrics that can be consumed by
-    monitoring systems like Prometheus.
+    uptime_seconds = time.time() - APP_START_TIME
+    memory_info = process.memory_info()
+    memory_mb = memory_info.rss / (1024 * 1024)
+    cpu_percent = process.cpu_percent(interval=0.1)
 
-    Returns:
-        dict: Health metrics
-    """
+    try:
+        connections = len(process.connections())
+    except (psutil.AccessDenied, OSError):
+        connections = 0
+
     return {
         "status": "healthy",
         "timestamp": datetime.utcnow().isoformat(),
         "metrics": {
-            "uptime": "TODO: Implement uptime tracking",
-            "memory_usage": "TODO: Implement memory tracking",
-            "cpu_usage": "TODO: Implement CPU tracking",
-            "active_connections": "TODO: Implement connection tracking",
+            "uptime": round(uptime_seconds, 2),
+            "memory_usage_mb": round(memory_mb, 2),
+            "memory_usage_percent": round(process.memory_percent(), 2),
+            "cpu_usage_percent": round(cpu_percent, 2),
+            "active_connections": connections,
         },
     }
