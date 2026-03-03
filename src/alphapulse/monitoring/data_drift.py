@@ -418,9 +418,7 @@ class DataDriftMonitor:
                         "overall_status_numeric": (
                             0
                             if summary.get("overall_status") == "PASS"
-                            else 1
-                            if summary.get("overall_status") == "WARNING"
-                            else 2
+                            else 1 if summary.get("overall_status") == "WARNING" else 2
                         ),
                     }
                 )
