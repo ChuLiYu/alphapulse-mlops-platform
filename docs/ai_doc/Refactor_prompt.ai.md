@@ -614,4 +614,690 @@ Schema Validation, Data Governance, Batch Processing
 
 *文檔版本：v1.0 — 針對加拿大 WealthTech Data Engineer 職缺定位*
 *策略目標：Wealthsimple · Questrade · Neo Financial · CI Direct Investing*
+
+---
+
+---
+
+# Part 2：Hero Demo — Zero-Cost Dynamic Mock Mode
+
+> **給 AI Agent 的補充指令**
+> 目標：在不花任何錢的前提下，讓 alphapulse.luichu.dev 看起來是一個「活著的」系統。
+> 後端服務（Airflow、Postgres、MLflow、FastAPI）全部關閉以節省 OCI 資源。
+> 前端繼續部署在 OCI Free K3s，透過 Cloudflare 對外提供服務。
+
+---
+
+## 🎯 架構目標
+
 ```
+
+現況（付費資源壓力）：
+OCI K3s → [React] + [FastAPI] + [Postgres] + [Airflow] + [MLflow] + [Ollama]
+
+目標（Hero Demo Mode）：
+OCI K3s → [React Only]
+↓
+所有數據由前端 Mock Engine 產生
+看起來動態，實際上零後端依賴
+
+````
+
+**核心原則：**
+- React 前端繼續部署在 OCI K3s（不換平台，不花錢）
+- 後端 Pod 全部 scale to 0 或移除 K3s manifests
+- 前端內建 `MockDataEngine`，用 `setInterval` 模擬即時數據流
+- GitHub Actions 負責 build & push image，自動部署到 K3s
+
+---
+
+## 📋 任務清單
+
+---
+
+### Task 8：建立 MockDataEngine
+
+**目標檔案**：`frontend/src/mock/MockDataEngine.ts`
+
+**要求**：建立一個中央 Mock 數據引擎，所有頁面共用。
+
+```typescript
+// frontend/src/mock/MockDataEngine.ts
+
+export interface OHLCVPoint {
+  timestamp: number;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number;
+}
+
+export interface TradingSignal {
+  id: string;
+  symbol: string;
+  direction: 'LONG' | 'SHORT' | 'HOLD';
+  confidence: number;        // 0-1
+  price: number;
+  timestamp: number;
+  model: string;
+  pnl_pct: number;
+}
+
+export interface PipelineRun {
+  dag_id: string;
+  run_id: string;
+  state: 'running' | 'success' | 'failed' | 'queued';
+  start_time: number;
+  duration_sec: number;
+  tasks_done: number;
+  tasks_total: number;
+}
+
+export interface ModelMetric {
+  name: string;
+  version: string;
+  accuracy: number;
+  sharpe: number;
+  max_drawdown: number;
+  status: 'production' | 'staging' | 'archived';
+}
+
+// ─── Price simulation (Geometric Brownian Motion) ───────────────────────────
+
+function gbmStep(price: number, mu = 0.0001, sigma = 0.012): number {
+  const dt = 1;
+  const z = gaussianRandom();
+  return price * Math.exp((mu - 0.5 * sigma ** 2) * dt + sigma * Math.sqrt(dt) * z);
+}
+
+function gaussianRandom(): number {
+  // Box-Muller transform
+  const u = 1 - Math.random();
+  const v = Math.random();
+  return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+}
+
+// ─── Seed data ───────────────────────────────────────────────────────────────
+
+const SYMBOLS = ['BTC-USD', 'ETH-USD', 'SPY', 'QQQ'];
+
+const SEED_PRICES: Record<string, number> = {
+  'BTC-USD': 67420,
+  'ETH-USD': 3540,
+  'SPY': 528,
+  'QQQ': 452,
+};
+
+// ─── MockDataEngine class ────────────────────────────────────────────────────
+
+class MockDataEngine {
+  private prices: Record<string, number> = { ...SEED_PRICES };
+  private history: Record<string, OHLCVPoint[]> = {};
+  private listeners: Set<() => void> = new Set();
+  private intervalId: ReturnType<typeof setInterval> | null = null;
+
+  // Pipeline state machine
+  private pipelineStates: PipelineRun[] = this.generateInitialPipelines();
+  private pipelineTick = 0;
+
+  constructor() {
+    // Pre-generate 120 historical candles
+    for (const sym of SYMBOLS) {
+      this.history[sym] = this.generateHistory(sym, 120);
+    }
+  }
+
+  // ── Subscribe / Unsubscribe ────────────────────────────────────────────────
+
+  subscribe(cb: () => void): () => void {
+    this.listeners.add(cb);
+    if (!this.intervalId) this.start();
+    return () => {
+      this.listeners.delete(cb);
+      if (this.listeners.size === 0) this.stop();
+    };
+  }
+
+  private notify() {
+    this.listeners.forEach(cb => cb());
+  }
+
+  private start() {
+    this.intervalId = setInterval(() => {
+      this.tick();
+      this.notify();
+    }, 2000); // Update every 2 seconds
+  }
+
+  private stop() {
+    if (this.intervalId) {
+      clearInterval(this.intervalId);
+      this.intervalId = null;
+    }
+  }
+
+  // ── Tick: advance simulation ───────────────────────────────────────────────
+
+  private tick() {
+    this.pipelineTick++;
+
+    // Advance prices
+    for (const sym of SYMBOLS) {
+      const newPrice = gbmStep(this.prices[sym]);
+      this.prices[sym] = newPrice;
+
+      const prev = this.history[sym].at(-1)!;
+      const wiggle = newPrice * 0.003;
+      const candle: OHLCVPoint = {
+        timestamp: Date.now(),
+        open: prev.close,
+        high: newPrice + Math.abs(gaussianRandom() * wiggle),
+        low: newPrice - Math.abs(gaussianRandom() * wiggle),
+        close: newPrice,
+        volume: 800000 + Math.random() * 400000,
+      };
+      this.history[sym].push(candle);
+      if (this.history[sym].length > 200) this.history[sym].shift();
+    }
+
+    // Advance pipeline state machine
+    this.advancePipelines();
+  }
+
+  // ── Public data getters ────────────────────────────────────────────────────
+
+  getPrice(symbol: string): number {
+    return this.prices[symbol] ?? 0;
+  }
+
+  getHistory(symbol: string, limit = 60): OHLCVPoint[] {
+    return (this.history[symbol] ?? []).slice(-limit);
+  }
+
+  getSignals(): TradingSignal[] {
+    return SYMBOLS.map((sym, i) => {
+      const price = this.prices[sym];
+      const directions: TradingSignal['direction'][] = ['LONG', 'SHORT', 'HOLD'];
+      return {
+        id: `sig-${sym}-${Math.floor(Date.now() / 10000)}`,
+        symbol: sym,
+        direction: directions[Math.floor((Math.sin(this.pipelineTick * 0.3 + i) + 1) * 1.4)],
+        confidence: 0.55 + Math.abs(Math.sin(this.pipelineTick * 0.2 + i)) * 0.4,
+        price,
+        timestamp: Date.now(),
+        model: ['CatBoost-v3', 'XGBoost-v2', 'LightGBM-v4', 'Ensemble-v1'][i],
+        pnl_pct: (Math.sin(this.pipelineTick * 0.15 + i * 1.2) * 4.5),
+      };
+    });
+  }
+
+  getPipelines(): PipelineRun[] {
+    return this.pipelineStates;
+  }
+
+  getModelMetrics(): ModelMetric[] {
+    const base = 0.71 + Math.sin(this.pipelineTick * 0.05) * 0.03;
+    return [
+      { name: 'CatBoost', version: 'v3.2', accuracy: base + 0.04, sharpe: 1.82, max_drawdown: -0.087, status: 'production' },
+      { name: 'XGBoost',  version: 'v2.1', accuracy: base + 0.01, sharpe: 1.61, max_drawdown: -0.112, status: 'staging' },
+      { name: 'LightGBM', version: 'v4.0', accuracy: base - 0.01, sharpe: 1.74, max_drawdown: -0.094, status: 'staging' },
+      { name: 'Ensemble', version: 'v1.0', accuracy: base + 0.06, sharpe: 1.95, max_drawdown: -0.071, status: 'production' },
+    ];
+  }
+
+  getPortfolioValue(): number {
+    // Simulated portfolio drifting around $125k
+    return 125000 + Math.sin(this.pipelineTick * 0.08) * 3200 + gaussianRandom() * 800;
+  }
+
+  // ── Pipeline state machine ─────────────────────────────────────────────────
+
+  private generateInitialPipelines(): PipelineRun[] {
+    return [
+      { dag_id: 'market_data_ingestion',  run_id: 'run_001', state: 'success', start_time: Date.now() - 3600000, duration_sec: 142, tasks_done: 5, tasks_total: 5 },
+      { dag_id: 'dbt_silver_gold',        run_id: 'run_002', state: 'running', start_time: Date.now() - 180000,  duration_sec: 0,   tasks_done: 2, tasks_total: 4 },
+      { dag_id: 'feature_engineering',    run_id: 'run_003', state: 'queued',  start_time: 0,                    duration_sec: 0,   tasks_done: 0, tasks_total: 6 },
+      { dag_id: 'model_retraining',       run_id: 'run_004', state: 'success', start_time: Date.now() - 7200000, duration_sec: 892, tasks_done: 8, tasks_total: 8 },
+    ];
+  }
+
+  private advancePipelines() {
+    // Every ~10 ticks, cycle pipeline states to look alive
+    if (this.pipelineTick % 10 === 0) {
+      this.pipelineStates = this.pipelineStates.map(p => {
+        if (p.state === 'running') {
+          const done = p.tasks_done + 1;
+          if (done >= p.tasks_total) {
+            return { ...p, state: 'success', tasks_done: p.tasks_total, duration_sec: Math.floor(Math.random() * 300 + 100) };
+          }
+          return { ...p, tasks_done: done };
+        }
+        if (p.state === 'success' && Math.random() < 0.15) {
+          return { ...p, state: 'queued', tasks_done: 0, run_id: `run_${Date.now()}` };
+        }
+        if (p.state === 'queued' && Math.random() < 0.4) {
+          return { ...p, state: 'running', start_time: Date.now() };
+        }
+        return p;
+      });
+    }
+  }
+
+  // ── Historical generation ──────────────────────────────────────────────────
+
+  private generateHistory(symbol: string, count: number): OHLCVPoint[] {
+    const points: OHLCVPoint[] = [];
+    let price = SEED_PRICES[symbol];
+    const now = Date.now();
+    for (let i = count; i >= 0; i--) {
+      price = gbmStep(price);
+      const wiggle = price * 0.008;
+      points.push({
+        timestamp: now - i * 60000,
+        open: price * (1 + gaussianRandom() * 0.002),
+        high: price + Math.abs(gaussianRandom() * wiggle),
+        low: price - Math.abs(gaussianRandom() * wiggle),
+        close: price,
+        volume: 500000 + Math.random() * 600000,
+      });
+    }
+    return points;
+  }
+}
+
+// Singleton export
+export const mockEngine = new MockDataEngine();
+````
+
+---
+
+### Task 9：建立 useMockData Hook
+
+**目標檔案**：`frontend/src/mock/useMockData.ts`
+
+```typescript
+// frontend/src/mock/useMockData.ts
+import { useState, useEffect } from "react";
+import { mockEngine } from "./MockDataEngine";
+
+// Generic hook — re-renders whenever MockDataEngine ticks
+export function useMockData<T>(selector: () => T): T {
+  const [data, setData] = useState<T>(selector);
+
+  useEffect(() => {
+    const unsubscribe = mockEngine.subscribe(() => {
+      setData(selector());
+    });
+    return unsubscribe;
+  }, []);
+
+  return data;
+}
+
+// Convenience hooks per data type
+export const usePrices = () =>
+  useMockData(() => ({
+    "BTC-USD": mockEngine.getPrice("BTC-USD"),
+    "ETH-USD": mockEngine.getPrice("ETH-USD"),
+    SPY: mockEngine.getPrice("SPY"),
+    QQQ: mockEngine.getPrice("QQQ"),
+  }));
+
+export const useHistory = (symbol: string, limit?: number) =>
+  useMockData(() => mockEngine.getHistory(symbol, limit));
+
+export const useSignals = () => useMockData(() => mockEngine.getSignals());
+export const usePipelines = () => useMockData(() => mockEngine.getPipelines());
+export const useModels = () => useMockData(() => mockEngine.getModelMetrics());
+export const usePortfolio = () =>
+  useMockData(() => mockEngine.getPortfolioValue());
+```
+
+---
+
+### Task 10：改造前端四個頁面接入 Mock Engine
+
+**原則**：找到每個頁面原本 call API 的地方，替換為對應的 useMock hook。
+
+#### Dashboard.tsx
+
+替換 API call 為：
+
+```typescript
+import {
+  usePrices,
+  useHistory,
+  useSignals,
+  usePortfolio,
+} from "../mock/useMockData";
+
+// 在 component 內
+const prices = usePrices();
+const btcHistory = useHistory("BTC-USD", 60);
+const signals = useSignals();
+const portfolio = usePortfolio();
+```
+
+新增 **「LIVE」閃爍徽章** 在頁面右上角：
+
+```tsx
+<span
+  style={{
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 6,
+    background: "#ff4444",
+    color: "white",
+    padding: "3px 10px",
+    borderRadius: 12,
+    fontSize: 12,
+    fontWeight: 700,
+  }}
+>
+  <span style={{ animation: "pulse 1.2s infinite" }}>●</span> LIVE
+</span>
+```
+
+CSS animation（加在 global CSS）：
+
+```css
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.2;
+  }
+}
+```
+
+#### Trading Signal 頁面
+
+```typescript
+import { useSignals } from "../mock/useMockData";
+const signals = useSignals();
+```
+
+每個 Signal Card 需展示：
+
+- Direction badge（LONG = 綠色、SHORT = 紅色、HOLD = 灰色）
+- Confidence bar（animated progress bar）
+- PnL %（正數綠色，負數紅色）
+- Model name
+- 時間戳（"just now" / "2s ago"）
+
+#### MLOps Console 頁面
+
+```typescript
+import { usePipelines, useModels } from "../mock/useMockData";
+const pipelines = usePipelines();
+const models = useModels();
+```
+
+Pipeline 列表需展示：
+
+- State badge（running = 藍色旋轉 spinner、success = 綠色、queued = 黃色、failed = 紅色）
+- Progress bar（tasks_done / tasks_total）
+- DAG name 與 run_id
+
+Model Registry 表格需展示：
+
+- Accuracy / Sharpe / Max Drawdown
+- Status badge（production = 綠色、staging = 藍色）
+
+#### Strategy Playground 頁面
+
+使用 `useHistory` 顯示即時更新的 candlestick 或 line chart。
+加入以下互動元素（純前端，不需後端）：
+
+- Symbol 切換下拉（BTC-USD / ETH-USD / SPY / QQQ）
+- 時間區間切換（15m / 1h / 4h）— 改變 `limit` 參數
+- Buy/Sell 按鈕（點擊後彈出 toast "Order simulated — no real trades executed"）
+
+---
+
+### Task 11：Demo Mode Banner
+
+**目標**：在所有頁面頂端加入一條 Banner，告訴訪客這是 Demo Mode。
+
+```tsx
+// frontend/src/components/DemoModeBanner.tsx — 更新內容
+
+export function DemoModeBanner() {
+  return (
+    <div
+      style={{
+        background: "linear-gradient(90deg, #1a1a2e, #16213e)",
+        borderBottom: "1px solid #0f3460",
+        padding: "8px 20px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        fontSize: 13,
+        color: "#8892b0",
+      }}
+    >
+      <span>
+        <span style={{ color: "#64ffda", fontWeight: 700 }}>● DEMO MODE</span> —
+        Simulated market data updated every 2s via Geometric Brownian Motion. No
+        real trades. No backend.
+      </span>
+      <a
+        href="https://github.com/ChuLiYu/alphapulse-mlops-platform"
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{ color: "#64ffda", textDecoration: "none" }}
+      >
+        View Source →
+      </a>
+    </div>
+  );
+}
+```
+
+---
+
+### Task 12：關閉後端 K3s Deployments
+
+**目標目錄**：`infra/k3s/base/`
+
+**要求**：找到以下 Deployment manifests，將 `replicas` 改為 `0`：
+
+```yaml
+# 對以下所有 deployment 執行相同操作
+# airflow-webserver, airflow-scheduler, airflow-worker
+# fastapi
+# mlflow
+# trainer
+# ollama
+# postgres（可保留或關閉，視 demo 需求）
+# minio（可保留或關閉）
+
+spec:
+  replicas: 0 # 從原本的 1 改為 0
+```
+
+**保留運行的 Pod（replicas: 1）：**
+
+- `frontend`（React）
+- `traefik`（Ingress）
+- `grafana`（可選，若有靜態看板）
+
+**新增 `infra/k3s/overlays/demo/`** 目錄，建立 Kustomize overlay：
+
+```yaml
+# infra/k3s/overlays/demo/kustomization.yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+bases:
+  - ../../base
+
+patches:
+  - path: scale-down-backends.yaml
+```
+
+```yaml
+# infra/k3s/overlays/demo/scale-down-backends.yaml
+# Scale all backend services to 0 for demo mode
+- op: replace
+  path: /spec/replicas
+  value: 0
+```
+
+---
+
+### Task 13：更新 GitHub Actions Workflow
+
+**目標檔案**：`.github/workflows/deploy-k3s.yml`
+
+**要求**：新增一個 **`deploy-demo`** job，只 build & deploy 前端：
+
+```yaml
+# 在現有 workflows 中新增或修改
+
+name: Deploy Hero Demo
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "frontend/**"
+      - "infra/k3s/overlays/demo/**"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Deploy mode"
+        required: true
+        default: "demo"
+        type: choice
+        options: [demo, full]
+
+jobs:
+  build-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install & Build
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
+        env:
+          VITE_DEMO_MODE: "true"
+          VITE_APP_VERSION: ${{ github.sha }}
+
+      - name: Build & Push Docker Image (Frontend only)
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/alphapulse-frontend:demo
+            ghcr.io/${{ github.repository_owner }}/alphapulse-frontend:${{ github.sha }}
+        # 使用 GitHub Container Registry（免費）
+
+  deploy-demo:
+    needs: build-frontend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to OCI K3s (Frontend only)
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.OCI_HOST }}
+          username: ${{ secrets.OCI_USER }}
+          key: ${{ secrets.OCI_SSH_KEY }}
+          script: |
+            # Apply demo overlay — scales backends to 0, keeps frontend
+            kubectl apply -k /home/ubuntu/alphapulse/infra/k3s/overlays/demo/
+
+            # Pull and restart frontend only
+            kubectl rollout restart deployment/frontend -n application
+
+            # Confirm backends are scaled down
+            kubectl scale deployment fastapi airflow-webserver mlflow trainer \
+              --replicas=0 -n application
+
+            echo "✅ Demo mode deployed. Only frontend is running."
+
+      - name: Health Check
+        run: |
+          sleep 30
+          curl -f https://alphapulse.luichu.dev/ || exit 1
+```
+
+---
+
+### Task 14：新增 Vite 環境變數控制
+
+**目標檔案**：`frontend/.env.demo`
+
+```bash
+# frontend/.env.demo
+VITE_DEMO_MODE=true
+VITE_API_BASE_URL=   # 留空，demo mode 不需要 API
+VITE_APP_TITLE=AlphaPulse Demo
+```
+
+**目標檔案**：`frontend/src/config.ts`（新建或修改）
+
+```typescript
+export const config = {
+  isDemoMode: import.meta.env.VITE_DEMO_MODE === "true",
+  apiBaseUrl: import.meta.env.VITE_API_BASE_URL ?? "",
+  appVersion: import.meta.env.VITE_APP_VERSION ?? "dev",
+} as const;
+```
+
+在 `frontend/src/api/client.ts` 加入 Demo Mode guard：
+
+```typescript
+import { config } from "../config";
+
+// 在所有 API call 的最頂部加入
+if (config.isDemoMode) {
+  console.warn("[Demo Mode] API call intercepted — using mock data");
+  // Return mock data instead
+  return;
+}
+```
+
+---
+
+## ✅ Part 2 完成標準
+
+- [ ] `MockDataEngine.ts` 建立，GBM 價格模擬正常運作
+- [ ] `useMockData` hooks 建立並正確 re-render
+- [ ] Dashboard、Signal、MLOps、Strategy 四頁面接入 mock hooks
+- [ ] `● LIVE` 閃爍徽章出現在 Dashboard
+- [ ] Demo Mode Banner 顯示在所有頁面頂端
+- [ ] K3s backend deployments scale to 0（只有 frontend + traefik 在跑）
+- [ ] GitHub Actions `deploy-demo` job 只 build/deploy 前端
+- [ ] `VITE_DEMO_MODE=true` 時，API client 不發出任何真實 HTTP request
+- [ ] `https://alphapulse.luichu.dev/` health check 通過
+
+---
+
+## 🚫 Part 2 禁止事項
+
+- **不要刪除後端代碼**——只是 scale to 0，保留完整代碼供面試官審查
+- **不要換平台**——繼續用 OCI Free，不動 Terraform
+- **不要用真實 API key**——Mock Engine 完全不需要外部 API
+- **不要在 Demo 中顯示假的「真實交易」**——Banner 必須清楚標示 Demo Mode
+
+---
+
+_Part 2 文檔版本：v1.0 — Hero Demo Zero-Cost Dynamic Mock Mode_
+_部署目標：OCI Always Free K3s · alphapulse.luichu.dev_
