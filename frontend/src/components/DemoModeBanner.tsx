@@ -1,6 +1,5 @@
 import React from 'react';
 import { Box, Typography, alpha, useTheme } from '@mui/material';
-import { Sparkles } from 'lucide-react';
 
 const DemoModeBanner: React.FC = () => {
   const theme = useTheme();
@@ -8,27 +7,29 @@ const DemoModeBanner: React.FC = () => {
   return (
     <Box
       sx={{
-        bgcolor: alpha(theme.palette.secondary.main, 0.9),
-        color: 'white',
-        py: 0.5,
-        px: 2,
+        background: 'linear-gradient(90deg, #1a1a2e, #16213e)',
+        borderBottom: '1px solid #0f3460',
+        padding: '8px 20px',
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'center',
-        gap: 1.5,
-        position: 'sticky',
-        top: 0,
-        zIndex: 2000,
-        backdropFilter: 'blur(10px)',
-        borderBottom: `1px solid ${alpha(theme.palette.common.white, 0.2)}`,
-        boxShadow: '0 2px 10px rgba(0,0,0,0.2)'
+        justifyContent: 'space-between',
+        fontSize: 13,
+        color: '#8892b0',
       }}
     >
-      <Sparkles size={16} />
-      <Typography variant="caption" sx={{ fontWeight: 800, letterSpacing: 1.2, textTransform: 'uppercase' }}>
-        Hero Demo Mode Active • Static MLOps Infrastructure Simulation
-      </Typography>
-      <Sparkles size={16} />
+      <span>
+        <span style={{ color: '#64ffda', fontWeight: 700 }}>● DEMO MODE</span> —
+        Prices simulated via Geometric Brownian Motion. No real trades. No
+        backend.
+      </span>
+      <a
+        href="https://github.com/ChuLiYu/alphapulse-mlops-platform"
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{ color: '#64ffda', textDecoration: 'none' }}
+      >
+        View Source →
+      </a>
     </Box>
   );
 };

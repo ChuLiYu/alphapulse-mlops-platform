@@ -1,0 +1,17 @@
+name: "alphapulse"
+version: "1.0.0"
+config-version: 2
+profile: "alphapulse"
+model-paths: ["models"]
+test-paths: ["tests"]
+snapshot-paths: ["snapshots"]
+macro-paths: ["macros"]
+
+models:
+  alphapulse:
+    staging:
+      materialized: view
+      tags: ["silver", "staging"]
+    marts:
+      materialized: table
+      tags: ["gold", "mart"]

@@ -1,11 +1,12 @@
-# AlphaPulse MLOps 平台架構提示詞
+# AlphaPulse MLOps 平台完整架構提示詞
 
 ## 專案概述
 
 **專案名稱**: AlphaPulse  
 **類型**: 生產級 MLOps 平台（加密貨幣量化交易）  
-**當前狀態**: Phase 4.5 完成（2026年1月）  
-**目標**: 零成本、高效能的 MLOps 基礎設施
+**當前狀態**: Phase 5 進行中（K3s 叢集遷移）  
+**目標**: 零成本、高效能的 MLOps 基礎設施  
+**部署**: Oracle Cloud Always Free (ARM64) + Cloudflare
 
 ---
 
@@ -84,16 +85,16 @@ alphapulse-mlops-platform/
 
 ### API 路由 (api/routes/)
 
-| 檔案 | 功能 |
-|------|------|
-| `auth.py` | 認證端點（登入、註冊、API Keys、 |
-| `prices角色）.py` | 價格數據管理 |
-| `signals.py` | 交易訊號 CRUD |
-| `indicators.py` | 技術指標端點 |
-| `ops.py` | MLOps 操作（模型註冊、Pipeline 狀態） |
-| `health.py` | 健康檢查與系統狀態 |
-| `security.py` | 安全監控與訪問日誌 |
-| `simulation.py` | 交易模擬端點 |
+| 檔案 | 功能 | 端點數 |
+|------|------|--------|
+| `auth.py` | 認證端點（登入、註冊、API Keys、角色） | 9 |
+| `prices.py` | 價格數據管理 | 3 |
+| `signals.py` | 交易訊號 CRUD | 6 |
+| `indicators.py` | 技術指標端點 | 4 |
+| `ops.py` | MLOps 操作（模型註冊、Pipeline 狀態） | 3 |
+| `health.py` | 健康檢查與系統狀態 | 5 |
+| `security.py` | 安全監控與訪問日誌 | 1 |
+| `simulation.py` | 交易模擬端點 | 1 |
 
 ### API 端點 (api/endpoints/)
 
@@ -117,9 +118,11 @@ alphapulse-mlops-platform/
 
 | 檔案 | 功能 |
 |------|------|
-| `security/auth.py` | 認證服務 (JWT, API Keys) |
+| `security/auth.py` | 認證服務 (JWT, API Keys, RBAC) |
 | `api/model_predictor.py` | 模型預測服務 |
 | `monitoring/data_drift.py` | 資料漂移監控 |
+| `monitoring/alerting.py` | 警報系統（Slack/Email） |
+| `monitoring/drift_detector.py` | 漂移檢測服務 |
 
 ### ML 模組 (ml/)
 
@@ -143,15 +146,18 @@ alphapulse-mlops-platform/
 
 | 檔案 | 功能 |
 |------|------|
-| `layout/Sidebar.tsx` | 導航側邊欄（路由已規劃但未啟用） |
+| `layout/Sidebar.tsx` | 導航側邊欄 |
 | `DemoModeBanner.tsx` | Demo 模式指示器 |
 
 ### 功能模組 (features/)
 
-| 目錄 | 組件 |
-|------|------|
-| `mlops/` | PipelineFlow, DriftMonitor, ModelRegistry |
-| `strategy/` | StrategyPlayground, StrategyChart, StrategyControlPanel |
+| 目錄 | 狀態 | 組件 |
+|------|------|------|
+| `mlops/` | 部分完成 | PipelineFlow |
+| `strategy/` | 空目錄 | - |
+| `auth/` | 空目錄 | - |
+| `market/` | 空目錄 | - |
+| `signals/` | 空目錄 | - |
 
 ### API 整合 (api/)
 
@@ -160,16 +166,26 @@ alphapulse-mlops-platform/
 | `client.ts` | Axios API 客戶端（含 Demo 模式回退） |
 | `dashboard.ts` | 儀表板專用 API 端點 |
 
-### 狀態管理
+### Redux Store
 
-- **Redux Toolkit**: 已安裝但未廣泛使用
-- **Custom Hooks**: `useAuth()`, `useDashboardData()`
+| 檔案 | 功能 |
+|------|------|
+| `store/index.ts` | Redux store 配置 |
+| `store/authSlice.ts` | 認證狀態切片 |
+| `store/hooks.ts` | Typed hooks |
+
+### 自訂 Hooks
+
+| 檔案 | 功能 |
+|------|------|
+| `hooks/useAuth.ts` | 認證狀態管理 |
+| `hooks/useDashboardData.ts` | 儀表板數據獲取 |
 
 ---
 
 ## 🏢 基礎設施
 
-### Docker 服務 (docker-compose.yml)
+### Docker 服務 (infra/docker-compose.yml)
 
 12 個服務：
 - `postgres` - 主資料庫
@@ -182,48 +198,47 @@ alphapulse-mlops-platform/
 - `trainer` - 訓練引擎
 - `frontend` - React 應用
 - `grafana` - 監控儀表板
+- `ollama` - LLM 推理
+- `mc` - MinIO client
 
-### Terraform
+### Kubernetes (infra/k3s/base/)
 
-- `infra/terraform/environments/prod/main.tf` - Oracle Cloud 基礎設施
-- 跨雲端策略：Oracle Cloud (Compute) + AWS S3 (Storage)
+- `fastapi.yaml`, `frontend.yaml`, `airflow.yaml`, `mlflow.yaml`
+- `postgres.yaml`, `trainer.yaml`, `grafana.yaml`
 
-### CI/CD
+### Terraform (infra/terraform/)
 
-- `.github/workflows/deploy-k3s.yml` - K3s 部署管線
-- 4 個 workflow：測試、部署、成本監控、Terraform 驗證
+- `environments/prod/main.tf` - Oracle Cloud ARM64
+- `modules/networking/` - AWS 網路模組
+- `modules/ec2/` - AWS 計算模組
+- `modules/s3/` - AWS S3 儲存模組
+
+### CI/CD (.github/workflows/)
+
+- `python-test-and-deploy.yml` - 測試與部署
+- `deploy-k3s.yml` - K3s 部署
+- `terraform-validate.yml` - Terraform 驗證
+- `cost-monitoring.yml` - 成本監控
 
 ---
 
 ## ⚠️ 已知限制與待辦事項
 
-### 未完成的功能
-
-1. **健康檢查端點** (`src/alphapulse/api/routes/health.py`)
-   ```python
-   # TODO: 尚未實作
-   "uptime": "TODO: Implement uptime tracking",
-   "memory_usage": "TODO: Implement memory tracking",
-   "cpu_usage": "TODO: Implement CPU tracking",
-   "active_connections": "TODO: Implement connection tracking",
-   ```
-
-2. **警報系統** (`src/alphapulse/monitoring/data_drift.py`)
-   ```python
-   # TODO: Integrate with alerting system (Slack, Email, etc.)
-   ```
-
 ### 前端限制
 
-1. **路由未啟用**: React Router 已安裝但未實作多頁面路由
-2. **空的功能模組**: `features/auth/`, `features/market/`, `features/signals/` 目錄存在但為空
-3. **Redux 未充分使用**: Redux Toolkit 已安裝但主要使用 local state
+1. **路由有限**: 僅有 `/` 和 `/status` 兩個路由
+2. **空功能目錄**: `features/auth/`, `features/market/`, `features/signals/`, `features/strategy/` 為空
+3. **Redux 使用有限**: 主要使用 local state，Redux 主要用於認證
+4. **Sidebar 未使用**: `components/layout/Sidebar.tsx` 存在但未整合到 App
+
+### 後端限制
+
+1. **漂移警報**: 已整合 alerting 模組，但需設定環境變數（SLACK_WEBHOOK_URL, SMTP_HOST 等）
 
 ### 架構限制
 
-1. **單節點 K3s**: 、生產環境使用單節點集群，無 HA
-2. **Demo 模式回退**: 前端依賴 mock data，當後端離線時仍可運作
-3. **同步資料庫會話**: 部分代碼使用同步 SQLAlchemy Session
+1. **單節點 K3s**: 生產環境使用單節點集群，無 HA
+2. **Demo 模式**: 前端依賴 mock data，當後端離線時仍可運作
 
 ---
 
@@ -255,6 +270,21 @@ alphapulse-mlops-platform/
 
 ---
 
+## 📝 最近變更 (Recent Changes)
+
+```
+- fix(ci): trigger lint/test on dev branch, deploy only on main
+- fix(ci): use uv instead of pip to resolve dependency conflicts
+- style: run black formatter on data_drift.py
+- Merge remote-tracking branch 'origin/main' into dev
+- refactor: improve health monitoring, routing, redux, and alerting
+- docs: add architecture prompt and monitoring scripts
+- Revise README description for AlphaPulse platform
+- fix(prod): restore production access and enable ARM64 multi-arch builds
+```
+
+---
+
 ## 請求重構與擴展建議
 
 請基於以上架構分析，提供：
@@ -280,3 +310,20 @@ alphapulse-mlops-platform/
 | K3s 部署 | `infra/k3s/base/kustomization.yaml` |
 | 測試配置 | `pytest.ini` |
 | 環境變數 | `.env.example` |
+
+---
+
+## ✅ 已完成的 refactoring
+
+以下是我已經完成的 refactoring 工作：
+
+1. **health.py 修復**: 實現 uptime、memory、CPU、connection tracking
+2. **React Router 整合**: 添加 `/` 和 `/status` 路由
+3. **Redux Store 建立**: store/index.ts, authSlice.ts, hooks.ts
+4. **Alerting 模組建立**: Slack/Email/Console 處理器
+5. **data_drift.py 整合**: 與 alerting 系統整合
+6. **README 更新**: 添加 Known Limitations 與 Development Status 章節
+
+---
+
+**最後更新**: 2026-03-03

@@ -1,0 +1,49 @@
+name: Deploy Hero Demo
+
+on:
+  push:
+    branches: [main]
+    paths: ["frontend/**", "infra/k3s/overlays/demo/**"]
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Build Frontend
+        working-directory: frontend
+        run: npm ci && npm run build
+        env:
+          VITE_DEMO_MODE: "true"
+          VITE_APP_VERSION: ${{ github.sha }}
+
+      - name: Build & Push to GHCR
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/alphapulse-frontend:demo
+            ghcr.io/${{ github.repository_owner }}/alphapulse-frontend:${{ github.sha }}
+
+      - name: Deploy to OCI K3s
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.OCI_HOST }}
+          username: ${{ secrets.OCI_USER }}
+          key: ${{ secrets.OCI_SSH_KEY }}
+          script: |
+            kubectl apply -k ~/alphapulse/infra/k3s/overlays/demo/
+            kubectl rollout restart deployment/frontend -n alphapulse
+            echo "Demo deployed. Backend scaled to 0."
+
+      - name: Health Check
+        run: sleep 30 && curl -f https://alphapulse.luichu.dev/ || exit 1

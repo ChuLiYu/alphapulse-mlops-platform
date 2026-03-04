@@ -1,0 +1,12 @@
+alphapulse:
+  target: dev
+  outputs:
+    dev:
+      type: postgres
+      host: localhost
+      port: 5432
+      user: "{{ env_var('POSTGRES_USER', 'alphapulse') }}"
+      password: "{{ env_var('POSTGRES_PASSWORD') }}"
+      dbname: alphapulse
+      schema: dbt_dev
+      threads: 4

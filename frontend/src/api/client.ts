@@ -1,5 +1,6 @@
 import axios from "axios";
 import { SERVICE_URLS } from "../config/links-runtime";
+import { config } from "../config";
 
 const apiClient = axios.create({
   baseURL: "/api/v1",
@@ -7,6 +8,18 @@ const apiClient = axios.create({
     "Content-Type": "application/json",
   },
 });
+
+if (config.isDemoMode) {
+  apiClient.request = function() {
+    return Promise.resolve({
+      data: { success: true, data: [], message: "Demo Mode Active" },
+      status: 200,
+      statusText: "OK",
+      headers: {},
+      config: {},
+    });
+  };
+}
 
 // Add a request interceptor
 apiClient.interceptors.request.use(

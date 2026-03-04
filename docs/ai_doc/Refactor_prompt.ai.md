@@ -1,75 +1,90 @@
-# AlphaPulse — WealthTech DE Repositioning & Refactor Prompt
+# AlphaPulse — WealthTech DE Refactor Prompt v2.0
 
-> **給 AI Agent 的指令文檔**
-> 這份文檔描述了針對加拿大 WealthTech Data Engineer 職缺的定位調整任務。
-> Agent 請按照順序執行各任務，每個任務完成後輸出變更摘要。
+> **給 AI Agent 的完整執行文檔**
+> 整合所有重構、擴展與 Demo 任務。按 Part 順序執行，每個 Task 完成後輸出變更摘要。
+> **禁止跳過任何 Definition of Done 檢查項目。**
 
 ---
 
-## 🎯 背景與目標
-
-### 當前問題
-
-AlphaPulse 目前的定位是「Crypto 量化交易 MLOps 平台」，這對加拿大 WealthTech 公司（Wealthsimple、Questrade、Neo Financial、CI Direct Investing）的 **Data Engineer** 職缺有兩個致命傷：
-
-1. **Crypto 標籤**：讓 Hiring Manager 聯想到高風險/監管灰色地帶
-2. **MLOps 標籤**：讓人誤判應徵者是 ML Engineer，不是 Data Engineer
+## 🧭 總覽
 
 ### 目標定位
 
 > **"Production-Grade DataOps & MLOps Platform for Financial Market Data"**
 
-核心轉變：**「懂 FinOps 的 Data Engineer，剛好也會 ML」**，而非「會架 ML 平台的工程師」。
+核心敘事轉變：
 
-### 不需要改的事
+- ❌ 舊：「會架 ML 平台的工程師，用 Crypto 當題材」
+- ✅ 新：「懂金融數據嚴謹性的 Data Engineer，ML 是數據平台的下游產出」
 
-- 核心程式碼架構 ✅
-- 技術選型（Airflow、Postgres、MinIO、Terraform）✅
-- FinOps 故事（$11/mo → $0/mo）✅
-- Pydantic v2 / Decimal 精度設計 ✅
+### 目標公司
+
+Wealthsimple · Questrade · Neo Financial · CI Direct Investing
+
+### 不需要改的東西
+
+- 核心程式碼架構、Terraform、K3s 配置
+- FinOps 故事（$11/mo → $0/mo）
+- Pydantic v2 / Decimal 精度設計
+- CI/CD GitHub Actions 主流程
+
+### 執行優先順序
+
+| Part   | 內容                         | 預估時間 | 優先級  |
+| ------ | ---------------------------- | -------- | ------- |
+| Part 1 | README 重新定位              | 1 天     | 🔴 立刻 |
+| Part 2 | dbt Medallion + Data Quality | 3 天     | 🔴 立刻 |
+| Part 3 | SCD Type 2 (dbt snapshot)    | 1 天     | 🟡 之後 |
+| Part 4 | Star Schema 命名規範         | 0.5 天   | 🟡 之後 |
+| Part 5 | Hero Demo Mock Mode          | 2 天     | 🟡 之後 |
+| Part 6 | 截圖 / 架構圖                | 0.5 天   | 🟢 最後 |
 
 ---
 
-## 📋 任務清單
+---
+
+# Part 1：README 重新定位
+
+> **原則：不改一行業務邏輯，只改敘事角度。**
 
 ---
 
-### Task 1：重寫 README.md — 開頭定位段落
+## Task 1｜更新 README 標題與 Description
 
 **目標檔案**：`README.md`
 
-**要求**：
-將 README 最頂部的 title 與 description 替換為以下內容（可微調措辭，但核心訊息不能改）：
+將最頂部內容替換為：
 
 ```markdown
 # AlphaPulse — Production-Grade DataOps & MLOps Platform
 
 AlphaPulse is an end-to-end **DataOps & MLOps platform** engineered for financial market data —
-featuring production-grade ELT pipelines, financial-precision data modeling, and cloud-agnostic
-infrastructure built with Terraform, Airflow, and Kubernetes.
+featuring production-grade ELT pipelines, Medallion Architecture, financial-precision data
+modeling, and cloud-agnostic infrastructure built with Terraform, Airflow, and Kubernetes.
 
-Originally built as a zero-cost alternative to commercial MLOps solutions, AlphaPulse demonstrates
-how modern data engineering practices (Medallion Architecture, data contracts, CI/CD for data) can
-be applied to high-frequency financial time-series across multiple asset classes (Equities & Crypto).
+Originally built as a zero-cost alternative to commercial data platforms, AlphaPulse demonstrates
+how modern data engineering practices (dbt, Star Schema, SCD Type 2, data contracts, CI/CD for
+data) can be applied to high-frequency financial time-series across multiple asset classes
+(Equities & Crypto).
 
 🚀 Live Demo: https://alphapulse.luichu.dev/
+📐 Architecture: [See below](#architecture)
 ```
 
-**注意**：
+**規則**：
 
-- 移除「quantitative crypto trading」這個 phrase，改為「financial market data」或「multi-asset market data」
-- 保留 Live Demo 連結
+- 移除所有 "quantitative crypto trading" 表述，改為 "financial market data" 或 "multi-asset market data"
+- 移除主標題中的 "MLOps Platform"，改為 "DataOps & MLOps Platform"
 
 ---
 
-### Task 2：重構 README — 🌟 Senior Engineering Highlights 排序
+## Task 2｜重排 Highlights 順序
 
 **目標檔案**：`README.md`
 
-**要求**：
-將 `🌟 Senior Engineering Highlights` 區塊的排序改為以下順序，並更新各項標題與描述：
+將 `🌟 Senior Engineering Highlights` 改為以下排序與內容：
 
-#### Highlight 1（原本是 #2）：High-Performance Data Engineering & ELT Pipeline
+### Highlight 1：High-Performance Data Engineering & ELT Pipeline
 
 ```markdown
 ### 1. High-Performance Data Engineering & ELT Pipeline
@@ -79,133 +94,188 @@ on resource-constrained ARM64 instances without OOM failures.
 
 **Solution:**
 
-- Engineered production Apache Airflow DAGs with **Chunked SQL Loading** and strict
-  **Type Downcasting**, reducing memory footprint by 50%.
-- Implemented **Medallion Architecture** (Bronze → Silver → Gold) using MinIO (raw ingestion),
-  PostgreSQL (validated staging), and dbt (feature marts & reporting layers).
-- Applied **Pydantic v2** as a Data Contract layer for strict schema validation at every
-  pipeline boundary.
+- Production Apache Airflow DAGs with **Chunked SQL Loading** and **Type Downcasting**,
+  reducing memory footprint by 50%
+- **Medallion Architecture** (Bronze → Silver → Gold): MinIO (raw) → PostgreSQL (validated)
+  → dbt (feature marts & Star Schema reporting layer)
+- **Pydantic v2** as a Data Contract layer — strict schema validation at every pipeline boundary
+- **dbt tests** as automated Data Quality gates at each Medallion layer
 
-**Impact:** Full 8-year history training on 24GB RAM without disk swapping.
-Transparent data lineage from raw API response to ML feature.
+**Impact:** Full 8-year history processed on 24GB RAM. Transparent data lineage from
+raw API response to ML-ready feature table.
 
-**Keywords:** ELT, Data Modeling, Airflow DAG, Data Contract, Data Lineage, Idempotency
+**Keywords:** ELT, Medallion Architecture, Data Modeling, Airflow DAG, Data Contract,
+Data Lineage, Idempotency, dbt
 ```
 
-#### Highlight 2（新增）：Industrial-Grade Fintech Data Precision
+### Highlight 2：Financial Data Precision & Data Quality
 
 ```markdown
-### 2. Industrial-Grade Fintech Data Precision & Data Quality
+### 2. Financial Data Precision & Data Quality
 
-**Challenge:** Financial calculations are unforgiving — floating-point errors in trading
-simulations directly translate to incorrect PnL reporting.
+**Challenge:** Floating-point errors in trading simulations directly cause incorrect PnL
+reporting — unacceptable in any production financial system.
 
 **Solution:**
 
-- Enforced **`Decimal` types** for all monetary values platform-wide, preventing IEEE 754
-  floating-point drift in simulations and backtests.
-- Used **Pydantic v2** for runtime data validation as a lightweight Data Contract,
-  catching schema violations at pipeline ingestion before they propagate downstream.
-- Implemented **Walk-Forward Cross-Validation** and Anti-Overfitting Gates to ensure
-  no look-ahead bias in model training data.
+- **`Decimal` types** for all monetary values platform-wide (Python `Decimal` +
+  PostgreSQL `NUMERIC(20,8)`) — matching industry standards for financial data systems
+- **Pydantic v2** runtime validation as a lightweight Data Contract at ingestion boundary
+- **SCD Type 2** on `dim_assets` via dbt snapshots — preserving full audit trail of
+  risk level changes for accurate historical PnL attribution
+- **Walk-Forward Cross-Validation** and Anti-Overfitting Gates to prevent look-ahead bias
 
 **Keywords:** Financial Precision, Data Integrity, Data Quality, Data Contracts,
-Zero Floating-Point Error, Schema Validation
+Zero Floating-Point Error, SCD Type 2, Audit Trail, Schema Validation
 ```
 
-#### Highlight 3（原本是 #1）：Zero-Cost FinOps & Cloud-Agnostic Infrastructure
+### Highlight 3：Zero-Cost FinOps & Cloud-Agnostic Infrastructure
 
 ```markdown
 ### 3. Zero-Cost FinOps & Cloud-Agnostic Infrastructure
 
-**Challenge:** Demonstrate production-grade cloud infrastructure without multi-cloud costs.
+**The FinOps Journey:** AWS EC2/RDS (~$11/mo) → ARM64 Refactor → Oracle Cloud Always Free ($0/mo)
 
 **Solution:**
 
-- Engineered a **Provider-Agnostic Terraform abstraction layer** — the system can be
-  migrated from Oracle Cloud to AWS EKS or GCP GKE by changing a single Terraform variable.
-- OCI Always Free is used purely as a **zero-cost FinOps sandbox** for validation.
-- Achieved full stack hosting (4 vCPUs, 24GB RAM) at **$0/month** (migrated from AWS ~$11/mo).
-
-**FinOps Journey:** AWS EC2/RDS ($11/mo) → ARM64 Refactor → Oracle Cloud Always Free ($0/mo)
+- **Provider-Agnostic Terraform abstraction layer** — migrate from OCI to AWS EKS or
+  GCP GKE by changing a single variable. OCI is purely a zero-cost FinOps sandbox.
+- Full stack (4 vCPUs, 24GB RAM, K3s, Airflow, MLflow) at **$0/month**
+- Terraform modules enforce consistent resource tagging for cost attribution
 
 **Keywords:** FinOps, IaC, Terraform, Cloud-Agnostic, Cost Optimization, ARM64
 ```
 
-#### Highlight 4（原本是 #3）：MLOps & Model Orchestration
+### Highlight 4：MLOps & Model Orchestration（放最後）
 
 ```markdown
-### 4. MLOps & Model Orchestration (Downstream of Data)
+### 4. MLOps & Model Orchestration
 
-> ML is a consumer of the data platform — not the platform itself.
+> ML is a downstream consumer of the data platform — not the platform itself.
 
-**Solution:**
-
-- **MLflow** for experiment tracking, model registry, and artifact versioning.
-- **Iterative Trainer** with AutoML (Optuna hyperparameter search) and
-  Walk-Forward Cross-Validation for time-series robustness.
-- **Evidently AI** for data drift monitoring in production.
-- Multi-model ensemble: CatBoost, XGBoost, LightGBM, Scikit-learn.
+- **MLflow** for experiment tracking, model registry, and artifact versioning
+- **Iterative Trainer** with Optuna hyperparameter search and Walk-Forward CV
+- **Evidently AI** for production data drift monitoring
+- Multi-model ensemble: CatBoost, XGBoost, LightGBM, Scikit-learn
 
 **Keywords:** MLOps, Model Registry, Feature Store, Experiment Tracking, Data Drift
 ```
 
 ---
 
-### Task 3：新增 dbt Medallion Architecture 實作
+## Task 3｜更新 Role-Specific Navigation 表格
 
-**目標目錄**：`dbt/` （新建目錄）
+```markdown
+## 🎯 Role-Specific Navigation
 
-**要求**：建立以下 dbt 最小可行結構：
+| If you are a...       | Start here                                                                                           |
+| --------------------- | ---------------------------------------------------------------------------------------------------- |
+| **Hiring Manager**    | [FinOps Journey](#finops) · [Architecture](#architecture)                                            |
+| **Data Engineer**     | [Medallion Architecture](#medallion) · [dbt Models](./dbt/) · [Airflow DAGs](./airflow/)             |
+| **Data Analyst**      | [Star Schema](./dbt/models/marts/) · [Live Dashboard](https://alphapulse.luichu.dev/)                |
+| **Platform / DevOps** | [Terraform IaC](./infra/terraform/) · [K3s Setup](./infra/k3s/) · [CI/CD](./.github/workflows/)      |
+| **ML Engineer**       | [Iterative Trainer](./training/) · [MLflow Registry](./docs/) · [Feature Store](./dbt/models/marts/) |
+```
+
+---
+
+## ✅ Part 1 完成標準
+
+- [ ] README 標題不含 "crypto trading" 或 "MLOps Platform" 作為主標籤
+- [ ] Highlights 排序：Data Pipeline 第一，ML 最後
+- [ ] Role Navigation 表格已更新，DE 排第二行
+
+---
+
+---
+
+# Part 2：dbt Medallion Architecture + Data Quality
+
+---
+
+## Task 4｜建立 dbt 目錄結構
+
+**目標**：在專案根目錄建立 `dbt/` 資料夾，完整結構如下：
 
 ```
 dbt/
 ├── dbt_project.yml
 ├── profiles.yml.example
 ├── models/
-│   ├── staging/               # Silver Layer — cleaned & typed
+│   ├── sources.yml                          # Bronze 層定義
+│   ├── staging/                             # Silver 層
 │   │   ├── stg_ohlcv.sql
 │   │   ├── stg_trading_signals.sql
-│   │   └── schema.yml         # dbt tests: not_null, unique, accepted_values
-│   ├── marts/                 # Gold Layer — feature tables & reporting
-│   │   ├── fct_market_features.sql
-│   │   ├── fct_signal_performance.sql
 │   │   └── schema.yml
-│   └── sources.yml            # Bronze → Silver source definition
+│   └── marts/                               # Gold 層
+│       ├── fct_market_trades.sql            # Fact Table
+│       ├── dim_assets.sql                   # Dimension Table
+│       ├── fct_signal_performance.sql
+│       └── schema.yml
+├── snapshots/
+│   └── dim_assets_snapshot.sql              # SCD Type 2（Part 3）
 ├── tests/
-│   └── assert_no_negative_price.sql   # Custom data quality test
+│   └── assert_no_negative_price.sql
+├── macros/
+│   └── financial_precision.sql
 └── README.md
 ```
 
-**各檔案說明**：
+---
 
-**`dbt_project.yml`**：
+## Task 5｜dbt 設定檔
+
+**`dbt/dbt_project.yml`**：
 
 ```yaml
 name: "alphapulse"
 version: "1.0.0"
 config-version: 2
-
 profile: "alphapulse"
-
 model-paths: ["models"]
 test-paths: ["tests"]
+snapshot-paths: ["snapshots"]
+macro-paths: ["macros"]
 
 models:
   alphapulse:
     staging:
       materialized: view
+      tags: ["silver", "staging"]
     marts:
       materialized: table
+      tags: ["gold", "mart"]
 ```
 
-**`models/sources.yml`**（Bronze 層定義）：
+**`dbt/profiles.yml.example`**：
+
+```yaml
+alphapulse:
+  target: dev
+  outputs:
+    dev:
+      type: postgres
+      host: localhost
+      port: 5432
+      user: "{{ env_var('POSTGRES_USER', 'alphapulse') }}"
+      password: "{{ env_var('POSTGRES_PASSWORD') }}"
+      dbname: alphapulse
+      schema: dbt_dev
+      threads: 4
+```
+
+---
+
+## Task 6｜Bronze 層 Source 定義
+
+**`dbt/models/sources.yml`**：
 
 ```yaml
 version: 2
+
 sources:
   - name: raw
-    description: "Bronze layer — raw market data ingested by Airflow"
+    description: "Bronze layer — raw market data ingested by Airflow. Append-only, never modified."
     schema: public
     tables:
       - name: prices
@@ -213,17 +283,34 @@ sources:
         columns:
           - name: id
             tests: [unique, not_null]
+          - name: symbol
+            tests: [not_null]
           - name: close_price
             tests: [not_null]
           - name: timestamp
             tests: [not_null]
+
+      - name: trading_signals
+        description: "Raw model prediction signals"
+        columns:
+          - name: id
+            tests: [unique, not_null]
+          - name: signal_direction
+            tests:
+              - not_null
+              - accepted_values:
+                  values: ["LONG", "SHORT", "HOLD"]
 ```
 
-**`models/staging/stg_ohlcv.sql`**（Silver 層）：
+---
+
+## Task 7｜Silver 層 Staging Models
+
+**`dbt/models/staging/stg_ohlcv.sql`**：
 
 ```sql
 -- Silver Layer: Cleaned & typed OHLCV data
--- Enforces Decimal precision and removes anomalies
+-- Enforces NUMERIC precision, removes anomalies, standardises timestamps
 
 with source as (
     select * from {{ source('raw', 'prices') }}
@@ -232,438 +319,593 @@ with source as (
 cleaned as (
     select
         id,
-        symbol,
+        upper(symbol)                             as symbol,
         timestamp::timestamptz                    as price_timestamp,
         open_price::numeric(20, 8)                as open_price,
         high_price::numeric(20, 8)                as high_price,
         low_price::numeric(20, 8)                 as low_price,
         close_price::numeric(20, 8)               as close_price,
         volume::numeric(30, 8)                    as volume,
-        current_timestamp                         as _dbt_updated_at
+        current_timestamp                         as _loaded_at
     from source
-    where close_price > 0           -- Basic anomaly filter
-      and volume >= 0
-      and high_price >= low_price   -- Data integrity check
+    where close_price > 0           -- Anomaly filter: no negative/zero prices
+      and volume >= 0               -- Anomaly filter: no negative volume
+      and high_price >= low_price   -- OHLCV integrity check
+      and open_price > 0
 )
 
 select * from cleaned
 ```
 
-**`models/staging/schema.yml`**：
+**`dbt/models/staging/stg_trading_signals.sql`**：
+
+```sql
+-- Silver Layer: Cleaned trading signals
+
+with source as (
+    select * from {{ source('raw', 'trading_signals') }}
+),
+
+cleaned as (
+    select
+        id,
+        upper(symbol)                             as symbol,
+        signal_direction,
+        confidence_score::numeric(5, 4)           as confidence_score,
+        predicted_price::numeric(20, 8)           as predicted_price,
+        model_name,
+        model_version,
+        created_at::timestamptz                   as signal_timestamp,
+        current_timestamp                         as _loaded_at
+    from source
+    where confidence_score between 0 and 1
+      and predicted_price > 0
+)
+
+select * from cleaned
+```
+
+**`dbt/models/staging/schema.yml`**：
 
 ```yaml
 version: 2
+
 models:
   - name: stg_ohlcv
-    description: "Silver layer OHLCV — cleaned, typed, anomaly-filtered"
+    description: "Silver: Cleaned, typed, anomaly-filtered OHLCV data"
     columns:
       - name: id
         tests: [unique, not_null]
+      - name: symbol
+        tests: [not_null]
       - name: close_price
         tests: [not_null]
       - name: price_timestamp
         tests: [not_null]
+      - name: high_price
+        tests: [not_null]
+      - name: low_price
+        tests: [not_null]
+
+  - name: stg_trading_signals
+    description: "Silver: Cleaned trading signals with validated confidence scores"
+    columns:
+      - name: id
+        tests: [unique, not_null]
+      - name: signal_direction
+        tests:
+          - accepted_values:
+              values: ["LONG", "SHORT", "HOLD"]
+      - name: confidence_score
+        tests: [not_null]
 ```
 
-**`models/marts/fct_market_features.sql`**（Gold 層）：
+---
+
+## Task 8｜Gold 層 Star Schema Mart Models
+
+**`dbt/models/marts/dim_assets.sql`**：
 
 ```sql
--- Gold Layer: Feature mart for ML training
--- Computes rolling statistics for feature engineering
+-- Gold Layer — Dimension Table: Asset master data
+-- Note: SCD Type 2 history is handled via dbt snapshot (see snapshots/)
+
+with assets as (
+    select distinct
+        symbol,
+        case
+            when symbol in ('BTC-USD', 'ETH-USD', 'SOL-USD') then 'Crypto'
+            when symbol in ('SPY', 'QQQ', 'VTI')             then 'ETF'
+            when symbol like '%-USD'                          then 'FX'
+            else 'Equity'
+        end                                                   as asset_class,
+        case
+            when symbol in ('BTC-USD', 'ETH-USD')            then 'High'
+            when symbol in ('SPY', 'QQQ')                    then 'Low'
+            else 'Medium'
+        end                                                   as risk_level,
+        min(price_timestamp)                                  as first_seen_at,
+        current_timestamp                                     as _loaded_at
+    from {{ ref('stg_ohlcv') }}
+    group by symbol
+)
+
+select
+    {{ dbt_utils.generate_surrogate_key(['symbol']) }}        as asset_key,
+    symbol,
+    asset_class,
+    risk_level,
+    first_seen_at,
+    _loaded_at
+from assets
+```
+
+**`dbt/models/marts/fct_market_trades.sql`**：
+
+```sql
+-- Gold Layer — Fact Table: One row per OHLCV candle
+-- Conforms to Star Schema: joined with dim_assets via asset_key
 
 with ohlcv as (
     select * from {{ ref('stg_ohlcv') }}
 ),
 
+assets as (
+    select * from {{ ref('dim_assets') }}
+),
+
 features as (
     select
-        symbol,
-        price_timestamp,
-        close_price,
+        o.id,
+        o.symbol,
+        o.price_timestamp,
+        o.open_price,
+        o.high_price,
+        o.low_price,
+        o.close_price,
+        o.volume,
 
-        -- Rolling returns
-        (close_price - lag(close_price, 1) over w) / lag(close_price, 1) over w
-            as return_1d,
-        (close_price - lag(close_price, 7) over w) / lag(close_price, 7) over w
-            as return_7d,
+        -- 1-day & 7-day returns (NUMERIC precision enforced)
+        round(
+            (o.close_price - lag(o.close_price, 1) over w)
+            / nullif(lag(o.close_price, 1) over w, 0), 8
+        )                                                     as return_1d,
 
-        -- Volatility proxy
-        stddev(close_price) over (
-            partition by symbol
-            order by price_timestamp
-            rows between 29 preceding and current row
-        ) as volatility_30d,
+        round(
+            (o.close_price - lag(o.close_price, 7) over w)
+            / nullif(lag(o.close_price, 7) over w, 0), 8
+        )                                                     as return_7d,
 
-        -- Volume trend
-        avg(volume) over (
-            partition by symbol
-            order by price_timestamp
-            rows between 6 preceding and current row
-        ) as avg_volume_7d
+        -- 30-day volatility proxy
+        round(
+            stddev(o.close_price) over (
+                partition by o.symbol
+                order by o.price_timestamp
+                rows between 29 preceding and current row
+            ), 8
+        )                                                     as volatility_30d,
 
-    from ohlcv
-    window w as (partition by symbol order by price_timestamp)
+        -- 7-day avg volume
+        round(
+            avg(o.volume) over (
+                partition by o.symbol
+                order by o.price_timestamp
+                rows between 6 preceding and current row
+            ), 2
+        )                                                     as avg_volume_7d,
+
+        current_timestamp                                     as _loaded_at
+
+    from ohlcv o
+    window w as (partition by o.symbol order by o.price_timestamp)
 )
 
-select * from features
-where return_1d is not null
+select
+    f.*,
+    a.asset_key,
+    a.asset_class,
+    a.risk_level
+from features f
+left join assets a using (symbol)
+where f.return_1d is not null
 ```
 
-**`tests/assert_no_negative_price.sql`**（自訂資料品質測試）：
+**`dbt/models/marts/fct_signal_performance.sql`**：
 
 ```sql
--- Custom dbt test: No negative prices allowed in staging
--- Returns rows that FAIL the test (dbt convention)
+-- Gold Layer — Fact Table: Signal performance attribution
 
-select id, symbol, close_price, price_timestamp
-from {{ ref('stg_ohlcv') }}
-where close_price < 0
+with signals as (
+    select * from {{ ref('stg_trading_signals') }}
+),
+
+prices as (
+    select symbol, price_timestamp, close_price
+    from {{ ref('stg_ohlcv') }}
+),
+
+attributed as (
+    select
+        s.id                                                  as signal_id,
+        s.symbol,
+        s.signal_direction,
+        s.confidence_score,
+        s.predicted_price,
+        s.model_name,
+        s.model_version,
+        s.signal_timestamp,
+        p.close_price                                         as actual_price_at_signal,
+        round(
+            (p.close_price - s.predicted_price)
+            / nullif(s.predicted_price, 0), 6
+        )                                                     as prediction_error_pct,
+        current_timestamp                                     as _loaded_at
+    from signals s
+    left join prices p
+        on s.symbol = p.symbol
+        and date_trunc('minute', s.signal_timestamp)
+            = date_trunc('minute', p.price_timestamp)
+)
+
+select * from attributed
 ```
 
-**`dbt/README.md`**：
+**`dbt/models/marts/schema.yml`**：
 
-````markdown
-# AlphaPulse dbt — Medallion Architecture
+```yaml
+version: 2
 
-## Architecture
+models:
+  - name: dim_assets
+    description: "Gold: Asset dimension table with risk classification"
+    columns:
+      - name: asset_key
+        tests: [unique, not_null]
+      - name: symbol
+        tests: [unique, not_null]
+      - name: asset_class
+        tests:
+          - accepted_values:
+              values: ["Crypto", "ETF", "Equity", "FX"]
+      - name: risk_level
+        tests:
+          - accepted_values:
+              values: ["Low", "Medium", "High"]
 
-| Layer  | Storage               | Description                                    |
-| ------ | --------------------- | ---------------------------------------------- |
-| Bronze | MinIO / Raw PG tables | Raw ingested data — append only, no transforms |
-| Silver | PostgreSQL (stg\_\*)  | Cleaned, typed, anomaly-filtered via dbt       |
-| Gold   | PostgreSQL (fct\_\*)  | Feature marts for ML training & reporting      |
+  - name: fct_market_trades
+    description: "Gold: OHLCV fact table with rolling features, joined to dim_assets"
+    columns:
+      - name: id
+        tests: [unique, not_null]
+      - name: close_price
+        tests: [not_null]
+      - name: asset_key
+        tests: [not_null]
 
-## Running dbt
-
-```bash
-# Install
-pip install dbt-postgres
-
-# Configure connection
-cp profiles.yml.example ~/.dbt/profiles.yml
-
-# Run all models
-dbt run
-
-# Run tests (Data Quality)
-dbt test
-
-# Generate lineage docs
-dbt docs generate && dbt docs serve
+  - name: fct_signal_performance
+    description: "Gold: Signal performance attribution for backtesting analysis"
+    columns:
+      - name: signal_id
+        tests: [unique, not_null]
 ```
-````
-
-## Data Quality Tests
-
-- `not_null` / `unique` on all primary keys
-- `close_price > 0` — no negative prices
-- `high_price >= low_price` — OHLCV integrity
-- Custom SQL tests in `tests/`
-
-````
 
 ---
 
-### Task 4：更新 Airflow DAG — 加入 dbt 觸發步驟
+## Task 9｜自訂 Data Quality Tests
 
-**目標**：在現有 Airflow ETL DAG 的最後加入 `dbt run` 觸發步驟
+**`dbt/tests/assert_no_negative_price.sql`**：
 
-**在現有 DAG 的最後一個 task 之後，加入**：
+```sql
+-- Custom dbt test: All prices must be positive
+-- Returns rows that FAIL (dbt convention)
+
+select id, symbol, close_price, price_timestamp,
+    'close_price must be > 0' as failure_reason
+from {{ ref('stg_ohlcv') }}
+where close_price <= 0
+
+union all
+
+select id, symbol, high_price, price_timestamp,
+    'high_price must be >= low_price'
+from {{ ref('stg_ohlcv') }}
+where high_price < low_price
+```
+
+**`dbt/tests/assert_signal_confidence_range.sql`**：
+
+```sql
+-- Custom dbt test: Confidence score must be between 0 and 1
+
+select id, symbol, confidence_score, signal_timestamp,
+    'confidence_score must be between 0 and 1' as failure_reason
+from {{ ref('stg_trading_signals') }}
+where confidence_score < 0 or confidence_score > 1
+```
+
+---
+
+## Task 10｜更新 Airflow DAG — 加入 dbt 步驟
+
+在現有 ETL DAG 的最後，串接 dbt run + dbt test：
 
 ```python
 from airflow.operators.bash import BashOperator
 
-# 在 DAG 定義中加入
-dbt_run = BashOperator(
-    task_id='dbt_transform_silver_to_gold',
-    bash_command=(
-        'cd /opt/airflow/dbt && '
-        'dbt run --profiles-dir /opt/airflow/dbt --project-dir /opt/airflow/dbt'
-    ),
+DBT_DIR = '/opt/airflow/dbt'
+DBT_CMD = f'cd {DBT_DIR} && dbt'
+
+dbt_run_staging = BashOperator(
+    task_id='dbt_run_silver_staging',
+    bash_command=f'{DBT_CMD} run --select staging --profiles-dir {DBT_DIR}',
     dag=dag,
 )
 
-dbt_test = BashOperator(
-    task_id='dbt_data_quality_tests',
-    bash_command=(
-        'cd /opt/airflow/dbt && '
-        'dbt test --profiles-dir /opt/airflow/dbt --project-dir /opt/airflow/dbt'
-    ),
+dbt_test_staging = BashOperator(
+    task_id='dbt_test_silver_quality_gate',
+    bash_command=f'{DBT_CMD} test --select staging --profiles-dir {DBT_DIR}',
     dag=dag,
 )
 
-# 串接到現有最後一個 task
-# 範例：existing_last_task >> dbt_run >> dbt_test
-````
+dbt_run_marts = BashOperator(
+    task_id='dbt_run_gold_marts',
+    bash_command=f'{DBT_CMD} run --select marts --profiles-dir {DBT_DIR}',
+    dag=dag,
+)
 
-**DAG 完成後應有以下流程**：
+dbt_test_marts = BashOperator(
+    task_id='dbt_test_gold_quality_gate',
+    bash_command=f'{DBT_CMD} test --select marts --profiles-dir {DBT_DIR}',
+    dag=dag,
+)
+
+# 串接到現有最後一個 task（假設叫 load_to_postgres）：
+# load_to_postgres >> dbt_run_staging >> dbt_test_staging >> dbt_run_marts >> dbt_test_marts
+```
+
+完整 DAG 流程：
 
 ```
-[Ingest API Data] → [Validate with Pydantic] → [Load to Postgres (Bronze)]
-    → [dbt run: Bronze→Silver→Gold] → [dbt test: Data Quality Gate]
+[Ingest API] → [Pydantic Validate] → [Load to Postgres: Bronze]
+    → [dbt run: staging] → [dbt test: Silver Quality Gate]
+    → [dbt run: marts]   → [dbt test: Gold Quality Gate]
     → [Trigger ML Training]
 ```
 
 ---
 
-### Task 5：新增 README — Data Engineering 專屬章節
+## Task 11｜新增 Medallion 架構章節到 README
 
-**目標檔案**：`README.md`
-
-在 Tech Stack 表格之後，新增以下章節：
-
-````markdown
-## 🏛️ Data Architecture — Medallion Design
-
-\```
-┌─────────────────────────────────────────────────────────────┐
-│ BRONZE (Raw) SILVER (Staged) GOLD (Mart) │
-│ │
-│ MinIO / PG raw ──► dbt stg_ohlcv ──► fct_features │
-│ (Airflow ETL) (Cleaned+Typed) (ML-Ready) │
-│ │
-│ Pydantic v2 dbt tests dbt tests │
-│ (ingestion gate) (schema & quality) (business rules) │
-└─────────────────────────────────────────────────────────────┘
-\```
-
-**Data Flow:**
-
-1. **Airflow** ingests raw OHLCV & signal data → MinIO (Bronze)
-2. **Pydantic v2** validates schema at ingestion boundary (Data Contract)
-3. **dbt staging models** clean, type-cast, and filter anomalies (Silver)
-4. **dbt mart models** compute rolling features for ML consumption (Gold)
-5. **dbt tests** act as automated Data Quality gates at each layer
-6. **ML Trainer** consumes only from Gold layer — never touches raw data
-
-**Idempotency Strategy:**
-All Airflow tasks use UPSERT (INSERT ... ON CONFLICT DO UPDATE) to ensure
-safe retries without data duplication.
-````
-
----
-
-### Task 6：更新 README — 🎯 Role-Specific Navigation 表格
-
-**目標檔案**：`README.md`
-
-將現有的 Role 表格替換為：
+在 Tech Stack 表格之後，新增：
 
 ```markdown
-## 🎯 Role-Specific Navigation
+## 🏛️ Data Architecture — Medallion Design {#medallion}
+```
 
-| If you are a...       | Start here                                                                                           |
-| --------------------- | ---------------------------------------------------------------------------------------------------- |
-| **Hiring Manager**    | [FinOps Journey](#finops) · [Architecture Overview](#arch)                                           |
-| **Data Engineer**     | [Medallion Architecture](#medallion) · [dbt Models](./dbt/) · [Airflow DAGs](./airflow/)             |
-| **Data Analyst**      | [Gold Layer Feature Mart](./dbt/models/marts/) · [Dashboard](https://alphapulse.luichu.dev/)         |
-| **Platform / DevOps** | [Terraform IaC](./infra/terraform/) · [K3s Setup](./infra/k3s/) · [CI/CD](./.github/workflows/)      |
-| **ML Engineer**       | [Iterative Trainer](./training/) · [MLflow Registry](./docs/) · [Feature Store](./dbt/models/marts/) |
+┌──────────────────────────────────────────────────────────────────┐
+│ BRONZE (Raw) SILVER (Staged) GOLD (Mart) │
+│ │
+│ MinIO + PG raw ──► dbt stg_ohlcv ──► fct_market_trades │
+│ (Airflow ETL) stg_signals dim_assets │
+│ (Cleaned+Typed) fct_signal_perf │
+│ │
+│ Pydantic v2 dbt tests dbt tests │
+│ (ingestion gate) (schema & anomaly) (business rules) │
+└──────────────────────────────────────────────────────────────────┘
+
+```
+
+| Layer  | Storage         | Responsibility                                  |
+|--------|-----------------|-------------------------------------------------|
+| Bronze | MinIO / Raw PG  | Immutable raw data — append only, audit trail   |
+| Silver | PostgreSQL stg_ | Cleaned, typed, anomaly-filtered via dbt        |
+| Gold   | PostgreSQL fct_ | Star Schema fact/dim tables for ML & Analytics  |
+
+**Idempotency:** All Airflow tasks use `INSERT ... ON CONFLICT DO UPDATE`
+(UPSERT) — safe retries with zero duplicate data risk.
 ```
 
 ---
 
-### Task 7：新增 docs/DATA_ENGINEERING.md
+## ✅ Part 2 完成標準
 
-**目標**：新建一份給 Data Engineering 面試官看的深度文檔
-
-````markdown
-# Data Engineering Deep Dive
-
-## Architecture Decisions
-
-### Why Medallion Architecture?
-
-Financial data pipelines require strict separation between:
-
-- **Immutable raw data** (audit trail, regulatory compliance)
-- **Validated staging data** (downstream safety)
-- **Business-logic marts** (stable contracts for ML/Analytics)
-
-This mirrors production patterns at WealthTech companies where
-raw transaction logs must be preserved for regulatory audits,
-while downstream teams consume only validated, typed data.
-
-### Why dbt for Transformation?
-
-- **Version-controlled SQL** — all transformations are auditable via Git
-- **Built-in testing** — data quality is enforced, not assumed
-- **Lineage documentation** — `dbt docs` generates auto-updated DAG lineage
-- **Idiomatic for modern data stacks** — standard at Wealthsimple, Questrade, etc.
-
-### Why Pydantic v2 as Data Contract?
-
-At the pipeline ingestion boundary, before any data touches the database,
-Pydantic models enforce:
-
-- Field types (str, Decimal, datetime)
-- Value ranges (price > 0, volume >= 0)
-- Required vs optional fields
-
-This acts as a lightweight **Data Contract** — downstream consumers
-can trust that Silver layer data conforms to a known schema.
+- [ ] `dbt/` 目錄建立，含 sources / staging / marts / tests
+- [ ] `stg_ohlcv` 含 `close_price > 0` 及 `high >= low` 過濾
+- [ ] `fct_market_trades` 使用 `NUMERIC(20,8)` 儲存所有金融數值
+- [ ] `dim_assets` 含 `asset_class` 和 `risk_level` 欄位
+- [ ] `dbt test` 在 staging 和 marts 各有 Quality Gate
+- [ ] Airflow DAG 末端已串接 dbt 四個步驟
+- [ ] README 新增 Medallion 架構圖
 
 ---
 
-## Scalability Considerations
+---
 
-### Current State
+# Part 3：SCD Type 2（dbt Snapshot）
 
-- Single-node PostgreSQL, suitable for research & MVP
-- Handles 8+ years of OHLCV data for ~50 symbols
+> **目的：** 展示你懂金融數據的 Audit Trail 需求。
+> WealthTech 面試必考題：「如果資產風險等級改變了，你如何保留歷史？」
 
-### Production Scale Path (TB-level)
+---
 
-If daily transaction volumes reach TB scale (e.g., full Wealthsimple user base):
+## Task 12｜建立 dbt Snapshot
 
-1. **Columnar Storage**: Migrate Gold layer to Snowflake or BigQuery
-   - Terraform abstraction layer already supports this — change one variable
-   - dbt models require zero changes (standard SQL)
-
-2. **Partitioning Strategy**: Partition by `(symbol, year)` for time-series query optimization
-
-3. **Streaming Layer**: Add Kafka → Spark Structured Streaming for real-time PnL
-   - Batch Airflow DAG remains for daily feature recomputation
-   - Streaming path handles low-latency user-facing metrics
-
-### Idempotency & Fault Tolerance
-
-All Airflow tasks implement UPSERT strategy:
+**`dbt/snapshots/dim_assets_snapshot.sql`**：
 
 ```sql
-INSERT INTO prices (...) VALUES (...)
-ON CONFLICT (symbol, timestamp) DO UPDATE SET ...
+{% snapshot dim_assets_snapshot %}
+
+{{
+    config(
+        target_schema='snapshots',
+        unique_key='symbol',
+        strategy='check',
+        check_cols=['risk_level', 'asset_class'],
+        invalidate_hard_deletes=True
+    )
+}}
+
+-- SCD Type 2: Track historical changes to asset metadata
+-- Use case: if ETF risk_level changes Low → Medium,
+-- we preserve history for accurate historical PnL attribution
+
+select
+    symbol,
+    asset_class,
+    risk_level,
+    first_seen_at,
+    current_timestamp as snapshot_taken_at
+from {{ ref('dim_assets') }}
+
+{% endsnapshot %}
 ```
-````
 
-DAG retries are safe — no duplicate data, no partial writes.
+dbt 自動加入欄位（不需手動加）：
 
----
-
-## Data Quality Framework
-
-| Layer  | Tool            | What's Validated                      |
-| ------ | --------------- | ------------------------------------- |
-| Bronze | Pydantic v2     | Schema, types, required fields        |
-| Silver | dbt tests       | not_null, unique, value ranges        |
-| Gold   | dbt tests       | Business rules, referential integrity |
-| Model  | Walk-Forward CV | No look-ahead bias in training data   |
+- `dbt_scd_id` — 唯一識別每一個歷史版本
+- `dbt_valid_from` — 此版本的生效開始時間
+- `dbt_valid_to` — 此版本的失效時間（NULL = 當前有效）
+- `dbt_is_current` — 是否為當前版本
 
 ---
 
-## Financial Data Precision
-
-IEEE 754 floating-point arithmetic is unsuitable for financial calculations:
+## Task 13｜在 Airflow 加入 Snapshot 步驟
 
 ```python
-# Problematic
-0.1 + 0.2 == 0.3  # False in floating-point
+dbt_snapshot = BashOperator(
+    task_id='dbt_snapshot_scd2',
+    bash_command=f'{DBT_CMD} snapshot --profiles-dir {DBT_DIR}',
+    dag=dag,
+)
 
-# AlphaPulse approach
-from decimal import Decimal
-Decimal('0.1') + Decimal('0.2') == Decimal('0.3')  # True
-```
-
-All monetary values (prices, PnL, portfolio weights) use Python `Decimal`
-and PostgreSQL `NUMERIC(20, 8)` — matching industry standards for
-financial data systems.
-
+# dbt_test_marts >> dbt_snapshot
 ```
 
 ---
 
-## ✅ 完成標準 (Definition of Done)
+## Task 14｜在 README 新增 SCD 說明段落
 
-Agent 完成所有任務後，請確認：
+在 Medallion 章節之後加入：
 
-- [ ] `README.md` 標題與 description 已更新（無 "crypto trading" / "MLOps Platform" 作為主標籤）
-- [ ] `README.md` Highlights 排序：Data Pipeline 第一，ML 最後
-- [ ] `dbt/` 目錄已建立，含完整 Bronze/Silver/Gold 模型
-- [ ] `dbt/tests/` 含至少一個自訂 Data Quality 測試
-- [ ] Airflow DAG 末端已加入 `dbt run` + `dbt test` steps
-- [ ] `README.md` 新增 Medallion Architecture 圖示章節
-- [ ] `docs/DATA_ENGINEERING.md` 已建立
-- [ ] 所有 SQL 使用 `NUMERIC(20, 8)` 而非 `FLOAT` 儲存金融數值
+```markdown
+### Audit Trail — SCD Type 2 on dim_assets
 
----
+WealthTech systems cannot overwrite historical dimension data — regulatory compliance
+requires a full audit trail. AlphaPulse implements **Slowly Changing Dimension Type 2**
+via dbt snapshots on `dim_assets`:
 
-## 🚫 禁止事項
+| Scenario                      | Without SCD Type 2 | With SCD Type 2         |
+| ----------------------------- | ------------------ | ----------------------- |
+| ETF risk changes Low → Medium | History lost       | Both versions preserved |
+| Historical PnL attribution    | Incorrect          | Accurate                |
+| Regulatory audit              | Cannot reconstruct | Full trail available    |
 
-- **不要刪除任何現有功能**——只新增與重組，不破壞
-- **不要改變 Terraform / K3s 配置**——基礎設施不動
-- **不要移除 ML 相關代碼**——只是降低其在 README 的敘事優先級
-- **不要更改現有 Airflow DAG 的核心邏輯**——只在末端 append dbt tasks
-
----
-
-## 📌 關鍵詞植入清單（SEO for ATS 系統）
-
-確保以下關鍵詞自然出現在 README 與文檔中：
-
-```
-
-ELT Pipeline, Data Modeling, Medallion Architecture, dbt, Data Lineage,
-Data Contract, Data Quality, Idempotency, Financial Precision, Decimal,
-NUMERIC, Airflow DAG, Feature Engineering, Walk-Forward Validation,
-Terraform, Cloud-Agnostic, FinOps, Cost Optimization, Pydantic v2,
-Schema Validation, Data Governance, Batch Processing
-
+`dbt_valid_from` / `dbt_valid_to` enable point-in-time queries:
+accurate PnL calculation using the risk classification active at any given date.
 ```
 
 ---
 
-*文檔版本：v1.0 — 針對加拿大 WealthTech Data Engineer 職缺定位*
-*策略目標：Wealthsimple · Questrade · Neo Financial · CI Direct Investing*
+## ✅ Part 3 完成標準
+
+- [ ] `dbt/snapshots/dim_assets_snapshot.sql` 建立
+- [ ] `strategy: check` 監控 `risk_level` 和 `asset_class` 欄位
+- [ ] Airflow DAG 末端加入 `dbt_snapshot` task
+- [ ] README 含 SCD Type 2 說明與對比表格
 
 ---
 
 ---
 
-# Part 2：Hero Demo — Zero-Cost Dynamic Mock Mode
+# Part 4：Star Schema 命名規範統一
 
-> **給 AI Agent 的補充指令**
-> 目標：在不花任何錢的前提下，讓 alphapulse.luichu.dev 看起來是一個「活著的」系統。
-> 後端服務（Airflow、Postgres、MLflow、FastAPI）全部關閉以節省 OCI 資源。
-> 前端繼續部署在 OCI Free K3s，透過 Cloudflare 對外提供服務。
+> **目的：** 讓面試官一眼看出你懂 Dimensional Modeling。
 
 ---
 
-## 🎯 架構目標
+## Task 15｜命名規範檢查與統一
 
+確保 `dbt/models/marts/` 下所有檔案遵守：
+
+| 類型             | 前綴   | 範例                                          |
+| ---------------- | ------ | --------------------------------------------- |
+| Fact Table       | `fct_` | `fct_market_trades`, `fct_signal_performance` |
+| Dimension Table  | `dim_` | `dim_assets`, `dim_date`                      |
+| Staging (Silver) | `stg_` | `stg_ohlcv`, `stg_trading_signals`            |
+| Source (Bronze)  | `raw_` | 在 `sources.yml` 中定義                       |
+
+**新增 `dim_date` model**（WealthTech 標準維度表）：
+
+**`dbt/models/marts/dim_date.sql`**：
+
+```sql
+-- Gold Layer — Date Dimension Table
+-- Standard in financial data warehouses for time-based analysis
+
+with date_spine as (
+    {{ dbt_utils.date_spine(
+        datepart="day",
+        start_date="cast('2015-01-01' as date)",
+        end_date="cast(current_date + interval '1 year' as date)"
+    ) }}
+),
+
+enriched as (
+    select
+        cast(date_day as date)                        as date_key,
+        extract(year from date_day)::int              as year,
+        extract(quarter from date_day)::int           as quarter,
+        extract(month from date_day)::int             as month,
+        extract(week from date_day)::int              as week_of_year,
+        extract(dow from date_day)::int               as day_of_week,
+        to_char(date_day, 'YYYY-MM')                  as year_month,
+        to_char(date_day, 'YYYY-Q"Q"')                as year_quarter,
+        case extract(dow from date_day)
+            when 0 then false when 6 then false
+            else true
+        end                                           as is_trading_day,
+        case extract(month from date_day)
+            when 1 then 'January'   when 2 then 'February'
+            when 3 then 'March'     when 4 then 'April'
+            when 5 then 'May'       when 6 then 'June'
+            when 7 then 'July'      when 8 then 'August'
+            when 9 then 'September' when 10 then 'October'
+            when 11 then 'November' when 12 then 'December'
+        end                                           as month_name
+    from date_spine
+)
+
+select * from enriched
 ```
 
-現況（付費資源壓力）：
-OCI K3s → [React] + [FastAPI] + [Postgres] + [Airflow] + [MLflow] + [Ollama]
+---
 
-目標（Hero Demo Mode）：
-OCI K3s → [React Only]
-↓
-所有數據由前端 Mock Engine 產生
-看起來動態，實際上零後端依賴
+## ✅ Part 4 完成標準
 
-````
-
-**核心原則：**
-- React 前端繼續部署在 OCI K3s（不換平台，不花錢）
-- 後端 Pod 全部 scale to 0 或移除 K3s manifests
-- 前端內建 `MockDataEngine`，用 `setInterval` 模擬即時數據流
-- GitHub Actions 負責 build & push image，自動部署到 K3s
+- [ ] 所有 marts 模型遵守 `fct_` / `dim_` 前綴
+- [ ] `dim_date` 建立，含 `is_trading_day` 欄位
+- [ ] `fct_market_trades` 可透過 `date_key` join `dim_date`
 
 ---
 
-## 📋 任務清單
+---
+
+# Part 5：Hero Demo — Zero-Cost Dynamic Mock Mode
+
+> **目標：** alphapulse.luichu.dev 看起來是活著的系統。
+> 後端全部 scale to 0，前端內建 Mock Engine 驅動動態數據。
+> 平台：繼續跑在 OCI Free K3s，不換，不花錢。
+>
+> **面試加分點：** 價格模擬使用 Geometric Brownian Motion（GBM）——
+> 這是 Black-Scholes 模型的基礎假設。面試時主動提及，印象分極高。
 
 ---
 
-### Task 8：建立 MockDataEngine
+## Task 16｜建立 MockDataEngine
 
 **目標檔案**：`frontend/src/mock/MockDataEngine.ts`
 
-**要求**：建立一個中央 Mock 數據引擎，所有頁面共用。
-
 ```typescript
-// frontend/src/mock/MockDataEngine.ts
-
 export interface OHLCVPoint {
   timestamp: number;
   open: number;
@@ -676,8 +918,8 @@ export interface OHLCVPoint {
 export interface TradingSignal {
   id: string;
   symbol: string;
-  direction: 'LONG' | 'SHORT' | 'HOLD';
-  confidence: number;        // 0-1
+  direction: "LONG" | "SHORT" | "HOLD";
+  confidence: number;
   price: number;
   timestamp: number;
   model: string;
@@ -687,7 +929,7 @@ export interface TradingSignal {
 export interface PipelineRun {
   dag_id: string;
   run_id: string;
-  state: 'running' | 'success' | 'failed' | 'queued';
+  state: "running" | "success" | "failed" | "queued";
   start_time: number;
   duration_sec: number;
   tasks_done: number;
@@ -700,242 +942,244 @@ export interface ModelMetric {
   accuracy: number;
   sharpe: number;
   max_drawdown: number;
-  status: 'production' | 'staging' | 'archived';
+  status: "production" | "staging" | "archived";
 }
 
-// ─── Price simulation (Geometric Brownian Motion) ───────────────────────────
-
-function gbmStep(price: number, mu = 0.0001, sigma = 0.012): number {
-  const dt = 1;
-  const z = gaussianRandom();
-  return price * Math.exp((mu - 0.5 * sigma ** 2) * dt + sigma * Math.sqrt(dt) * z);
-}
-
+// Box-Muller transform — standard Gaussian random number generator
 function gaussianRandom(): number {
-  // Box-Muller transform
   const u = 1 - Math.random();
   const v = Math.random();
   return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
 }
 
-// ─── Seed data ───────────────────────────────────────────────────────────────
+// Geometric Brownian Motion — foundation of Black-Scholes pricing model
+function gbmStep(price: number, mu = 0.0001, sigma = 0.012): number {
+  return price * Math.exp(mu - 0.5 * sigma ** 2 + sigma * gaussianRandom());
+}
 
-const SYMBOLS = ['BTC-USD', 'ETH-USD', 'SPY', 'QQQ'];
-
+const SYMBOLS = ["BTC-USD", "ETH-USD", "SPY", "QQQ"];
 const SEED_PRICES: Record<string, number> = {
-  'BTC-USD': 67420,
-  'ETH-USD': 3540,
-  'SPY': 528,
-  'QQQ': 452,
+  "BTC-USD": 67420,
+  "ETH-USD": 3540,
+  SPY: 528,
+  QQQ: 452,
 };
-
-// ─── MockDataEngine class ────────────────────────────────────────────────────
 
 class MockDataEngine {
   private prices: Record<string, number> = { ...SEED_PRICES };
   private history: Record<string, OHLCVPoint[]> = {};
-  private listeners: Set<() => void> = new Set();
+  private listeners = new Set<() => void>();
   private intervalId: ReturnType<typeof setInterval> | null = null;
-
-  // Pipeline state machine
-  private pipelineStates: PipelineRun[] = this.generateInitialPipelines();
-  private pipelineTick = 0;
+  private pipelineStates: PipelineRun[] = this.initPipelines();
+  private tick = 0;
 
   constructor() {
-    // Pre-generate 120 historical candles
     for (const sym of SYMBOLS) {
       this.history[sym] = this.generateHistory(sym, 120);
     }
   }
 
-  // ── Subscribe / Unsubscribe ────────────────────────────────────────────────
-
   subscribe(cb: () => void): () => void {
     this.listeners.add(cb);
-    if (!this.intervalId) this.start();
+    if (!this.intervalId) {
+      this.intervalId = setInterval(() => {
+        this.advance();
+        this.listeners.forEach((f) => f());
+      }, 2000);
+    }
     return () => {
       this.listeners.delete(cb);
-      if (this.listeners.size === 0) this.stop();
+      if (this.listeners.size === 0 && this.intervalId) {
+        clearInterval(this.intervalId);
+        this.intervalId = null;
+      }
     };
   }
 
-  private notify() {
-    this.listeners.forEach(cb => cb());
-  }
-
-  private start() {
-    this.intervalId = setInterval(() => {
-      this.tick();
-      this.notify();
-    }, 2000); // Update every 2 seconds
-  }
-
-  private stop() {
-    if (this.intervalId) {
-      clearInterval(this.intervalId);
-      this.intervalId = null;
-    }
-  }
-
-  // ── Tick: advance simulation ───────────────────────────────────────────────
-
-  private tick() {
-    this.pipelineTick++;
-
-    // Advance prices
+  private advance() {
+    this.tick++;
     for (const sym of SYMBOLS) {
-      const newPrice = gbmStep(this.prices[sym]);
-      this.prices[sym] = newPrice;
-
-      const prev = this.history[sym].at(-1)!;
-      const wiggle = newPrice * 0.003;
-      const candle: OHLCVPoint = {
+      const p = gbmStep(this.prices[sym]);
+      this.prices[sym] = p;
+      const w = p * 0.003;
+      this.history[sym].push({
         timestamp: Date.now(),
-        open: prev.close,
-        high: newPrice + Math.abs(gaussianRandom() * wiggle),
-        low: newPrice - Math.abs(gaussianRandom() * wiggle),
-        close: newPrice,
+        open: this.history[sym].at(-1)!.close,
+        high: p + Math.abs(gaussianRandom() * w),
+        low: p - Math.abs(gaussianRandom() * w),
+        close: p,
         volume: 800000 + Math.random() * 400000,
-      };
-      this.history[sym].push(candle);
+      });
       if (this.history[sym].length > 200) this.history[sym].shift();
     }
-
-    // Advance pipeline state machine
-    this.advancePipelines();
+    if (this.tick % 10 === 0) this.advancePipelines();
   }
 
-  // ── Public data getters ────────────────────────────────────────────────────
-
-  getPrice(symbol: string): number {
-    return this.prices[symbol] ?? 0;
-  }
-
-  getHistory(symbol: string, limit = 60): OHLCVPoint[] {
-    return (this.history[symbol] ?? []).slice(-limit);
-  }
+  getPrice = (sym: string) => this.prices[sym] ?? 0;
+  getHistory = (sym: string, n = 60) => this.history[sym]?.slice(-n) ?? [];
+  getPortfolio = () =>
+    125000 + Math.sin(this.tick * 0.08) * 3200 + gaussianRandom() * 800;
 
   getSignals(): TradingSignal[] {
-    return SYMBOLS.map((sym, i) => {
-      const price = this.prices[sym];
-      const directions: TradingSignal['direction'][] = ['LONG', 'SHORT', 'HOLD'];
-      return {
-        id: `sig-${sym}-${Math.floor(Date.now() / 10000)}`,
-        symbol: sym,
-        direction: directions[Math.floor((Math.sin(this.pipelineTick * 0.3 + i) + 1) * 1.4)],
-        confidence: 0.55 + Math.abs(Math.sin(this.pipelineTick * 0.2 + i)) * 0.4,
-        price,
-        timestamp: Date.now(),
-        model: ['CatBoost-v3', 'XGBoost-v2', 'LightGBM-v4', 'Ensemble-v1'][i],
-        pnl_pct: (Math.sin(this.pipelineTick * 0.15 + i * 1.2) * 4.5),
-      };
-    });
+    const dirs: TradingSignal["direction"][] = ["LONG", "SHORT", "HOLD"];
+    return SYMBOLS.map((sym, i) => ({
+      id: `sig-${sym}-${Math.floor(Date.now() / 10000)}`,
+      symbol: sym,
+      price: this.prices[sym],
+      direction: dirs[Math.floor((Math.sin(this.tick * 0.3 + i) + 1) * 1.4)],
+      confidence: 0.55 + Math.abs(Math.sin(this.tick * 0.2 + i)) * 0.4,
+      timestamp: Date.now(),
+      model: ["CatBoost-v3", "XGBoost-v2", "LightGBM-v4", "Ensemble-v1"][i],
+      pnl_pct: Math.sin(this.tick * 0.15 + i * 1.2) * 4.5,
+    }));
   }
 
-  getPipelines(): PipelineRun[] {
-    return this.pipelineStates;
-  }
-
-  getModelMetrics(): ModelMetric[] {
-    const base = 0.71 + Math.sin(this.pipelineTick * 0.05) * 0.03;
+  getModels(): ModelMetric[] {
+    const b = 0.71 + Math.sin(this.tick * 0.05) * 0.03;
     return [
-      { name: 'CatBoost', version: 'v3.2', accuracy: base + 0.04, sharpe: 1.82, max_drawdown: -0.087, status: 'production' },
-      { name: 'XGBoost',  version: 'v2.1', accuracy: base + 0.01, sharpe: 1.61, max_drawdown: -0.112, status: 'staging' },
-      { name: 'LightGBM', version: 'v4.0', accuracy: base - 0.01, sharpe: 1.74, max_drawdown: -0.094, status: 'staging' },
-      { name: 'Ensemble', version: 'v1.0', accuracy: base + 0.06, sharpe: 1.95, max_drawdown: -0.071, status: 'production' },
+      {
+        name: "CatBoost",
+        version: "v3.2",
+        accuracy: b + 0.04,
+        sharpe: 1.82,
+        max_drawdown: -0.087,
+        status: "production",
+      },
+      {
+        name: "XGBoost",
+        version: "v2.1",
+        accuracy: b + 0.01,
+        sharpe: 1.61,
+        max_drawdown: -0.112,
+        status: "staging",
+      },
+      {
+        name: "LightGBM",
+        version: "v4.0",
+        accuracy: b - 0.01,
+        sharpe: 1.74,
+        max_drawdown: -0.094,
+        status: "staging",
+      },
+      {
+        name: "Ensemble",
+        version: "v1.0",
+        accuracy: b + 0.06,
+        sharpe: 1.95,
+        max_drawdown: -0.071,
+        status: "production",
+      },
     ];
   }
 
-  getPortfolioValue(): number {
-    // Simulated portfolio drifting around $125k
-    return 125000 + Math.sin(this.pipelineTick * 0.08) * 3200 + gaussianRandom() * 800;
-  }
+  getPipelines = () => this.pipelineStates;
 
-  // ── Pipeline state machine ─────────────────────────────────────────────────
-
-  private generateInitialPipelines(): PipelineRun[] {
+  private initPipelines(): PipelineRun[] {
     return [
-      { dag_id: 'market_data_ingestion',  run_id: 'run_001', state: 'success', start_time: Date.now() - 3600000, duration_sec: 142, tasks_done: 5, tasks_total: 5 },
-      { dag_id: 'dbt_silver_gold',        run_id: 'run_002', state: 'running', start_time: Date.now() - 180000,  duration_sec: 0,   tasks_done: 2, tasks_total: 4 },
-      { dag_id: 'feature_engineering',    run_id: 'run_003', state: 'queued',  start_time: 0,                    duration_sec: 0,   tasks_done: 0, tasks_total: 6 },
-      { dag_id: 'model_retraining',       run_id: 'run_004', state: 'success', start_time: Date.now() - 7200000, duration_sec: 892, tasks_done: 8, tasks_total: 8 },
+      {
+        dag_id: "market_data_ingestion",
+        run_id: "run_001",
+        state: "success",
+        start_time: Date.now() - 3600000,
+        duration_sec: 142,
+        tasks_done: 5,
+        tasks_total: 5,
+      },
+      {
+        dag_id: "dbt_silver_gold",
+        run_id: "run_002",
+        state: "running",
+        start_time: Date.now() - 180000,
+        duration_sec: 0,
+        tasks_done: 2,
+        tasks_total: 4,
+      },
+      {
+        dag_id: "feature_engineering",
+        run_id: "run_003",
+        state: "queued",
+        start_time: 0,
+        duration_sec: 0,
+        tasks_done: 0,
+        tasks_total: 6,
+      },
+      {
+        dag_id: "model_retraining",
+        run_id: "run_004",
+        state: "success",
+        start_time: Date.now() - 7200000,
+        duration_sec: 892,
+        tasks_done: 8,
+        tasks_total: 8,
+      },
     ];
   }
 
   private advancePipelines() {
-    // Every ~10 ticks, cycle pipeline states to look alive
-    if (this.pipelineTick % 10 === 0) {
-      this.pipelineStates = this.pipelineStates.map(p => {
-        if (p.state === 'running') {
-          const done = p.tasks_done + 1;
-          if (done >= p.tasks_total) {
-            return { ...p, state: 'success', tasks_done: p.tasks_total, duration_sec: Math.floor(Math.random() * 300 + 100) };
-          }
-          return { ...p, tasks_done: done };
-        }
-        if (p.state === 'success' && Math.random() < 0.15) {
-          return { ...p, state: 'queued', tasks_done: 0, run_id: `run_${Date.now()}` };
-        }
-        if (p.state === 'queued' && Math.random() < 0.4) {
-          return { ...p, state: 'running', start_time: Date.now() };
-        }
-        return p;
-      });
-    }
+    this.pipelineStates = this.pipelineStates.map((p) => {
+      if (p.state === "running") {
+        const done = p.tasks_done + 1;
+        return done >= p.tasks_total
+          ? {
+              ...p,
+              state: "success" as const,
+              tasks_done: p.tasks_total,
+              duration_sec: Math.floor(Math.random() * 300 + 100),
+            }
+          : { ...p, tasks_done: done };
+      }
+      if (p.state === "success" && Math.random() < 0.15)
+        return {
+          ...p,
+          state: "queued" as const,
+          tasks_done: 0,
+          run_id: `run_${Date.now()}`,
+        };
+      if (p.state === "queued" && Math.random() < 0.4)
+        return { ...p, state: "running" as const, start_time: Date.now() };
+      return p;
+    });
   }
 
-  // ── Historical generation ──────────────────────────────────────────────────
-
-  private generateHistory(symbol: string, count: number): OHLCVPoint[] {
-    const points: OHLCVPoint[] = [];
-    let price = SEED_PRICES[symbol];
+  private generateHistory(sym: string, n: number): OHLCVPoint[] {
+    const out: OHLCVPoint[] = [];
+    let p = SEED_PRICES[sym];
     const now = Date.now();
-    for (let i = count; i >= 0; i--) {
-      price = gbmStep(price);
-      const wiggle = price * 0.008;
-      points.push({
+    for (let i = n; i >= 0; i--) {
+      p = gbmStep(p);
+      const w = p * 0.008;
+      out.push({
         timestamp: now - i * 60000,
-        open: price * (1 + gaussianRandom() * 0.002),
-        high: price + Math.abs(gaussianRandom() * wiggle),
-        low: price - Math.abs(gaussianRandom() * wiggle),
-        close: price,
+        open: p * (1 + gaussianRandom() * 0.002),
+        high: p + Math.abs(gaussianRandom() * w),
+        low: p - Math.abs(gaussianRandom() * w),
+        close: p,
         volume: 500000 + Math.random() * 600000,
       });
     }
-    return points;
+    return out;
   }
 }
 
-// Singleton export
 export const mockEngine = new MockDataEngine();
-````
+```
 
 ---
 
-### Task 9：建立 useMockData Hook
+## Task 17｜建立 useMockData Hooks
 
 **目標檔案**：`frontend/src/mock/useMockData.ts`
 
 ```typescript
-// frontend/src/mock/useMockData.ts
 import { useState, useEffect } from "react";
 import { mockEngine } from "./MockDataEngine";
 
-// Generic hook — re-renders whenever MockDataEngine ticks
 export function useMockData<T>(selector: () => T): T {
   const [data, setData] = useState<T>(selector);
-
-  useEffect(() => {
-    const unsubscribe = mockEngine.subscribe(() => {
-      setData(selector());
-    });
-    return unsubscribe;
-  }, []);
-
+  useEffect(() => mockEngine.subscribe(() => setData(selector())), []);
   return data;
 }
 
-// Convenience hooks per data type
 export const usePrices = () =>
   useMockData(() => ({
     "BTC-USD": mockEngine.getPrice("BTC-USD"),
@@ -943,26 +1187,21 @@ export const usePrices = () =>
     SPY: mockEngine.getPrice("SPY"),
     QQQ: mockEngine.getPrice("QQQ"),
   }));
-
-export const useHistory = (symbol: string, limit?: number) =>
-  useMockData(() => mockEngine.getHistory(symbol, limit));
-
+export const useHistory = (sym: string, n?: number) =>
+  useMockData(() => mockEngine.getHistory(sym, n));
 export const useSignals = () => useMockData(() => mockEngine.getSignals());
 export const usePipelines = () => useMockData(() => mockEngine.getPipelines());
-export const useModels = () => useMockData(() => mockEngine.getModelMetrics());
-export const usePortfolio = () =>
-  useMockData(() => mockEngine.getPortfolioValue());
+export const useModels = () => useMockData(() => mockEngine.getModels());
+export const usePortfolio = () => useMockData(() => mockEngine.getPortfolio());
 ```
 
 ---
 
-### Task 10：改造前端四個頁面接入 Mock Engine
+## Task 18｜前端四頁面接入 Mock Engine
 
-**原則**：找到每個頁面原本 call API 的地方，替換為對應的 useMock hook。
+找到每個頁面原本的 API call，替換為對應 hook：
 
-#### Dashboard.tsx
-
-替換 API call 為：
+### Dashboard.tsx
 
 ```typescript
 import {
@@ -971,15 +1210,13 @@ import {
   useSignals,
   usePortfolio,
 } from "../mock/useMockData";
-
-// 在 component 內
 const prices = usePrices();
 const btcHistory = useHistory("BTC-USD", 60);
 const signals = useSignals();
 const portfolio = usePortfolio();
 ```
 
-新增 **「LIVE」閃爍徽章** 在頁面右上角：
+右上角加入 LIVE 閃爍徽章：
 
 ```tsx
 <span
@@ -999,7 +1236,7 @@ const portfolio = usePortfolio();
 </span>
 ```
 
-CSS animation（加在 global CSS）：
+Global CSS：
 
 ```css
 @keyframes pulse {
@@ -1013,22 +1250,16 @@ CSS animation（加在 global CSS）：
 }
 ```
 
-#### Trading Signal 頁面
+### Trading Signal 頁面
 
 ```typescript
 import { useSignals } from "../mock/useMockData";
 const signals = useSignals();
 ```
 
-每個 Signal Card 需展示：
+每個 Signal Card 展示：direction badge（LONG=綠/SHORT=紅/HOLD=灰）、confidence animated bar、PnL %（正=綠/負=紅）、model name、timestamp。
 
-- Direction badge（LONG = 綠色、SHORT = 紅色、HOLD = 灰色）
-- Confidence bar（animated progress bar）
-- PnL %（正數綠色，負數紅色）
-- Model name
-- 時間戳（"just now" / "2s ago"）
-
-#### MLOps Console 頁面
+### MLOps Console 頁面
 
 ```typescript
 import { usePipelines, useModels } from "../mock/useMockData";
@@ -1036,35 +1267,24 @@ const pipelines = usePipelines();
 const models = useModels();
 ```
 
-Pipeline 列表需展示：
+Pipeline 列表：state badge（running=藍色 spinner/success=綠/queued=黃/failed=紅）、tasks_done/tasks_total progress bar。
+Model Registry：accuracy/sharpe/max_drawdown 欄位、production=綠/staging=藍 badge。
 
-- State badge（running = 藍色旋轉 spinner、success = 綠色、queued = 黃色、failed = 紅色）
-- Progress bar（tasks_done / tasks_total）
-- DAG name 與 run_id
+### Strategy Playground 頁面
 
-Model Registry 表格需展示：
+```typescript
+import { useHistory } from "../mock/useMockData";
+```
 
-- Accuracy / Sharpe / Max Drawdown
-- Status badge（production = 綠色、staging = 藍色）
-
-#### Strategy Playground 頁面
-
-使用 `useHistory` 顯示即時更新的 candlestick 或 line chart。
-加入以下互動元素（純前端，不需後端）：
-
-- Symbol 切換下拉（BTC-USD / ETH-USD / SPY / QQQ）
-- 時間區間切換（15m / 1h / 4h）— 改變 `limit` 參數
-- Buy/Sell 按鈕（點擊後彈出 toast "Order simulated — no real trades executed"）
+加入：symbol 切換下拉（4 個 symbol）、時間區間切換（改變 limit）、Buy/Sell 按鈕（toast: "Order simulated — no real trades executed"）。
 
 ---
 
-### Task 11：Demo Mode Banner
+## Task 19｜更新 Demo Mode Banner
 
-**目標**：在所有頁面頂端加入一條 Banner，告訴訪客這是 Demo Mode。
+**目標檔案**：`frontend/src/components/DemoModeBanner.tsx`
 
 ```tsx
-// frontend/src/components/DemoModeBanner.tsx — 更新內容
-
 export function DemoModeBanner() {
   return (
     <div
@@ -1081,8 +1301,8 @@ export function DemoModeBanner() {
     >
       <span>
         <span style={{ color: "#64ffda", fontWeight: 700 }}>● DEMO MODE</span> —
-        Simulated market data updated every 2s via Geometric Brownian Motion. No
-        real trades. No backend.
+        Prices simulated via Geometric Brownian Motion. No real trades. No
+        backend.
       </span>
       <a
         href="https://github.com/ChuLiYu/alphapulse-mlops-platform"
@@ -1099,105 +1319,67 @@ export function DemoModeBanner() {
 
 ---
 
-### Task 12：關閉後端 K3s Deployments
+## Task 20｜關閉後端 K3s Deployments
 
-**目標目錄**：`infra/k3s/base/`
-
-**要求**：找到以下 Deployment manifests，將 `replicas` 改為 `0`：
+**`infra/k3s/overlays/demo/kustomization.yaml`**：
 
 ```yaml
-# 對以下所有 deployment 執行相同操作
-# airflow-webserver, airflow-scheduler, airflow-worker
-# fastapi
-# mlflow
-# trainer
-# ollama
-# postgres（可保留或關閉，視 demo 需求）
-# minio（可保留或關閉）
-
-spec:
-  replicas: 0 # 從原本的 1 改為 0
-```
-
-**保留運行的 Pod（replicas: 1）：**
-
-- `frontend`（React）
-- `traefik`（Ingress）
-- `grafana`（可選，若有靜態看板）
-
-**新增 `infra/k3s/overlays/demo/`** 目錄，建立 Kustomize overlay：
-
-```yaml
-# infra/k3s/overlays/demo/kustomization.yaml
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-
 bases:
   - ../../base
-
 patches:
   - path: scale-down-backends.yaml
+    target:
+      kind: Deployment
+      name: "fastapi|airflow.*|mlflow|trainer|ollama|postgres"
 ```
 
+**`infra/k3s/overlays/demo/scale-down-backends.yaml`**：
+
 ```yaml
-# infra/k3s/overlays/demo/scale-down-backends.yaml
-# Scale all backend services to 0 for demo mode
 - op: replace
   path: /spec/replicas
   value: 0
 ```
 
+保留 replicas: 1：`frontend`、`traefik`。
+
 ---
 
-### Task 13：更新 GitHub Actions Workflow
+## Task 21｜GitHub Actions — Deploy Demo Workflow
 
-**目標檔案**：`.github/workflows/deploy-k3s.yml`
-
-**要求**：新增一個 **`deploy-demo`** job，只 build & deploy 前端：
+**目標檔案**：`.github/workflows/deploy-demo.yml`（新建）
 
 ```yaml
-# 在現有 workflows 中新增或修改
-
 name: Deploy Hero Demo
 
 on:
   push:
     branches: [main]
-    paths:
-      - "frontend/**"
-      - "infra/k3s/overlays/demo/**"
+    paths: ["frontend/**", "infra/k3s/overlays/demo/**"]
   workflow_dispatch:
-    inputs:
-      mode:
-        description: "Deploy mode"
-        required: true
-        default: "demo"
-        type: choice
-        options: [demo, full]
 
 jobs:
-  build-frontend:
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: "npm"
           cache-dependency-path: frontend/package-lock.json
 
-      - name: Install & Build
+      - name: Build Frontend
         working-directory: frontend
-        run: |
-          npm ci
-          npm run build
+        run: npm ci && npm run build
         env:
           VITE_DEMO_MODE: "true"
           VITE_APP_VERSION: ${{ github.sha }}
 
-      - name: Build & Push Docker Image (Frontend only)
+      - name: Build & Push to GHCR
         uses: docker/build-push-action@v5
         with:
           context: ./frontend
@@ -1205,99 +1387,191 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository_owner }}/alphapulse-frontend:demo
             ghcr.io/${{ github.repository_owner }}/alphapulse-frontend:${{ github.sha }}
-        # 使用 GitHub Container Registry（免費）
 
-  deploy-demo:
-    needs: build-frontend
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Deploy to OCI K3s (Frontend only)
+      - name: Deploy to OCI K3s
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.OCI_HOST }}
           username: ${{ secrets.OCI_USER }}
           key: ${{ secrets.OCI_SSH_KEY }}
           script: |
-            # Apply demo overlay — scales backends to 0, keeps frontend
-            kubectl apply -k /home/ubuntu/alphapulse/infra/k3s/overlays/demo/
-
-            # Pull and restart frontend only
+            kubectl apply -k ~/alphapulse/infra/k3s/overlays/demo/
             kubectl rollout restart deployment/frontend -n application
-
-            # Confirm backends are scaled down
-            kubectl scale deployment fastapi airflow-webserver mlflow trainer \
-              --replicas=0 -n application
-
-            echo "✅ Demo mode deployed. Only frontend is running."
+            echo "✅ Demo deployed. Backend scaled to 0."
 
       - name: Health Check
-        run: |
-          sleep 30
-          curl -f https://alphapulse.luichu.dev/ || exit 1
+        run: sleep 30 && curl -f https://alphapulse.luichu.dev/ || exit 1
 ```
 
 ---
 
-### Task 14：新增 Vite 環境變數控制
+## Task 22｜Vite 環境變數
 
-**目標檔案**：`frontend/.env.demo`
+**`frontend/.env.demo`**：
 
 ```bash
-# frontend/.env.demo
 VITE_DEMO_MODE=true
-VITE_API_BASE_URL=   # 留空，demo mode 不需要 API
+VITE_API_BASE_URL=
 VITE_APP_TITLE=AlphaPulse Demo
 ```
 
-**目標檔案**：`frontend/src/config.ts`（新建或修改）
+**`frontend/src/config.ts`**：
 
 ```typescript
 export const config = {
   isDemoMode: import.meta.env.VITE_DEMO_MODE === "true",
   apiBaseUrl: import.meta.env.VITE_API_BASE_URL ?? "",
-  appVersion: import.meta.env.VITE_APP_VERSION ?? "dev",
 } as const;
 ```
 
-在 `frontend/src/api/client.ts` 加入 Demo Mode guard：
+在 `frontend/src/api/client.ts` 頂部加入 guard：
 
 ```typescript
 import { config } from "../config";
-
-// 在所有 API call 的最頂部加入
-if (config.isDemoMode) {
-  console.warn("[Demo Mode] API call intercepted — using mock data");
-  // Return mock data instead
-  return;
-}
+if (config.isDemoMode) return; // Skip all real API calls in demo mode
 ```
 
 ---
 
-## ✅ Part 2 完成標準
+## ✅ Part 5 完成標準
 
-- [ ] `MockDataEngine.ts` 建立，GBM 價格模擬正常運作
-- [ ] `useMockData` hooks 建立並正確 re-render
-- [ ] Dashboard、Signal、MLOps、Strategy 四頁面接入 mock hooks
+- [ ] `MockDataEngine.ts` 建立，GBM 價格模擬每 2 秒更新
+- [ ] 四個頁面全部接入 mock hooks，不發出任何真實 HTTP request
 - [ ] `● LIVE` 閃爍徽章出現在 Dashboard
 - [ ] Demo Mode Banner 顯示在所有頁面頂端
+- [ ] Pipeline 狀態自動在 running/success/queued 之間切換
 - [ ] K3s backend deployments scale to 0（只有 frontend + traefik 在跑）
-- [ ] GitHub Actions `deploy-demo` job 只 build/deploy 前端
-- [ ] `VITE_DEMO_MODE=true` 時，API client 不發出任何真實 HTTP request
+- [ ] `deploy-demo.yml` 觸發後只 build/deploy 前端
 - [ ] `https://alphapulse.luichu.dev/` health check 通過
 
 ---
 
-## 🚫 Part 2 禁止事項
+---
 
-- **不要刪除後端代碼**——只是 scale to 0，保留完整代碼供面試官審查
-- **不要換平台**——繼續用 OCI Free，不動 Terraform
-- **不要用真實 API key**——Mock Engine 完全不需要外部 API
-- **不要在 Demo 中顯示假的「真實交易」**——Banner 必須清楚標示 Demo Mode
+# Part 6：截圖 / 架構圖
+
+> **目的：** Recruiter 不懂技術，但他們會看圖。
+> 一張清楚的架構圖 = 讓他們繼續往下滑的理由。
 
 ---
 
-_Part 2 文檔版本：v1.0 — Hero Demo Zero-Cost Dynamic Mock Mode_
-_部署目標：OCI Always Free K3s · alphapulse.luichu.dev_
+## Task 23｜架構圖（Mermaid）
+
+在 README 新增 `## 🏗️ System Architecture {#architecture}` 章節：
+
+````markdown
+```mermaid
+flowchart TD
+    subgraph CI["CI/CD — GitHub Actions"]
+        GHA[Deploy Demo Workflow]
+    end
+
+    subgraph OCI["Oracle Cloud Always Free — K3s"]
+        FE[React Frontend\nMock Engine]
+        TF[Traefik Ingress]
+    end
+
+    subgraph DATA["Data Pipeline — Scale-to-Zero in Demo"]
+        AW[Apache Airflow\nETL DAGs]
+        PG[(PostgreSQL\nBronze Layer)]
+        DBT[dbt\nSilver + Gold\nSCD Type 2]
+        ML[MLflow\nModel Registry]
+        TR[Iterative Trainer\nCatBoost / XGBoost]
+    end
+
+    CF[Cloudflare CDN] --> TF --> FE
+    GHA -->|SSH deploy| OCI
+    AW -->|Ingest + Pydantic validate| PG
+    PG -->|dbt run| DBT
+    DBT -->|dbt test Quality Gate| DBT
+    DBT -->|Feature mart| TR
+    TR -->|Register model| ML
+```
+
+> **Demo Mode:** Only the K3s Frontend pod is running ($0/month).
+> Full stack restores in under 5 minutes with `kubectl apply -k infra/k3s/base/`.
+````
+
+---
+
+## Task 24｜截圖清單
+
+完成 Hero Demo 後，截取以下截圖存入 `docs/screenshots/`：
+
+| 檔名                 | 內容                                    | 重要性                        |
+| -------------------- | --------------------------------------- | ----------------------------- |
+| `01_dashboard.png`   | Dashboard 含 LIVE 徽章與價格圖表        | ⭐⭐⭐ 主視覺，放 README 最頂 |
+| `02_signals.png`     | Trading Signal 列表含 LONG/SHORT badge  | ⭐⭐                          |
+| `03_mlops.png`       | Pipeline 狀態列表（含 running spinner） | ⭐⭐                          |
+| `04_strategy.png`    | Strategy Playground 含 symbol 切換      | ⭐                            |
+| `05_dbt_lineage.png` | `dbt docs serve` 的 lineage DAG         | ⭐⭐⭐ DE 面試官最在意這個    |
+
+在 README Architecture 章節之後加入：
+
+```markdown
+## 📸 Platform Preview
+
+| Dashboard (LIVE Mock)                           | MLOps Console                           |
+| ----------------------------------------------- | --------------------------------------- |
+| ![Dashboard](docs/screenshots/01_dashboard.png) | ![MLOps](docs/screenshots/03_mlops.png) |
+
+| Trading Signals                             | dbt Lineage Graph                               |
+| ------------------------------------------- | ----------------------------------------------- |
+| ![Signals](docs/screenshots/02_signals.png) | ![Lineage](docs/screenshots/05_dbt_lineage.png) |
+```
+
+---
+
+## ✅ Part 6 完成標準
+
+- [ ] Mermaid 架構圖在 GitHub 上正確渲染
+- [ ] `docs/screenshots/` 含 5 張截圖
+- [ ] README 截圖 2x2 grid 正確顯示
+- [ ] `05_dbt_lineage.png` 是 `dbt docs serve` 的實際截圖（非示意圖）
+
+---
+
+---
+
+## 🚫 全域禁止事項
+
+- **不刪除後端代碼** — 只 scale to 0，保留完整代碼供面試官審查
+- **不換部署平台** — 繼續用 OCI Free，Terraform 不動
+- **不用真實 API key** — Mock Engine 完全不需要外部 API
+- **不實作 PySpark** — 風險大於收益，面試官問深會露餡
+- **不在 Demo 中顯示假的「真實交易」** — Banner 必須清楚標示 Demo Mode
+- **所有金融數值必須用 NUMERIC(20,8)** — 不用 FLOAT 或 DOUBLE
+
+---
+
+## 📌 ATS 關鍵詞植入清單
+
+確保以下關鍵詞自然出現在 README 與文檔中：
+
+```
+ELT Pipeline · Data Modeling · Medallion Architecture · dbt · Data Lineage
+Data Contract · Data Quality · SCD Type 2 · Audit Trail · Star Schema
+Fact Table · Dimension Table · Idempotency · Financial Precision · Decimal
+NUMERIC · Airflow DAG · Feature Engineering · Walk-Forward Validation
+Terraform · Cloud-Agnostic · FinOps · Pydantic v2 · Schema Validation
+Data Governance · Batch Processing · Geometric Brownian Motion
+```
+
+---
+
+## 🎯 面試話術速查
+
+| 面試官問                    | 你的回答方向                                                                     |
+| --------------------------- | -------------------------------------------------------------------------------- |
+| 為什麼用 dbt？              | 版本控制的 SQL、內建測試、自動 lineage — 業界標準，Wealthsimple/Questrade 都在用 |
+| Postgres 撐不住 TB 怎麼辦？ | Terraform 抽象層一個變數切換到 Snowflake/BigQuery，dbt SQL 零改動                |
+| SCD Type 2 是什麼？         | 保留歷史維度變化，監管合規必須，舉 ETF 風險等級改變的例子                        |
+| DAG retry 會重複寫入嗎？    | 所有 task 用 UPSERT（INSERT ON CONFLICT DO UPDATE），冪等設計                    |
+| Demo 的價格怎麼模擬的？     | Geometric Brownian Motion，Black-Scholes 的基礎假設                              |
+| 如果要即時 PnL？            | Batch Airflow 旁邊加 Kafka → Spark Streaming，架構上已預留擴展空間               |
+
+---
+
+_文檔版本：v2.0 — 整合版（覆蓋 v1.0）_
+_策略目標：Wealthsimple · Questrade · Neo Financial · CI Direct Investing_
+_更新日期：2026-03_

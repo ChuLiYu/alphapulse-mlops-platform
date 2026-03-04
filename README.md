@@ -1,12 +1,19 @@
-# AlphaPulse: Production-Grade MLOps for Crypto-Fintech
+# AlphaPulse — Production-Grade DataOps & MLOps Platform
+
+AlphaPulse is an end-to-end **DataOps & MLOps platform** engineered for financial market data —
+featuring production-grade ELT pipelines, Medallion Architecture, financial-precision data
+modeling, and cloud-agnostic infrastructure built with Terraform, Airflow, and Kubernetes.
+
+Originally built as a zero-cost alternative to commercial data platforms, AlphaPulse demonstrates
+how modern data engineering practices (dbt, Star Schema, SCD Type 2, data contracts, CI/CD for
+data) can be applied to high-frequency financial time-series across multiple asset classes
+(Equities & Crypto).
 
 [![Live Demo](https://img.shields.io/badge/Demo-Live_App-2ea44f?style=for-the-badge&logo=vercel)](https://alphapulse.luichu.dev/)
 [![Infrastructure: Terraform](https://img.shields.io/badge/IaC-Terraform-7B42BC?logo=terraform&style=flat-square)](docs/architecture/adr-007-cross-cloud-strategy.md)
 [![Runtime: Oracle ARM64](https://img.shields.io/badge/Runtime-Oracle_ARM64-F80000?logo=oracle&style=flat-square)](docs/architecture/adr-008-cpu-first-optimization.md)
 [![Cost: $0/mo](https://img.shields.io/badge/FinOps-Zero--Cost-success?style=flat-square)](docs/deployment/COST_FINOPS.md)
 [![Fintech: Decimal Precision](https://img.shields.io/badge/Fintech-Decimal_Precision-blue?style=flat-square)](src/alphapulse/data/processor.py)
-
-AlphaPulse is a production-grade DataOps & MLOps platform for financial market data — featuring end-to-end ELT pipelines, financial-precision data modeling, and cloud-agnostic infrastructure built with Terraform, Airflow, and Kubernetes.
 
 > **📅 Current Status (Mar 2026)**: Phase 5 In Progress - K3s Cluster Migration
 
@@ -82,6 +89,9 @@ flowchart TD
     PG -.->|Backup| S3
 ```
 
+> **Demo Mode:** Only the K3s Frontend pod is running ($0/month).
+> Full stack restores in under 5 minutes with `kubectl apply -k infra/k3s/base/`.
+
 ---
 
 ## 📸 Platform Preview
@@ -104,26 +114,82 @@ flowchart TD
 
 ---
 
+## 🏛️ Data Architecture — Medallion Design {#medallion}
+
+| Layer  | Storage         | Responsibility                                  |
+|--------|-----------------|-------------------------------------------------|
+| Bronze | MinIO / Raw PG  | Immutable raw data — append only, audit trail   |
+| Silver | PostgreSQL stg_ | Cleaned, typed, anomaly-filtered via dbt        |
+| Gold   | PostgreSQL fct_ | Star Schema fact/dim tables for ML & Analytics  |
+
+**Idempotency:** All Airflow tasks use `INSERT ... ON CONFLICT DO UPDATE` (UPSERT) — safe retries with zero duplicate data risk.
+
+### Audit Trail — SCD Type 2 on dim_assets
+
+WealthTech systems cannot overwrite historical dimension data — regulatory compliance requires a full audit trail. AlphaPulse implements **Slowly Changing Dimension Type 2** via dbt snapshots on `dim_assets`:
+
+| Scenario                      | Without SCD Type 2 | With SCD Type 2         |
+| ----------------------------- | ------------------ | ----------------------- |
+| ETF risk changes Low → Medium | History lost       | Both versions preserved |
+| Historical PnL attribution    | Incorrect          | Accurate                |
+| Regulatory audit              | Cannot reconstruct | Full trail available    |
+
+`dbt_valid_from` / `dbt_valid_to` enable point-in-time queries: accurate PnL calculation using the risk classification active at any given date.
+
+---
+
 ## 🌟 Senior Engineering Highlights
 
-### 1. Polymorphic Infrastructure (Cross-Cloud Strategy)
-*   **Challenge**: Demonstrate senior-level cross-cloud capabilities without multi-cloud overhead or costs.
-*   **Solution**: Implemented a **Provider-Agnostic Abstraction** layer using Terraform modules. The system defines a "Compute Module Interface," allowing seamless switching between **AWS EC2** and **GCP Compute Engine** via a single variable.
-*   **Impact**: Achieve "Cloud Portability" with zero recurring costs.
+### 1. High-Performance Data Engineering & ELT Pipeline
 
-### 2. High-Performance ETL & Data Engineering
-*   **Challenge**: Processing **8+ years** of high-frequency market data on resource-constrained ARM64 instances (avoiding OOM).
-*   **Solution**: Engineered resilient **Apache Airflow** DAGs with a **Chunked SQL Loading** and strict **Type Downcasting** strategy. Implemented **Pydantic** for rigorous schema validation and **SQLAlchemy** for ORM consistency.
-*   **Impact**: Reduced memory footprint by **50%**, enabling full-history training on 24GB RAM without disk swapping.
+**Challenge:** Ingesting and processing 8+ years of high-frequency multi-asset market data on resource-constrained ARM64 instances without OOM failures.
 
-### 3. Industrial-Grade Quality Assurance
-*   **Multi-Stage CI/CD**: Enforced by GitHub Actions, featuring Unit Tests (Pytest), Integration Tests (DB/MLflow), and Smoke Tests.
-*   **Fintech Precision**: AlphaPulse enforces `Decimal` types for all monetary values to prevent floating-point errors in trading simulations.
-*   **Robustness**: Built-in **Anti-Overfitting Gates** and **Walk-Forward Cross-Validation** to ensure model reliability.
+**Solution:**
 
-### 4. Professional Engineering Standards
-*   **Type Safety**: 100% type-hinted codebase enforced by `mypy` and runtime validation via **Pydantic v2**.
-*   **Modern Frontend**: Component-driven UI using React/Vite with strictly typed props and state management via Redux Toolkit.
+- Production Apache Airflow DAGs with **Chunked SQL Loading** and **Type Downcasting**, reducing memory footprint by 50%
+- **Medallion Architecture** (Bronze → Silver → Gold): MinIO (raw) → PostgreSQL (validated) → dbt (feature marts & Star Schema reporting layer)
+- **Pydantic v2** as a Data Contract layer — strict schema validation at every pipeline boundary
+- **dbt tests** as automated Data Quality gates at each Medallion layer
+
+**Impact:** Full 8-year history processed on 24GB RAM. Transparent data lineage from raw API response to ML-ready feature table.
+
+**Keywords:** ELT, Medallion Architecture, Data Modeling, Airflow DAG, Data Contract, Data Lineage, Idempotency, dbt
+
+### 2. Financial Data Precision & Data Quality
+
+**Challenge:** Floating-point errors in trading simulations directly cause incorrect PnL reporting — unacceptable in any production financial system.
+
+**Solution:**
+
+- **`Decimal` types** for all monetary values platform-wide (Python `Decimal` + PostgreSQL `NUMERIC(20,8)`) — matching industry standards for financial data systems
+- **Pydantic v2** runtime validation as a lightweight Data Contract at ingestion boundary
+- **SCD Type 2** on `dim_assets` via dbt snapshots — preserving full audit trail of risk level changes for accurate historical PnL attribution
+- **Walk-Forward Cross-Validation** and Anti-Overfitting Gates to prevent look-ahead bias
+
+**Keywords:** Financial Precision, Data Integrity, Data Quality, Data Contracts, Zero Floating-Point Error, SCD Type 2, Audit Trail, Schema Validation
+
+### 3. Zero-Cost FinOps & Cloud-Agnostic Infrastructure
+
+**The FinOps Journey:** AWS EC2/RDS (~$11/mo) → ARM64 Refactor → Oracle Cloud Always Free ($0/mo)
+
+**Solution:**
+
+- **Provider-Agnostic Terraform abstraction layer** — migrate from OCI to AWS EKS or GCP GKE by changing a single variable. OCI is purely a zero-cost FinOps sandbox.
+- Full stack (4 vCPUs, 24GB RAM, K3s, Airflow, MLflow) at **$0/month**
+- Terraform modules enforce consistent resource tagging for cost attribution
+
+**Keywords:** FinOps, IaC, Terraform, Cloud-Agnostic, Cost Optimization, ARM64
+
+### 4. MLOps & Model Orchestration
+
+> ML is a downstream consumer of the data platform — not the platform itself.
+
+- **MLflow** for experiment tracking, model registry, and artifact versioning
+- **Iterative Trainer** with Optuna hyperparameter search and Walk-Forward CV
+- **Evidently AI** for production data drift monitoring
+- Multi-model ensemble: CatBoost, XGBoost, LightGBM, Scikit-learn
+
+**Keywords:** MLOps, Model Registry, Feature Store, Experiment Tracking, Data Drift
 
 ---
 
@@ -138,12 +204,13 @@ AlphaPulse was engineered for extreme cost efficiency:
 
 ## 🎯 Role-Specific Navigation
 
-| If you are a... | Recommended Deep-Dives |
-| :--- | :--- |
-| **Hiring Manager** | **[Zero-Cost FinOps Strategy](docs/deployment/COST_FINOPS.md)** (Cost-conscious engineering) |
-| **Technical Lead** | **[Architecture Principles](docs/architecture/README.md)** (Rationale behind k3s, CatBoost, and decoupling) |
-| **DevOps Engineer** | **[CI/CD Workflow](.github/workflows/python-test-and-deploy.yml)** & **[k3s Setup](infra/k3s/base/)** |
-| **ML Engineer** | **[Iterative Trainer Logic](src/alphapulse/ml/training/iterative_trainer.py)** (AutoML, Optuna, Feature Store) |
+| If you are a...       | Start here                                                                                           |
+| --------------------- | ---------------------------------------------------------------------------------------------------- |
+| **Hiring Manager**    | [FinOps Journey](#finops) · [Architecture](#architecture)                                            |
+| **Data Engineer**     | [Medallion Architecture](#medallion) · [dbt Models](./dbt/) · [Airflow DAGs](./airflow/)             |
+| **Data Analyst**      | [Star Schema](./dbt/models/marts/) · [Live Dashboard](https://alphapulse.luichu.dev/)                |
+| **Platform / DevOps** | [Terraform IaC](./infra/terraform/) · [K3s Setup](./infra/k3s/) · [CI/CD](./.github/workflows/)      |
+| **ML Engineer**       | [Iterative Trainer](./training/) · [MLflow Registry](./docs/) · [Feature Store](./dbt/models/marts/) |
 
 ---
 
