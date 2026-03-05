@@ -2,7 +2,7 @@ name: Deploy Hero Demo
 
 on:
   push:
-    branches: [main]
+    branches: [main, dev]
     paths: ["frontend/**", "infra/k3s/overlays/demo/**"]
   workflow_dispatch:
 

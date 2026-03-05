@@ -23,7 +23,7 @@ metadata:
   name: grafana
   namespace: alphapulse
 spec:
-  replicas: 1
+  replicas: 0
   selector:
     matchLabels:
       app: grafana

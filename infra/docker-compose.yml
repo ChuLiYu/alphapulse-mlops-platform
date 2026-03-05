@@ -6,7 +6,7 @@ networks:
     name: alphapulse-network
 
 services:
-  # PostgreSQL database for both Airflow and MLflow
+  # PostgreSQL database for Airflow metadata
   postgres:
     image: postgres:15-alpine
     container_name: postgres
@@ -32,7 +32,7 @@ services:
       retries: 5
     restart: unless-stopped
 
-  # MinIO for local S3-compatible storage
+  # MinIO for local S3-compatible storage (Bronze layer)
   minio:
     image: minio/minio:latest
     container_name: minio
@@ -56,42 +56,7 @@ services:
       retries: 3
     restart: unless-stopped
 
-  # FastAPI Backend Application
-  fastapi:
-    build:
-      context: ..
-      dockerfile: infra/docker/Dockerfile.fastapi
-    container_name: fastapi
-    labels:
-      project: alphapulse
-    environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-alphapulse}
-      AWS_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-minioadmin}
-      AWS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
-      S3_ENDPOINT_URL: http://minio:9000
-      DEBUG: ${DEBUG:-true}
-      LOG_LEVEL: ${LOG_LEVEL:-INFO}
-      API_VERSION: ${API_VERSION:-v1}
-    ports:
-      - "${FASTAPI_PORT:-8000}:8000"
-    volumes:
-      - ../src:/app/src
-    networks:
-      - alphapulse-network
-    depends_on:
-      postgres:
-        condition: service_healthy
-      minio:
-        condition: service_healthy
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "--ipv4", "-f", "http://localhost:8000/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
-
-  # Frontend Application
+  # Frontend Application (React with Mock Engine for Demo Mode)
   frontend:
     build:
       context: ../frontend
@@ -102,69 +67,14 @@ services:
     environment:
       APP_URL: http://localhost
       AIRFLOW_URL: http://localhost:8080
-      MLFLOW_URL: http://localhost:5002
-      GRAFANA_URL: http://localhost:3100
-      FASTAPI_URL: http://localhost:8000
-      API_URL: http://localhost:8000
+      VITE_DEMO_MODE: "true"
     ports:
       - "3000:80"
     networks:
       - alphapulse-network
-    depends_on:
-      - fastapi
     restart: unless-stopped
 
-  # MLflow for experiment tracking
-  mlflow:
-    build:
-      context: ..
-      dockerfile: infra/docker/Dockerfile.mlflow
-    container_name: mlflow
-    labels:
-      project: alphapulse
-    command: >
-      mlflow server
-      --backend-store-uri postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/mlflow
-      --default-artifact-root s3://alphapulse/mlflow-artifacts
-      --host 0.0.0.0
-      --port 5000
-    environment:
-      AWS_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-minioadmin}
-      AWS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
-      MLFLOW_S3_ENDPOINT_URL: http://minio:9000
-    ports:
-      - "${MLFLOW_PORT:-5002}:5000"
-    networks:
-      - alphapulse-network
-    depends_on:
-      postgres:
-        condition: service_healthy
-      minio:
-        condition: service_healthy
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
-
-  # Ollama for LLM inference (New Service)
-  ollama:
-    image: ollama/ollama:latest
-    container_name: ollama
-    labels:
-      project: alphapulse
-    ports:
-      - "11434:11434"
-    volumes:
-      - ollama_models:/root/.ollama
-    networks:
-      - alphapulse-network
-    restart: unless-stopped
-    # Optional: Pre-pull the model if needed, or do it in the code
-
-  # Airflow Services
+  # Airflow Webserver
   airflow-webserver:
     build:
       context: ..
@@ -185,8 +95,6 @@ services:
       - AWS_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD:-minioadmin}
       - S3_ENDPOINT_URL=http://minio:9000
       - MINIO_ENDPOINT=minio:9000
-      - OLLAMA_HOST=http://ollama:11434
-      - TRAINER_API_URL=http://trainer:8080
       - PYTHONPATH=/opt/airflow/src:/opt/airflow/plugins
     volumes:
       - ../airflow/dags:/opt/airflow/dags
@@ -207,9 +115,8 @@ services:
         condition: service_healthy
       minio:
         condition: service_healthy
-      airflow-init:
-        condition: service_completed_successfully
 
+  # Airflow Scheduler
   airflow-scheduler:
     build:
       context: ..
@@ -228,8 +135,6 @@ services:
       - AWS_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD:-minioadmin}
       - S3_ENDPOINT_URL=http://minio:9000
       - MINIO_ENDPOINT=minio:9000
-      - OLLAMA_HOST=http://ollama:11434
-      - TRAINER_API_URL=http://trainer:8080
       - PYTHONPATH=/opt/airflow/src:/opt/airflow/plugins
     volumes:
       - ../airflow/dags:/opt/airflow/dags
@@ -243,119 +148,9 @@ services:
         condition: service_healthy
       minio:
         condition: service_healthy
-      airflow-init:
-        condition: service_completed_successfully
-
-  airflow-init:
-    build:
-      context: ..
-      dockerfile: infra/docker/Dockerfile.airflow
-    container_name: airflow-init
-    labels:
-      project: alphapulse
-    command: bash -c "/opt/airflow/scripts/create_connections.sh"
-    environment:
-      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
-      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/airflow
-      - AIRFLOW__CORE__LOAD_EXAMPLES=False
-      - _AIRFLOW_DB_UPGRADE=true
-      - _AIRFLOW_WWW_USER_CREATE=true
-      - _AIRFLOW_WWW_USER_USERNAME=${AIRFLOW_USERNAME:-admin}
-      - _AIRFLOW_WWW_USER_PASSWORD=${AIRFLOW_PASSWORD:-admin}
-    volumes:
-      - ../infra/scripts:/opt/airflow/scripts
-    networks:
-      - alphapulse-network
-    depends_on:
-      postgres:
-        condition: service_healthy
-
-  # Training container for ML model training
-  trainer:
-    build:
-      context: ..
-      dockerfile: infra/docker/Dockerfile.trainer
-    container_name: trainer
-    labels:
-      project: alphapulse
-    command: python -m training.train_server
-    environment:
-      PYTHONPATH: /app/src:/app
-      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-alphapulse}
-      POSTGRES_CONNECT_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-alphapulse}
-      AWS_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-minioadmin}
-      AWS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
-      S3_ENDPOINT_URL: http://minio:9000
-      MLFLOW_TRACKING_URI: http://mlflow:5000
-      MLFLOW_S3_ENDPOINT_URL: http://minio:9000
-    ports:
-      - "${TRAINER_PORT:-8181}:8080"
-    volumes:
-      - ../src:/app/src
-      - ../training:/app/training
-      - ../storage:/app/storage
-    networks:
-      - alphapulse-network
-    depends_on:
-      postgres:
-        condition: service_healthy
-      minio:
-        condition: service_healthy
-      mlflow:
-        condition: service_healthy
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
-
-  # MinIO client for bucket initialization
-  mc:
-    image: minio/mc:latest
-    container_name: mc
-    labels:
-      project: alphapulse
-    networks:
-      - alphapulse-network
-    depends_on:
-      - minio
-    entrypoint: >
-      /bin/sh -c "
-      until (/usr/bin/mc alias set alphapulse http://minio:9000 ${MINIO_ROOT_USER:-minioadmin} ${MINIO_ROOT_PASSWORD:-minioadmin}) do echo 'Waiting for MinIO...' && sleep 2; done;
-      /usr/bin/mc mb alphapulse/alphapulse --ignore-existing;
-      /usr/bin/mc mb alphapulse/mlflow-artifacts --ignore-existing;
-      /usr/bin/mc anonymous set download alphapulse/alphapulse;
-      echo 'MinIO buckets initialized successfully';
-      tail -f /dev/null
-      "
-    restart: on-failure
-
-  # Grafana for System Metrics (Standalone)
-  grafana:
-    image: grafana/grafana:latest
-    container_name: grafana
-    labels:
-      project: alphapulse
-    ports:
-      - "3100:3000" # Mapped to 3100 because Frontend uses 3000
-    environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
-      - GF_SERVER_ROOT_URL=http://localhost:3100/
-    volumes:
-      - grafana_data:/var/lib/grafana
-    networks:
-      - alphapulse-network
-    restart: unless-stopped
 
 volumes:
   postgres_data:
     driver: local
   minio_data:
-    driver: local
-  ollama_models:
-    driver: local
-  grafana_data:
     driver: local

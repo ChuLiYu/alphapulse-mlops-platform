@@ -21,6 +21,31 @@ data) can be applied to high-frequency financial time-series across multiple ass
 
 ---
 
+## 🌿 Git Branch Strategy — Dual Portfolio
+
+This repo maintains a **dual-branch portfolio strategy** to showcase both Data Engineering depth and full-stack MLOps capabilities:
+
+| Branch | Purpose | Services | Target Audience |
+|--------|---------|----------|-----------------|
+| **`main`** | Lightweight DE Portfolio | Postgres, MinIO, Airflow, Frontend | Data Engineering roles |
+| **`feature/mlops-full-stack`** | Full MLOps Platform | All services (FastAPI, Trainer, Grafana, Ollama, MLflow) | MLOps / Platform Engineer roles |
+
+### Quick Switch
+
+```bash
+# Data Engineering focus (main)
+git checkout main
+
+# Full MLOps showcase
+git checkout feature/mlops-full-stack
+```
+
+### K3s Deployment Note
+
+Both branches include K3s manifests. The `main` branch has **replicas: 0** for heavy services (FastAPI, Trainer, Grafana), while `feature/mlops-full-stack` runs the full stack.
+
+---
+
 ## 🏗️ System Architecture (Production)
 
 ```mermaid
