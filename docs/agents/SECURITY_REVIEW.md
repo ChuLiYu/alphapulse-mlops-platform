@@ -84,3 +84,8 @@ Refresh tokens still lack server-side single-use rotation/revocation (`jti` stor
 A stolen refresh token can be replayed until expiry; implement transactional
 rotation/reuse detection before exposing authentication to untrusted networks.
 This is an explicit remaining deployment blocker, not a completed security fix.
+
+The existing full-platform CI also stops at dependency resolution (`pandas<2.2`
+versus currently available `pandas-ta` NumPy requirements), before unit tests.
+The separate protocol/security workflow passes; this does not validate the full
+ML dependency stack. See [verification evidence](EVIDENCE.md).

@@ -1,0 +1,85 @@
+{
+  "status": "completed",
+  "trace": [
+    {
+      "turn": 1,
+      "tool": "get_snapshot",
+      "arguments": {
+        "symbol": "ETHUSDT"
+      },
+      "result": {
+        "snapshot_id": "fixture-eth-001",
+        "symbol": "ETHUSDT",
+        "source": "synthetic-fixture",
+        "missing_ratio": 0.0,
+        "drift_psi": 0.05,
+        "age_minutes": 5
+      }
+    },
+    {
+      "turn": 2,
+      "tool": "evaluate_snapshot",
+      "arguments": {
+        "snapshot_id": "fixture-eth-001"
+      },
+      "result": {
+        "snapshot_id": "fixture-eth-001",
+        "source": "synthetic-fixture",
+        "status": "ok",
+        "checks": [
+          {
+            "metric": "missing_ratio",
+            "observed": 0.0,
+            "threshold": 0.01,
+            "breached": false
+          },
+          {
+            "metric": "drift_psi",
+            "observed": 0.05,
+            "threshold": 0.2,
+            "breached": false
+          },
+          {
+            "metric": "age_minutes",
+            "observed": 5,
+            "threshold": 60,
+            "breached": false
+          }
+        ]
+      }
+    }
+  ],
+  "evaluations": [
+    {
+      "snapshot_id": "fixture-eth-001",
+      "source": "synthetic-fixture",
+      "status": "ok",
+      "checks": [
+        {
+          "metric": "missing_ratio",
+          "observed": 0.0,
+          "threshold": 0.01,
+          "breached": false
+        },
+        {
+          "metric": "drift_psi",
+          "observed": 0.05,
+          "threshold": 0.2,
+          "breached": false
+        },
+        {
+          "metric": "age_minutes",
+          "observed": 5,
+          "threshold": 60,
+          "breached": false
+        }
+      ]
+    }
+  ],
+  "answer": "The monitoring health for ETHUSDT is **ok** based on the latest snapshot analysis. All metrics meet their thresholds:\n\n- **missing_ratio**: Observed `0.0` (Threshold: `0.01` \u2192 Not breached)\n- **drift_psi**: Observed `0.05` (Threshold: `0.2` \u2192 Not breached)\n- **age_minutes**: Observed `5` (Threshold: `60` \u2192 Not breached)\n\nNo critical issues detected in this synthetic monitoring snapshot.",
+  "mode": "ollama",
+  "model": "qwen3:4b",
+  "symbol": "ETHUSDT",
+  "elapsed_seconds": 113.892,
+  "recorded_at": "2026-10-18T21:20:40.966334+00:00"
+}

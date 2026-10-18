@@ -40,7 +40,36 @@ Analytics is warranted until its actual repository is supplied.
   [Metadata](../../examples/agent/live/original/metadata.json),
   [summary](../../examples/agent/live/original/summary.json) and adjacent fixture
   traces preserve the evidence without local paths or the full model inventory.
-- Security regression suite: 9 passed (SQLite API boundary and mocked sentiment,
+- Security regression suite: 11 passed (SQLite API boundary and mocked sentiment,
   plus Compose policy); see [security scope](SECURITY_REVIEW.md).
 - Existing production services and full ML/database test suite were not exercised
   by this isolated PoC validation.
+
+The protocol/replay and security-regression GitHub Actions jobs passed for
+`f06ef0ab69e566631a49fa4ff2426ecc8ab32b33`
+([run](https://github.com/ChuLiYu/alphapulse-mlops-platform/actions/runs/39167137031)).
+The dedicated reviewer rechecked the authentication, API-key permissions, market
+data route dependencies and sentiment transport fixes without further material
+findings within that scope. Remaining deployment limitations are in the security
+review; this does not certify the whole historical platform.
+
+## Hardened implementation rerun
+
+On 2026-10-18, source commit
+`f06ef0ab69e566631a49fa4ff2426ecc8ab32b33` completed **2/2** real Ollama
+runs: BTCUSDT in 103.959 seconds and ETHUSDT in 113.892 seconds. Both selected
+`get_snapshot` on turn 1 and `evaluate_snapshot` on turn 2. Manual inspection
+confirmed the final metrics, thresholds and review/ok status agreed with tool
+results. This rerun used the portable evaluator and hardened local transport.
+[Metadata](../../examples/agent/live/hardened/metadata.json),
+[summary](../../examples/agent/live/hardened/summary.json),
+[BTC trace](../../examples/agent/live/hardened/btcusdt-1.json),
+[ETH trace](../../examples/agent/live/hardened/ethusdt-1.json).
+
+The broader existing Python Test & Deploy workflow passed lint but failed during
+dependency installation, before unit tests ran: the historical `pandas<2.2`
+constraint requires NumPy <2 while available `pandas-ta` releases require NumPy
+>=2.2.6. The isolated protocol/security workflow passed. Full platform dependency
+modernization and ML compatibility testing remain separate work; no dependency
+upgrade was inferred safe from the fixture-agent tests.
+[Failed full-platform run](https://github.com/ChuLiYu/alphapulse-mlops-platform/actions/runs/39167137015).

@@ -84,7 +84,8 @@ HTTP localhost or literal loopback addresses (IPv4/IPv6), without credentials,
 paths, query strings, or fragments. Proxy forwarding and redirects are disabled;
 responses are capped at 1 MiB. Remote servers and the Docker-internal hostname
 `ollama` are deliberately unsupported by this host CLI. The separate Airflow
-integration retains its container-network configuration.
+integration separately allows only loopback or the exact Docker service `ollama`,
+with redirects/proxies disabled and bounded streamed responses.
 
 Live stdout omits the tool trace unless `--include-trace` is set. `--output` is an
 explicit request to persist the full fixture trace in a new 0600 file. The batch

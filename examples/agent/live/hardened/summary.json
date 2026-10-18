@@ -1,0 +1,16 @@
+[
+  {
+    "symbol": "BTCUSDT",
+    "status": "completed",
+    "error": null,
+    "elapsed_seconds": 103.959,
+    "trace_file": "btcusdt-1.json"
+  },
+  {
+    "symbol": "ETHUSDT",
+    "status": "completed",
+    "error": null,
+    "elapsed_seconds": 113.892,
+    "trace_file": "ethusdt-1.json"
+  }
+]
