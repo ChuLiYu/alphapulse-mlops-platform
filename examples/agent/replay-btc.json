@@ -1,0 +1,82 @@
+{
+  "status": "completed",
+  "trace": [
+    {
+      "turn": 1,
+      "tool": "get_snapshot",
+      "arguments": {
+        "symbol": "BTCUSDT"
+      },
+      "result": {
+        "snapshot_id": "fixture-btc-001",
+        "symbol": "BTCUSDT",
+        "source": "synthetic-fixture",
+        "missing_ratio": 0.02,
+        "drift_psi": 0.31,
+        "age_minutes": 90
+      }
+    },
+    {
+      "turn": 2,
+      "tool": "evaluate_snapshot",
+      "arguments": {
+        "snapshot_id": "fixture-btc-001"
+      },
+      "result": {
+        "snapshot_id": "fixture-btc-001",
+        "source": "synthetic-fixture",
+        "status": "review",
+        "checks": [
+          {
+            "metric": "missing_ratio",
+            "observed": 0.02,
+            "threshold": 0.01,
+            "breached": true
+          },
+          {
+            "metric": "drift_psi",
+            "observed": 0.31,
+            "threshold": 0.2,
+            "breached": true
+          },
+          {
+            "metric": "age_minutes",
+            "observed": 90,
+            "threshold": 60,
+            "breached": true
+          }
+        ]
+      }
+    }
+  ],
+  "evaluations": [
+    {
+      "snapshot_id": "fixture-btc-001",
+      "source": "synthetic-fixture",
+      "status": "review",
+      "checks": [
+        {
+          "metric": "missing_ratio",
+          "observed": 0.02,
+          "threshold": 0.01,
+          "breached": true
+        },
+        {
+          "metric": "drift_psi",
+          "observed": 0.31,
+          "threshold": 0.2,
+          "breached": true
+        },
+        {
+          "metric": "age_minutes",
+          "observed": 90,
+          "threshold": 60,
+          "breached": true
+        }
+      ]
+    }
+  ],
+  "answer": "SCRIPTED REPLAY ONLY: {\"snapshot_id\": \"fixture-btc-001\", \"source\": \"synthetic-fixture\", \"status\": \"review\", \"checks\": [{\"metric\": \"missing_ratio\", \"observed\": 0.02, \"threshold\": 0.01, \"breached\": true}, {\"metric\": \"drift_psi\", \"observed\": 0.31, \"threshold\": 0.2, \"breached\": true}, {\"metric\": \"age_minutes\", \"observed\": 90, \"threshold\": 60, \"breached\": true}]}",
+  "mode": "replay",
+  "model": null
+}

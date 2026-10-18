@@ -8,6 +8,17 @@
 
 AlphaPulse is a production-grade DataOps & MLOps platform for financial market data — featuring end-to-end ELT pipelines, financial-precision data modeling, and cloud-agnostic infrastructure built with Terraform, Airflow, and Kubernetes.
 
+## LLM tool-calling agent PoC
+
+The isolated [monitoring agent](docs/agents/README.md) adds a bounded Python/Ollama
+loop: model → read a synthetic monitoring snapshot → model → evaluate that
+snapshot with a second tool → model summary. It includes allowlisted tools,
+argument validation, execution budgets, observable traces, and dependency-free
+protocol tests. It is a local PoC using synthetic data, not a production service.
+The committed example is a **scripted replay**, not evidence of a real LLM run.
+See the [LLM evidence audit](docs/agents/EVIDENCE.md) for existing functionality
+and verification limits.
+
 > **📅 Current Status (Mar 2026)**: Phase 5 In Progress - K3s Cluster Migration
 
 > **🚀 Live Demo**: [https://alphapulse.luichu.dev/](https://alphapulse.luichu.dev/) (Deployed on Oracle Cloud + Cloudflare)

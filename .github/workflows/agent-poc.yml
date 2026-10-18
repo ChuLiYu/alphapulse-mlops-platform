@@ -1,0 +1,24 @@
+name: Agent PoC protocol tests
+on:
+  pull_request:
+    paths:
+      - 'src/alphapulse/agents/**'
+      - 'tests/agent_poc/**'
+      - '.github/workflows/agent-poc.yml'
+  push:
+    paths:
+      - 'src/alphapulse/agents/**'
+      - 'tests/agent_poc/**'
+      - '.github/workflows/agent-poc.yml'
+permissions:
+  contents: read
+jobs:
+  protocol-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: PYTHONPATH=src python -m unittest discover -s tests/agent_poc -v
+      - run: PYTHONPATH=src python -m alphapulse.agents.monitor --mode replay
