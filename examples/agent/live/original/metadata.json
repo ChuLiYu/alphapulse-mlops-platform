@@ -1,0 +1,7 @@
+{
+  "model": "qwen3:4b",
+  "digest": "359d7dd4bcdab3d86b87d73ac27966f4dbb9f5efdfcc75d34a8764a09474fae7",
+  "ollama_version": "0.40.6",
+  "code_commit": "2593bd66f2a8bdc3bf679447c50692bc1250b62c",
+  "started_at": "2026-10-18T20:57:39.934348+00:00"
+}

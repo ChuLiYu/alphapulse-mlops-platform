@@ -23,10 +23,16 @@ from alphapulse.api.schemas.indicator import (
     IndicatorStatsResponse,
 )
 
+from alphapulse.security.auth import require_permission
+
 router = APIRouter()
 
 
-@router.get("/indicators", response_model=IndicatorListResponse)
+@router.get(
+    "/indicators",
+    dependencies=[Depends(require_permission("data:read"))],
+    response_model=IndicatorListResponse,
+)
 async def get_indicators(
     symbol: Optional[str] = Query(None, description="Filter by trading pair symbol"),
     start_date: Optional[datetime] = Query(
@@ -113,7 +119,11 @@ async def get_indicators(
     )
 
 
-@router.get("/indicators/{symbol}", response_model=IndicatorListResponse)
+@router.get(
+    "/indicators/{symbol}",
+    dependencies=[Depends(require_permission("data:read"))],
+    response_model=IndicatorListResponse,
+)
 async def get_indicators_by_symbol(
     symbol: str,
     days: Optional[int] = Query(
@@ -171,7 +181,11 @@ async def get_indicators_by_symbol(
     )
 
 
-@router.get("/indicators/{symbol}/latest", response_model=IndicatorResponse)
+@router.get(
+    "/indicators/{symbol}/latest",
+    dependencies=[Depends(require_permission("data:read"))],
+    response_model=IndicatorResponse,
+)
 async def get_latest_indicator(
     symbol: str,
     db: Session = Depends(get_db),
@@ -209,7 +223,11 @@ async def get_latest_indicator(
     )
 
 
-@router.post("/indicators", response_model=IndicatorResponse)
+@router.post(
+    "/indicators",
+    dependencies=[Depends(require_permission("data:write"))],
+    response_model=IndicatorResponse,
+)
 async def create_indicator(
     indicator_data: IndicatorCreate,
     db: Session = Depends(get_db),
@@ -256,7 +274,10 @@ async def create_indicator(
     )
 
 
-@router.get("/indicators/{symbol}/stats")
+@router.get(
+    "/indicators/{symbol}/stats",
+    dependencies=[Depends(require_permission("data:read"))],
+)
 async def get_indicator_stats(
     symbol: str,
     days: int = Query(30, ge=1, le=365, description="Number of days for statistics"),

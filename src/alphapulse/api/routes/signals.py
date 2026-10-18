@@ -26,10 +26,16 @@ from alphapulse.api.schemas.xai import SignalExplanationResponse, FeatureImporta
 from alphapulse.security.auth import get_current_user_from_token
 from alphapulse.api.models_user import User
 
+from alphapulse.security.auth import require_permission
+
 router = APIRouter()
 
 
-@router.get("/signals", response_model=SignalListResponse)
+@router.get(
+    "/signals",
+    dependencies=[Depends(require_permission("data:read"))],
+    response_model=SignalListResponse,
+)
 async def get_signals(
     symbol: Optional[str] = Query(None, description="Filter by trading pair symbol"),
     signal_type: Optional[str] = Query(
@@ -141,7 +147,11 @@ async def get_signals(
     )
 
 
-@router.get("/signals/{symbol}", response_model=SignalListResponse)
+@router.get(
+    "/signals/{symbol}",
+    dependencies=[Depends(require_permission("data:read"))],
+    response_model=SignalListResponse,
+)
 async def get_signals_by_symbol(
     symbol: str,
     days: Optional[int] = Query(
@@ -203,7 +213,11 @@ async def get_signals_by_symbol(
     )
 
 
-@router.get("/signals/{symbol}/latest", response_model=SignalResponse)
+@router.get(
+    "/signals/{symbol}/latest",
+    dependencies=[Depends(require_permission("data:read"))],
+    response_model=SignalResponse,
+)
 async def get_latest_signal(
     symbol: str,
     db: Session = Depends(get_db),
@@ -250,7 +264,11 @@ async def get_latest_signal(
     )
 
 
-@router.post("/signals", response_model=SignalResponse)
+@router.post(
+    "/signals",
+    dependencies=[Depends(require_permission("data:write"))],
+    response_model=SignalResponse,
+)
 async def create_signal(
     signal_data: SignalCreate,
     db: Session = Depends(get_db),
@@ -287,7 +305,11 @@ async def create_signal(
     )
 
 
-@router.get("/signals/{symbol}/stats", response_model=SignalStats)
+@router.get(
+    "/signals/{symbol}/stats",
+    dependencies=[Depends(require_permission("data:read"))],
+    response_model=SignalStats,
+)
 async def get_signal_stats(
     symbol: str,
     days: int = Query(30, ge=1, le=365, description="Number of days for statistics"),
@@ -349,7 +371,10 @@ async def get_signal_stats(
     )
 
 
-@router.get("/signals/analysis/recent-performance")
+@router.get(
+    "/signals/analysis/recent-performance",
+    dependencies=[Depends(require_permission("data:read"))],
+)
 async def get_recent_signal_performance(
     days: int = Query(7, ge=1, le=30, description="Number of days to analyze"),
     min_confidence: Decimal = Query(
@@ -452,7 +477,11 @@ async def get_recent_signal_performance(
     return analysis
 
 
-@router.get("/signals/{signal_id}/explain", response_model=SignalExplanationResponse)
+@router.get(
+    "/signals/{signal_id}/explain",
+    dependencies=[Depends(require_permission("data:read"))],
+    response_model=SignalExplanationResponse,
+)
 async def explain_signal(
     signal_id: int,
     current_user: User = Depends(get_current_user_from_token),

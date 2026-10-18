@@ -52,3 +52,8 @@ dist/
 .env.oci
 *.tfvars
 infra/terraform/environments/prod/prod.tfvars
+
+# Private agent evaluation artifacts; publish only reviewed synthetic examples
+agent-runs/
+
+!src/alphapulse/security/migrate_api_keys.py

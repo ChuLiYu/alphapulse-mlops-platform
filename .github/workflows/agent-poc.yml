@@ -4,11 +4,23 @@ on:
     paths:
       - 'src/alphapulse/agents/**'
       - 'tests/agent_poc/**'
+      - 'tests/security/**'
+      - 'src/alphapulse/security/**'
+      - 'src/alphapulse/api/**'
+      - 'src/alphapulse/main.py'
+      - 'infra/docker-compose.yml'
+      - 'airflow/plugins/alphapulse_utils/sentiment_analyzer.py'
       - '.github/workflows/agent-poc.yml'
   push:
     paths:
       - 'src/alphapulse/agents/**'
       - 'tests/agent_poc/**'
+      - 'tests/security/**'
+      - 'src/alphapulse/security/**'
+      - 'src/alphapulse/api/**'
+      - 'src/alphapulse/main.py'
+      - 'infra/docker-compose.yml'
+      - 'airflow/plugins/alphapulse_utils/sentiment_analyzer.py'
       - '.github/workflows/agent-poc.yml'
 permissions:
   contents: read
@@ -22,3 +34,13 @@ jobs:
           python-version: '3.12'
       - run: PYTHONPATH=src python -m unittest discover -s tests/agent_poc -v
       - run: PYTHONPATH=src python -m alphapulse.agents.monitor --mode replay
+
+  security-regression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install fastapi sqlalchemy 'python-jose[cryptography]' 'bcrypt>=4,<6' httpx email-validator psutil pandas requests pyyaml
+      - run: PYTHONPATH=src python -m unittest discover -s tests/security -v

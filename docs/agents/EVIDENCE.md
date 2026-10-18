@@ -9,7 +9,7 @@ Audited on 2026-10-18. Baseline: AlphaPulse main commit
 | News pipeline | [news_sentiment_dag.py](https://github.com/ChuLiYu/alphapulse-mlops-platform/blob/2d1db3fee1f5e027d2c7130cc24b1510573b1be8/airflow/dags/news_sentiment_dag.py) loads news, invokes classification, saves scores | An Airflow pipeline incorporating an LLM; each article uses one LLM call. The model does not choose tools or coordinate the workflow. |
 | Explanation field | [signals.py](https://github.com/ChuLiYu/alphapulse-mlops-platform/blob/2d1db3fee1f5e027d2c7130cc24b1510573b1be8/src/alphapulse/api/routes/signals.py) returns hard-coded summaries under `llm_summary` | A mock explanation; do not present it as model-generated text. |
 | Installed libraries | [setup.py](https://github.com/ChuLiYu/alphapulse-mlops-platform/blob/2d1db3fee1f5e027d2c7130cc24b1510573b1be8/src/setup.py) lists LangChain, OpenAI and Groq | Dependency declarations alone do not prove agent functionality. |
-| New monitoring PoC | [monitor.py](../../src/alphapulse/agents/monitor.py), [tests](../../tests/agent_poc/test_monitor.py), [guide](README.md) | Implemented native Ollama tool-calling adapter and bounded multi-turn runtime, validated offline with a scripted client. Real model run remains unverified. |
+| New monitoring PoC | [monitor.py](../../src/alphapulse/agents/monitor.py), [tests](../../tests/agent_poc/test_monitor.py), [guide](README.md) | Implemented native Ollama tool-calling adapter and bounded multi-turn runtime, validated offline and with real Ollama runs on synthetic fixtures; see records below. |
 
 ## Scope and missing evidence
 
@@ -27,11 +27,20 @@ Analytics is warranted until its actual repository is supplied.
 
 ## Verification record for this change
 
-- Offline protocol suite: 9 passed; live Ollama test skipped by default.
+- Offline protocol suite: 13 passed; live Ollama test skipped by default.
 - Scripted BTC replay: two successful tool calls on separate turns, then summary;
   trace committed as [replay-btc.json](../../examples/agent/replay-btc.json).
-- Real model run: **not executed**; Ollama executable was not installed in the
-  implementation environment. Do not describe this change as a live-validated
-  or production agent until completing the guide's real-model checks.
+- Real model runs, 2026-10-18: **6/6 completed**, BTCUSDT 3/3 and ETHUSDT
+  3/3, using Ollama 0.40.6 and `qwen3:4b` at source commit
+  `2593bd66f2a8bdc3bf679447c50692bc1250b62c`. Each run called `get_snapshot`
+  on turn 1, `evaluate_snapshot` on turn 2, then produced a final summary.
+  All six summaries were manually checked: metrics, thresholds and review/ok
+  classifications matched tool evaluations. The runtime does not automatically
+  verify free-text semantics. These six runs do not establish general reliability.
+  [Metadata](../../examples/agent/live/original/metadata.json),
+  [summary](../../examples/agent/live/original/summary.json) and adjacent fixture
+  traces preserve the evidence without local paths or the full model inventory.
+- Security regression suite: 9 passed (SQLite API boundary and mocked sentiment,
+  plus Compose policy); see [security scope](SECURITY_REVIEW.md).
 - Existing production services and full ML/database test suite were not exercised
   by this isolated PoC validation.

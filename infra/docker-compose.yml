@@ -14,11 +14,11 @@ services:
       project: alphapulse
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB:-alphapulse}
       POSTGRES_INITDB_ARGS: "--encoding=UTF-8"
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./scripts/init-databases.sh:/docker-entrypoint-initdb.d/00-init-databases.sh:ro
@@ -41,10 +41,10 @@ services:
     command: server /data --console-address ":9001"
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?Set MINIO_ROOT_PASSWORD}
     ports:
-      - "${MINIO_PORT:-9000}:9000" # API
-      - "${MINIO_CONSOLE_PORT:-9001}:9001" # Console
+      - "127.0.0.1:${MINIO_PORT:-9000}:9000" # API
+      - "127.0.0.1:${MINIO_CONSOLE_PORT:-9001}:9001" # Console
     volumes:
       - minio_data:/data
     networks:
@@ -65,15 +65,17 @@ services:
     labels:
       project: alphapulse
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-alphapulse}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-alphapulse}
       AWS_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-minioadmin}
-      AWS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      AWS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:?Set MINIO_ROOT_PASSWORD}
       S3_ENDPOINT_URL: http://minio:9000
-      DEBUG: ${DEBUG:-true}
+      SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+      DEBUG: ${DEBUG:-false}
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
       API_VERSION: ${API_VERSION:-v1}
     ports:
-      - "${FASTAPI_PORT:-8000}:8000"
+      - "127.0.0.1:${FASTAPI_PORT:-8000}:8000"
     volumes:
       - ../src:/app/src
     networks:
@@ -107,7 +109,7 @@ services:
       FASTAPI_URL: http://localhost:8000
       API_URL: http://localhost:8000
     ports:
-      - "3000:80"
+      - "127.0.0.1:3000:80"
     networks:
       - alphapulse-network
     depends_on:
@@ -124,16 +126,16 @@ services:
       project: alphapulse
     command: >
       mlflow server
-      --backend-store-uri postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/mlflow
+      --backend-store-uri postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@postgres:5432/mlflow
       --default-artifact-root s3://alphapulse/mlflow-artifacts
       --host 0.0.0.0
       --port 5000
     environment:
       AWS_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-minioadmin}
-      AWS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      AWS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:?Set MINIO_ROOT_PASSWORD}
       MLFLOW_S3_ENDPOINT_URL: http://minio:9000
     ports:
-      - "${MLFLOW_PORT:-5002}:5000"
+      - "127.0.0.1:${MLFLOW_PORT:-5002}:5000"
     networks:
       - alphapulse-network
     depends_on:
@@ -156,7 +158,7 @@ services:
     labels:
       project: alphapulse
     ports:
-      - "11434:11434"
+      - "127.0.0.1:11434:11434"
     volumes:
       - ollama_models:/root/.ollama
     networks:
@@ -176,13 +178,13 @@ services:
     restart: always
     environment:
       - AIRFLOW__CORE__EXECUTOR=LocalExecutor
-      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/airflow
-      - AIRFLOW__CORE__FERNET_KEY=${AIRFLOW_FERNET_KEY:-afrRCi0qTwZEvSfVJVGoNbkAWdiSqsXDq-ijdSaIs5g=}
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@postgres:5432/airflow
+      - AIRFLOW__CORE__FERNET_KEY=${AIRFLOW_FERNET_KEY:?Set AIRFLOW_FERNET_KEY}
       - AIRFLOW__CORE__LOAD_EXAMPLES=False
       - AIRFLOW__API__AUTH_BACKENDS=airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session
       - AIRFLOW__WEBSERVER__ENABLE_PROXY_FIX=True
       - AWS_ACCESS_KEY_ID=${MINIO_ROOT_USER:-minioadmin}
-      - AWS_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD:-minioadmin}
+      - AWS_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD:?Set MINIO_ROOT_PASSWORD}
       - S3_ENDPOINT_URL=http://minio:9000
       - MINIO_ENDPOINT=minio:9000
       - OLLAMA_HOST=http://ollama:11434
@@ -194,7 +196,7 @@ services:
       - ../airflow/config:/opt/airflow/config
       - ../src:/opt/airflow/src
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080"
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8080/airflow/health"]
       interval: 30s
@@ -221,11 +223,11 @@ services:
     restart: always
     environment:
       - AIRFLOW__CORE__EXECUTOR=LocalExecutor
-      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/airflow
-      - AIRFLOW__CORE__FERNET_KEY=${AIRFLOW_FERNET_KEY:-afrRCi0qTwZEvSfVJVGoNbkAWdiSqsXDq-ijdSaIs5g=}
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@postgres:5432/airflow
+      - AIRFLOW__CORE__FERNET_KEY=${AIRFLOW_FERNET_KEY:?Set AIRFLOW_FERNET_KEY}
       - AIRFLOW__CORE__LOAD_EXAMPLES=False
       - AWS_ACCESS_KEY_ID=${MINIO_ROOT_USER:-minioadmin}
-      - AWS_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD:-minioadmin}
+      - AWS_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD:?Set MINIO_ROOT_PASSWORD}
       - S3_ENDPOINT_URL=http://minio:9000
       - MINIO_ENDPOINT=minio:9000
       - OLLAMA_HOST=http://ollama:11434
@@ -256,12 +258,12 @@ services:
     command: bash -c "/opt/airflow/scripts/create_connections.sh"
     environment:
       - AIRFLOW__CORE__EXECUTOR=LocalExecutor
-      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/airflow
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@postgres:5432/airflow
       - AIRFLOW__CORE__LOAD_EXAMPLES=False
       - _AIRFLOW_DB_UPGRADE=true
       - _AIRFLOW_WWW_USER_CREATE=true
       - _AIRFLOW_WWW_USER_USERNAME=${AIRFLOW_USERNAME:-admin}
-      - _AIRFLOW_WWW_USER_PASSWORD=${AIRFLOW_PASSWORD:-admin}
+      - _AIRFLOW_WWW_USER_PASSWORD=${AIRFLOW_PASSWORD:?Set AIRFLOW_PASSWORD}
     volumes:
       - ../infra/scripts:/opt/airflow/scripts
     networks:
@@ -281,15 +283,15 @@ services:
     command: python -m training.train_server
     environment:
       PYTHONPATH: /app/src:/app
-      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-alphapulse}
-      POSTGRES_CONNECT_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-alphapulse}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-alphapulse}
+      POSTGRES_CONNECT_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-alphapulse}
       AWS_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-minioadmin}
-      AWS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      AWS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:?Set MINIO_ROOT_PASSWORD}
       S3_ENDPOINT_URL: http://minio:9000
       MLFLOW_TRACKING_URI: http://mlflow:5000
       MLFLOW_S3_ENDPOINT_URL: http://minio:9000
     ports:
-      - "${TRAINER_PORT:-8181}:8080"
+      - "127.0.0.1:${TRAINER_PORT:-8181}:8080"
     volumes:
       - ../src:/app/src
       - ../training:/app/training
@@ -323,10 +325,10 @@ services:
       - minio
     entrypoint: >
       /bin/sh -c "
-      until (/usr/bin/mc alias set alphapulse http://minio:9000 ${MINIO_ROOT_USER:-minioadmin} ${MINIO_ROOT_PASSWORD:-minioadmin}) do echo 'Waiting for MinIO...' && sleep 2; done;
+      until (/usr/bin/mc alias set alphapulse http://minio:9000 ${MINIO_ROOT_USER:-minioadmin} ${MINIO_ROOT_PASSWORD:?Set MINIO_ROOT_PASSWORD}) do echo 'Waiting for MinIO...' && sleep 2; done;
       /usr/bin/mc mb alphapulse/alphapulse --ignore-existing;
       /usr/bin/mc mb alphapulse/mlflow-artifacts --ignore-existing;
-      /usr/bin/mc anonymous set download alphapulse/alphapulse;
+      /usr/bin/mc anonymous set none alphapulse/alphapulse;
       echo 'MinIO buckets initialized successfully';
       tail -f /dev/null
       "
@@ -339,10 +341,10 @@ services:
     labels:
       project: alphapulse
     ports:
-      - "3100:3000" # Mapped to 3100 because Frontend uses 3000
+      - "127.0.0.1:3100:3000" # Mapped to 3100 because Frontend uses 3000
     environment:
       - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:?Set GRAFANA_PASSWORD}
       - GF_SERVER_ROOT_URL=http://localhost:3100/
     volumes:
       - grafana_data:/var/lib/grafana

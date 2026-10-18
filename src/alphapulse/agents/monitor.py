@@ -9,7 +9,8 @@ import copy
 import json
 import os
 from pathlib import Path
-from urllib.request import Request, urlopen
+from alphapulse.agents.artifacts import save_json
+from alphapulse.agents.transport import local_endpoint, request_json
 
 
 def tool_schema(name, description, key, values):
@@ -76,25 +77,20 @@ SYSTEM = (
 class OllamaClient:
     def __init__(self, model, host):
         self.model = model
-        self.host = host.rstrip("/")
+        self.host = local_endpoint(host)
 
     def chat(self, messages, tools):
-        payload = json.dumps(
+        result = request_json(
+            self.host,
+            "/api/chat",
             {
                 "model": self.model,
                 "messages": messages,
                 "tools": tools,
                 "stream": False,
                 "options": {"temperature": 0, "num_predict": 1024},
-            }
-        ).encode()
-        request = Request(
-            self.host + "/api/chat",
-            data=payload,
-            headers={"Content-Type": "application/json"},
+            },
         )
-        with urlopen(request, timeout=120) as response:
-            result = json.load(response)
         # Persist only observable actions and content, not model thinking fields.
         message = result["message"]
         return {
@@ -242,7 +238,12 @@ def main():
     parser.add_argument(
         "--host", default=os.getenv("OLLAMA_HOST", "http://localhost:11434")
     )
-    parser.add_argument("--output", type=Path)
+    parser.add_argument(
+        "--output", type=Path, help="new private fixture trace file; never overwritten"
+    )
+    parser.add_argument(
+        "--include-trace", action="store_true", help="include tool trace on stdout"
+    )
     args = parser.parse_args()
     client = (
         ReplayClient(args.symbol)
@@ -251,11 +252,15 @@ def main():
     )
     result = run_agent(client, args.symbol)
     result.update(mode=args.mode, model=args.model if args.mode == "ollama" else None)
-    rendered = json.dumps(result, indent=2)
-    print(rendered)
+    visible = (
+        result
+        if args.mode == "replay" or args.include_trace
+        else {k: v for k, v in result.items() if k != "trace"}
+    )
+    print(json.dumps(visible, indent=2))
     if args.output:
         args.output.parent.mkdir(parents=True, exist_ok=True)
-        args.output.write_text(rendered + "\n")
+        save_json(args.output, result)
     return 0 if result["status"] == "completed" else 1
 
 

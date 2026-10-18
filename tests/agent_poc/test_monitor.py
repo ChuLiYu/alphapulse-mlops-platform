@@ -132,25 +132,23 @@ class AgentTests(unittest.TestCase):
             result = run_agent(Script([message]), max_turns=1)
             self.assertEqual(result["status"], "incomplete")
         with patch(
-            "alphapulse.agents.monitor.urlopen", side_effect=TimeoutError("secret")
+            "alphapulse.agents.monitor.request_json", side_effect=TimeoutError("secret")
         ):
             result = run_agent(OllamaClient("test", "http://localhost:11434"))
         self.assertEqual(result["error"], "model_response_error:TimeoutError")
         self.assertNotIn("secret", json.dumps(result))
 
     def test_ollama_payload_and_thinking_is_not_recorded(self):
-        with patch("alphapulse.agents.monitor.urlopen") as request:
-            request.return_value.__enter__.return_value.read.return_value = json.dumps(
-                {
-                    "message": {
-                        "role": "assistant",
-                        "content": "done",
-                        "thinking": "hidden",
-                    }
+        with patch("alphapulse.agents.monitor.request_json") as request:
+            request.return_value = {
+                "message": {
+                    "role": "assistant",
+                    "content": "done",
+                    "thinking": "hidden",
                 }
-            ).encode()
+            }
             message = OllamaClient("test", "http://localhost:11434").chat([], [])
-        payload = json.loads(request.call_args.args[0].data)
+        payload = request.call_args.args[2]
         self.assertEqual(payload["model"], "test")
         self.assertFalse(payload["stream"])
         self.assertNotIn("thinking", message)

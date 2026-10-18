@@ -14,9 +14,7 @@ from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import QueuePool
 
 # Database configuration
-DATABASE_URL = os.getenv(
-    "DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/alphapulse"
-)
+DATABASE_URL = os.environ["DATABASE_URL"]
 
 # Create engine with connection pooling
 engine = create_engine(

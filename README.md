@@ -1,6 +1,5 @@
 # AlphaPulse: Production-Grade MLOps for Crypto-Fintech
 
-[![Live Demo](https://img.shields.io/badge/Demo-Live_App-2ea44f?style=for-the-badge&logo=vercel)](https://alphapulse.luichu.dev/)
 [![Infrastructure: Terraform](https://img.shields.io/badge/IaC-Terraform-7B42BC?logo=terraform&style=flat-square)](docs/architecture/adr-007-cross-cloud-strategy.md)
 [![Runtime: Oracle ARM64](https://img.shields.io/badge/Runtime-Oracle_ARM64-F80000?logo=oracle&style=flat-square)](docs/architecture/adr-008-cpu-first-optimization.md)
 [![Cost: $0/mo](https://img.shields.io/badge/FinOps-Zero--Cost-success?style=flat-square)](docs/deployment/COST_FINOPS.md)
@@ -15,13 +14,13 @@ loop: model → read a synthetic monitoring snapshot → model → evaluate that
 snapshot with a second tool → model summary. It includes allowlisted tools,
 argument validation, execution budgets, observable traces, and dependency-free
 protocol tests. It is a local PoC using synthetic data, not a production service.
-The committed example is a **scripted replay**, not evidence of a real LLM run.
+Recorded real-model fixture results and a clearly labelled scripted replay are included.
 See the [LLM evidence audit](docs/agents/EVIDENCE.md) for existing functionality
 and verification limits.
 
-> **📅 Current Status (Mar 2026)**: Phase 5 In Progress - K3s Cluster Migration
+> **Current status (2026-10-18):** The hosted application is offline. The agent runs locally on synthetic fixtures. Historical deployment diagrams are design/history, not current availability.
 
-> **🚀 Live Demo**: [https://alphapulse.luichu.dev/](https://alphapulse.luichu.dev/) (Deployed on Oracle Cloud + Cloudflare)
+See the [security review and upgrade steps](docs/agents/SECURITY_REVIEW.md) before starting existing API/infrastructure services.
 
 ---
 
