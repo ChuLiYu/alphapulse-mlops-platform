@@ -22,6 +22,9 @@ and verification limits.
 
 See the [security review and upgrade steps](docs/agents/SECURITY_REVIEW.md) before starting existing API/infrastructure services.
 
+For a Traditional Chinese project walkthrough, design tradeoffs, evidence boundaries,
+and interview refresher, see [專案導覽與快速複習筆記](docs/PROJECT_REVIEW.zh-TW.md).
+
 ---
 
 ## 🏗️ System Architecture (Production)
