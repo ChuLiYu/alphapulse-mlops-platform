@@ -54,3 +54,5 @@ Agent 仍使用明確標示的 synthetic fixtures，不進行交易或資料庫�
 ## 保留限制
 
 「0」僅代表當次公告服務對指定套件清單的結果；不包含容器 OS、Ollama binary、完整 Git 歷史或歷史訓練依賴。登入尚需共享的帳戶/IP rate limit 才可公開暴露；已發出的 access token 最長 30 分鐘內仍有效。歷史 Airflow Deployment 不完整，不能直接視為可部署。JS bundle 仍有體積建議警告，並非安全掃描失敗。先前真實 LLM 工具鏈證據保留於 VERIFICATION.zh-TW.md；本次安全測試不冒充新的 live-model 評估。
+
+CI 相容性修正：設定檔生成容器使用呼叫者的 UID/GID，確保 Linux runner 上的 0600 檔案由執行者擁有；保留私有權限。首次 CI 曾因 root 擁有檔案而失敗，修正後以最新 CI 結果為準。

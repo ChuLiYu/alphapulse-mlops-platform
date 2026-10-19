@@ -12,7 +12,7 @@ dc() {
 }
 
 make_env() {
-    docker --context orbstack run --rm -v "$ROOT:/workspace" -w /workspace python:3.12-slim \
+    docker --context orbstack run --rm --user "$(id -u):$(id -g)" -v "$ROOT:/workspace" -w /workspace python:3.12-slim \
         python -c 'import os,pathlib,secrets; os.umask(0o077); p=pathlib.Path(".env.orbstack.local"); assert not p.is_symlink(); p=p.resolve(strict=False); assert p.parent==pathlib.Path("/workspace");
 if not p.exists():
  t=p.with_name(".env.orbstack.local.tmp-"+secrets.token_hex(8)); fd=os.open(t,os.O_WRONLY|os.O_CREAT|os.O_EXCL,0o600); f=os.fdopen(fd,"w"); f.write("POSTGRES_USER=alphapulse\nPOSTGRES_PASSWORD="+secrets.token_hex(32)+"\nSECRET_KEY="+secrets.token_hex(32)+"\nAPI_PORT=8000\nFRONTEND_PORT=3000\nOLLAMA_MODEL=qwen3:4b\n"); f.close(); os.chmod(t,0o600); os.link(t,p); t.unlink()
