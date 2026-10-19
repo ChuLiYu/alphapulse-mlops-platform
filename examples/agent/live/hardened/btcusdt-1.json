@@ -1,0 +1,85 @@
+{
+  "status": "completed",
+  "trace": [
+    {
+      "turn": 1,
+      "tool": "get_snapshot",
+      "arguments": {
+        "symbol": "BTCUSDT"
+      },
+      "result": {
+        "snapshot_id": "fixture-btc-001",
+        "symbol": "BTCUSDT",
+        "source": "synthetic-fixture",
+        "missing_ratio": 0.02,
+        "drift_psi": 0.31,
+        "age_minutes": 90
+      }
+    },
+    {
+      "turn": 2,
+      "tool": "evaluate_snapshot",
+      "arguments": {
+        "snapshot_id": "fixture-btc-001"
+      },
+      "result": {
+        "snapshot_id": "fixture-btc-001",
+        "source": "synthetic-fixture",
+        "status": "review",
+        "checks": [
+          {
+            "metric": "missing_ratio",
+            "observed": 0.02,
+            "threshold": 0.01,
+            "breached": true
+          },
+          {
+            "metric": "drift_psi",
+            "observed": 0.31,
+            "threshold": 0.2,
+            "breached": true
+          },
+          {
+            "metric": "age_minutes",
+            "observed": 90,
+            "threshold": 60,
+            "breached": true
+          }
+        ]
+      }
+    }
+  ],
+  "evaluations": [
+    {
+      "snapshot_id": "fixture-btc-001",
+      "source": "synthetic-fixture",
+      "status": "review",
+      "checks": [
+        {
+          "metric": "missing_ratio",
+          "observed": 0.02,
+          "threshold": 0.01,
+          "breached": true
+        },
+        {
+          "metric": "drift_psi",
+          "observed": 0.31,
+          "threshold": 0.2,
+          "breached": true
+        },
+        {
+          "metric": "age_minutes",
+          "observed": 90,
+          "threshold": 60,
+          "breached": true
+        }
+      ]
+    }
+  ],
+  "answer": "The monitoring health for BTCUSDT (snapshot ID: fixture-btc-001) shows the following status: **review**. All three critical metrics are breached against thresholds:\n\n- **missing_ratio**: Observed `0.02` (threshold: `0.01`) \u2192 **breached**\n- **drift_psi**: Observed `0.31` (threshold: `0.2`) \u2192 **breached**\n- **age_minutes**: Observed `90` (threshold: `60`) \u2192 **breached**\n\nThis indicates potential data integrity or monitoring drift issues requiring attention. All metrics exceed their defined thresholds.",
+  "mode": "ollama",
+  "model": "qwen3:4b",
+  "symbol": "BTCUSDT",
+  "elapsed_seconds": 103.959,
+  "recorded_at": "2026-10-18T21:18:47.063415+00:00"
+}

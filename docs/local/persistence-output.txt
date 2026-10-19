@@ -1,0 +1,29 @@
+OrbStack PostgreSQL persistence probe
+Date: 2026-10-18
+
+Scope: AlphaPulse Compose project `alphapulse-local`; synthetic value only.
+
+1. Created table `codex_local_persistence_probe_20261018` with value
+   `persistence-ok-20261018` in the project PostgreSQL database.
+2. Ran `./alphapulse down`. PostgreSQL, API, and frontend containers were
+   stopped and removed. Compose reported its project network remained in use.
+3. Inspection showed the profile-enabled `alphapulse-local-ollama-1` container
+   was still running; both named volumes remained present:
+   `alphapulse_local_postgres` and `alphapulse_local_ollama`.
+4. Ran `./alphapulse up`; PostgreSQL, API, and frontend all reached healthy
+   status.
+5. Queried the probe table and read back `persistence-ok-20261018`, then dropped
+   only the probe table.
+
+Result: PostgreSQL data persisted across the core stack down/up cycle. The core
+services are left running. No secrets or model data were read or written by
+this probe.
+
+Down-scope fix recheck:
+
+After `down` was updated to include all Compose profiles, ran `./alphapulse down`
+again. PostgreSQL, API, frontend, and Ollama containers were all stopped and
+removed, and the project network was removed. `docker compose ps -a` showed no
+remaining project containers. Both named volumes still existed. Ran
+`./alphapulse up` afterward; PostgreSQL, API, and frontend all reported healthy.
+Both named volumes remain present, and the core services are left running.

@@ -6,31 +6,49 @@ for securing API endpoints and data access.
 """
 
 import os
+import hashlib
+import json
+import secrets
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
-from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from jose import JWTError, jwt
-from passlib.context import CryptContext
+from fastapi import Security, Depends, HTTPException, status
+from fastapi.security import (
+    APIKeyHeader,
+    HTTPAuthorizationCredentials,
+    HTTPBearer,
+    SecurityScopes,
+)
+import jwt
+from jwt.exceptions import PyJWTError
+import bcrypt
+from sqlalchemy import update
 from sqlalchemy.orm import Session
 
 from alphapulse.api.database import get_db
-from alphapulse.api.models_user import APIKey, AuditLog, Role, User, UserRole
+from alphapulse.api.models_user import APIKey, AuditLog, RefreshToken, Role, User, UserRole
+
 
 # Security configuration
-SECRET_KEY = os.getenv(
-    "SECRET_KEY", "your-secret-key-for-development-change-in-production"
-)
+def signing_key():
+    key = os.getenv("SECRET_KEY", "")
+    if len(key) < 32 or key == "your-secret-key-for-development-change-in-production":
+        raise RuntimeError("Configure SECRET_KEY with at least 32 random characters")
+    return key
+
+
+def hash_api_key(raw_key):
+    # Generated keys contain ~190 bits of entropy; SHA-256 fits the existing column.
+    return hashlib.sha256(raw_key.encode()).hexdigest()
+
+
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 REFRESH_TOKEN_EXPIRE_DAYS = 7
 
-# Password hashing
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
 # HTTP Bearer security
-security = HTTPBearer()
+security = HTTPBearer(auto_error=False)
+api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
 
 
 class AuthService:
@@ -41,11 +59,18 @@ class AuthService:
 
     def verify_password(self, plain_password: str, hashed_password: str) -> bool:
         """Verify a plain password against a hashed password."""
-        return pwd_context.verify(plain_password, hashed_password)
+        try:
+            return bcrypt.checkpw(plain_password.encode(), hashed_password.encode())
+        except ValueError:
+            return False
 
     def get_password_hash(self, password: str) -> str:
         """Hash a password for storage."""
-        return pwd_context.hash(password)
+        if len(password.encode()) > 72:
+            raise HTTPException(
+                status_code=400, detail="Password exceeds 72 UTF-8 bytes"
+            )
+        return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
 
     def authenticate_user(self, username: str, password: str) -> Optional[User]:
         """Authenticate a user by username and password."""
@@ -69,29 +94,63 @@ class AuthService:
             expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
 
         to_encode.update({"exp": expire, "type": "access"})
-        encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+        encoded_jwt = jwt.encode(to_encode, signing_key(), algorithm=ALGORITHM)
         return encoded_jwt
 
     def create_refresh_token(self, data: Dict[str, Any]) -> str:
-        """Create a JWT refresh token."""
+        """Create a refresh JWT with a persisted one-time-use identifier."""
         to_encode = data.copy()
         expire = datetime.utcnow() + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
-        to_encode.update({"exp": expire, "type": "refresh"})
-        encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+        jti = secrets.token_urlsafe(32)
+        to_encode.update({"exp": expire, "type": "refresh", "jti": jti})
+        encoded_jwt = jwt.encode(to_encode, signing_key(), algorithm=ALGORITHM)
+        user = self.db.query(User).filter(User.username == data.get("sub")).first()
+        if user is None:
+            raise ValueError("Cannot issue refresh token for an unknown user")
+        self.db.add(
+            RefreshToken(
+                jti_digest=hashlib.sha256(jti.encode()).hexdigest(),
+                user_id=user.id,
+                expires_at=expire,
+            )
+        )
         return encoded_jwt
+
+    def consume_refresh_token(self, payload: Dict[str, Any], user: User) -> bool:
+        """Atomically consume a refresh token so it cannot be replayed."""
+        jti = payload.get("jti")
+        if not isinstance(jti, str) or not 1 <= len(jti) <= 128:
+            return False
+        now = datetime.utcnow()
+        result = self.db.execute(
+            update(RefreshToken)
+            .where(
+                RefreshToken.jti_digest == hashlib.sha256(jti.encode()).hexdigest(),
+                RefreshToken.user_id == user.id,
+                RefreshToken.consumed_at.is_(None),
+                RefreshToken.expires_at > now,
+            )
+            .values(consumed_at=now)
+        )
+        return result.rowcount == 1
 
     def verify_token(self, token: str) -> Optional[Dict[str, Any]]:
         """Verify and decode a JWT token."""
         try:
-            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+            payload = jwt.decode(
+                token,
+                signing_key(),
+                algorithms=[ALGORITHM],
+                options={"require": ["exp", "sub", "type"]},
+            )
             return payload
-        except JWTError:
+        except PyJWTError:
             return None
 
     def get_current_user(self, token: str) -> Optional[User]:
         """Get the current user from a JWT token."""
         payload = self.verify_token(token)
-        if payload is None:
+        if payload is None or payload.get("type") != "access":
             return None
 
         username: str = payload.get("sub")
@@ -104,20 +163,29 @@ class AuthService:
 
         return user
 
-    def verify_api_key(self, api_key: str) -> Optional[User]:
+    def verify_api_key(self, api_key: str, required_scopes=()) -> Optional[User]:
         """Verify an API key and return the associated user."""
-        # In production, we would hash the API key before comparing
-        # For simplicity, we're doing direct comparison here
         api_key_record = (
             self.db.query(APIKey)
-            .filter(APIKey.key == api_key, APIKey.is_active == True)
+            .filter(APIKey.key == hash_api_key(api_key), APIKey.is_active == True)
             .first()
         )
 
         if not api_key_record:
             return None
 
-        if api_key_record.is_expired():
+        if api_key_record.is_expired() or not api_key_record.user.is_active:
+            return None
+
+        try:
+            scopes = json.loads(api_key_record.scopes)
+            if not isinstance(scopes, list) or any(
+                scope not in scopes
+                or not self.check_permission(api_key_record.user, scope)
+                for scope in required_scopes
+            ):
+                return None
+        except (ValueError, TypeError):
             return None
 
         # Update last used timestamp
@@ -183,31 +251,26 @@ class AuthService:
 
 # FastAPI dependencies
 def get_current_user_from_token(
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
     db: Session = Depends(get_db),
 ) -> User:
-    """
-    FastAPI dependency that bypasses actual authentication.
-    Returns a dummy admin user to allow full access without login.
-    """
-    # Create a dummy admin user structure
-    # We use a mock object or fetch the actual admin if it exists
-    # For safety/simplicity in this "no-auth" mode, we return a constructed User object
-    # This avoids database lookups if the DB is empty or locked
-    from datetime import datetime
-
-    return User(
-        id=1,
-        username="admin",
-        email="admin@alphapulse.local",
-        is_active=True,
-        is_superuser=True,
-        hashed_password="dummy_hash_bypass",
-        created_at=datetime.utcnow(),
-    )
+    """Require a valid access token and an active persisted user."""
+    user = None
+    if credentials is not None:
+        user = AuthService(db).get_current_user(credentials.credentials)
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Valid access token required",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    return user
 
 
 def get_current_user_from_api_key(
-    api_key: Optional[str] = None, db: Session = Depends(get_db)
+    security_scopes: SecurityScopes,
+    api_key: Optional[str] = Security(api_key_header),
+    db: Session = Depends(get_db),
 ) -> User:
     """FastAPI dependency to get current user from API key."""
     if not api_key:
@@ -216,7 +279,7 @@ def get_current_user_from_api_key(
         )
 
     auth_service = AuthService(db)
-    user = auth_service.verify_api_key(api_key)
+    user = auth_service.verify_api_key(api_key, security_scopes.scopes)
 
     if user is None:
         raise HTTPException(

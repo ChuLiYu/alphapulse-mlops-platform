@@ -108,6 +108,21 @@ class APIKey(Base):
         return datetime.utcnow() > self.expires_at
 
 
+class RefreshToken(Base):
+    """Digest of a refresh token that remains valid until consumed once."""
+
+    __tablename__ = "refresh_tokens"
+
+    id = Column(Integer, primary_key=True)
+    jti_digest = Column(String(64), unique=True, index=True, nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    expires_at = Column(DateTime(timezone=True), nullable=False)
+    consumed_at = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    user = relationship("User")
+
+
 class Role(Base):
     """
     Role model for role-based access control.

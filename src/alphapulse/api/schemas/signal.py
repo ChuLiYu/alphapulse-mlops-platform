@@ -9,7 +9,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Literal, Optional
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class SignalBase(BaseModel):
@@ -35,7 +35,7 @@ class SignalBase(BaseModel):
         description="Price at the time of signal generation (Decimal precision)",
     )
 
-    @validator("confidence")
+    @field_validator("confidence")
     def validate_confidence_range(cls, v):
         """Validate confidence is between 0.0000 and 1.0000."""
         if not isinstance(v, Decimal):
@@ -48,7 +48,7 @@ class SignalBase(BaseModel):
         v = v.quantize(Decimal("0.0001"))
         return v
 
-    @validator("price_at_signal")
+    @field_validator("price_at_signal")
     def validate_price_precision(cls, v):
         """Validate price precision if provided."""
         if v is not None and not isinstance(v, Decimal):
@@ -59,14 +59,12 @@ class SignalBase(BaseModel):
             v = v.quantize(Decimal("0.00000001"))
         return v
 
-    class Config:
-        """Pydantic configuration for Decimal handling."""
-
-        json_encoders = {
+    model_config = ConfigDict(
+        json_encoders={
             Decimal: lambda v: str(v),  # Serialize Decimal as string
             datetime: lambda v: v.isoformat(),
-        }
-        schema_extra = {
+        },
+        json_schema_extra={
             "example": {
                 "symbol": "BTC-USD",
                 "signal_type": "BUY",
@@ -74,7 +72,8 @@ class SignalBase(BaseModel):
                 "timestamp": "2026-01-10T21:55:00Z",
                 "price_at_signal": "45123.50",
             }
-        }
+        },
+    )
 
 
 class SignalCreate(SignalBase):
@@ -90,10 +89,7 @@ class TradingSignal(SignalBase):
         ..., example=1, description="Unique identifier for the signal record"
     )
 
-    class Config:
-        """Pydantic configuration for response schema."""
-
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class SignalResponse(BaseModel):
@@ -103,10 +99,7 @@ class SignalResponse(BaseModel):
     data: Optional[TradingSignal] = Field(None, description="Trading signal data")
     message: Optional[str] = Field(None, example="Signal retrieved successfully")
 
-    class Config:
-        """Pydantic configuration."""
-
-        json_encoders = {Decimal: lambda v: str(v), datetime: lambda v: v.isoformat()}
+    model_config = ConfigDict(json_encoders={Decimal: str, datetime: lambda v: v.isoformat()})
 
 
 class SignalListResponse(BaseModel):
@@ -119,10 +112,7 @@ class SignalListResponse(BaseModel):
         None, example=100, description="Total signals available"
     )
 
-    class Config:
-        """Pydantic configuration."""
-
-        json_encoders = {Decimal: lambda v: str(v), datetime: lambda v: v.isoformat()}
+    model_config = ConfigDict(json_encoders={Decimal: str, datetime: lambda v: v.isoformat()})
 
 
 class SignalStats(BaseModel):
@@ -138,7 +128,4 @@ class SignalStats(BaseModel):
         description="Average confidence score (Decimal precision)",
     )
 
-    class Config:
-        """Pydantic configuration."""
-
-        json_encoders = {Decimal: lambda v: str(v)}
+    model_config = ConfigDict(json_encoders={Decimal: str})

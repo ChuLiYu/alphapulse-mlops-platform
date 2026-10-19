@@ -22,6 +22,8 @@ from alphapulse.api.schemas.price import (
     PriceResponse,
 )
 
+from alphapulse.security.auth import require_permission
+
 router = APIRouter()
 
 
@@ -55,7 +57,11 @@ def generate_mock_prices(symbol: str, count: int = 30):
     return prices
 
 
-@router.get("/prices", response_model=PriceListResponse)
+@router.get(
+    "/prices",
+    dependencies=[Depends(require_permission("data:read"))],
+    response_model=PriceListResponse,
+)
 async def get_prices(
     symbol: Optional[str] = Query(None, description="Filter by trading pair symbol"),
     start_date: Optional[datetime] = Query(
@@ -108,7 +114,11 @@ async def get_prices(
     )
 
 
-@router.get("/prices/{symbol}/latest", response_model=PriceResponse)
+@router.get(
+    "/prices/{symbol}/latest",
+    dependencies=[Depends(require_permission("data:read"))],
+    response_model=PriceResponse,
+)
 async def get_latest_price(
     symbol: str,
     db: Session = Depends(get_db),
@@ -133,7 +143,11 @@ async def get_latest_price(
     return PriceResponse(success=True, data=price, message=f"Latest price for {symbol}")
 
 
-@router.post("/prices", response_model=PriceResponse)
+@router.post(
+    "/prices",
+    dependencies=[Depends(require_permission("data:write"))],
+    response_model=PriceResponse,
+)
 async def create_price(
     price_data: PriceCreate,
     db: Session = Depends(get_db),
@@ -170,7 +184,9 @@ async def create_price(
     )
 
 
-@router.get("/prices/{symbol}/stats")
+@router.get(
+    "/prices/{symbol}/stats", dependencies=[Depends(require_permission("data:read"))]
+)
 async def get_price_stats(
     symbol: str,
     days: int = Query(30, ge=1, le=365, description="Number of days for statistics"),

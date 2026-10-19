@@ -13,7 +13,7 @@ from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 from sqlalchemy.orm import Session
 
 from alphapulse.api.database import get_db
@@ -21,6 +21,7 @@ from alphapulse.api.models_user import APIKey, Role, User, UserRole
 from alphapulse.security.auth import (
     PERMISSIONS,
     AuthService,
+    hash_api_key,
     create_default_roles,
     get_current_user_from_token,
     require_permission,
@@ -40,6 +41,10 @@ class Token(BaseModel):
     expires_in: int
 
 
+class RefreshRequest(BaseModel):
+    refresh_token: str
+
+
 class TokenData(BaseModel):
     """Token data model."""
 
@@ -51,8 +56,15 @@ class UserCreate(BaseModel):
 
     username: str = Field(..., min_length=3, max_length=50)
     email: EmailStr
-    password: str = Field(..., min_length=8)
+    password: str = Field(..., min_length=8, max_length=72)
     full_name: Optional[str] = None
+
+    @field_validator("password")
+    @classmethod
+    def password_within_bcrypt_byte_limit(cls, value: str) -> str:
+        if len(value.encode("utf-8")) > 72:
+            raise ValueError("Password exceeds 72 UTF-8 bytes")
+        return value
 
 
 class UserResponse(BaseModel):
@@ -65,15 +77,21 @@ class UserResponse(BaseModel):
     is_superuser: bool
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class LoginRequest(BaseModel):
     """Login request model."""
 
-    username: str
-    password: str
+    username: str = Field(..., min_length=1, max_length=50)
+    password: str = Field(..., min_length=1, max_length=72)
+
+    @field_validator("password")
+    @classmethod
+    def password_within_bcrypt_byte_limit(cls, value: str) -> str:
+        if len(value.encode("utf-8")) > 72:
+            raise ValueError("Password exceeds 72 UTF-8 bytes")
+        return value
 
 
 class APIKeyCreate(BaseModel):
@@ -96,8 +114,7 @@ class APIKeyResponse(BaseModel):
     last_used_at: Optional[datetime]
     is_active: bool
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class RoleCreate(BaseModel):
@@ -117,8 +134,7 @@ class RoleResponse(BaseModel):
     permissions: List[str]
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class RoleSwitchRequest(BaseModel):
@@ -251,11 +267,11 @@ async def switch_role(
 
 
 @router.post("/refresh", response_model=Token)
-async def refresh_token(refresh_token: str, db: Session = Depends(get_db)):
+async def refresh_token(body: RefreshRequest, db: Session = Depends(get_db)):
     """Refresh access token using refresh token."""
     auth_service = AuthService(db)
 
-    payload = auth_service.verify_token(refresh_token)
+    payload = auth_service.verify_token(body.refresh_token)
     if payload is None or payload.get("type") != "refresh":
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token"
@@ -274,9 +290,19 @@ async def refresh_token(refresh_token: str, db: Session = Depends(get_db)):
             detail="User not found or inactive",
         )
 
+    if not auth_service.consume_refresh_token(payload, user):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or already used refresh token",
+        )
+
     # Create new tokens
     access_token = auth_service.create_access_token(data={"sub": user.username})
     new_refresh_token = auth_service.create_refresh_token(data={"sub": user.username})
+    # Rotate old and new refresh state in one transaction. A failed signing or
+    # insert rolls back consumption, while concurrent requests still race on
+    # the conditional UPDATE and only one can commit successfully.
+    db.commit()
 
     return Token(
         access_token=access_token, refresh_token=new_refresh_token, expires_in=30 * 60
@@ -299,6 +325,14 @@ async def create_api_key(
     """Create a new API key for the current user."""
     auth_service = AuthService(db)
 
+    if any(
+        not auth_service.check_permission(current_user, scope)
+        for scope in api_key_data.scopes
+    ):
+        raise HTTPException(
+            status_code=403, detail="API key scopes exceed user permissions"
+        )
+
     # Generate API key
     raw_key = APIKey.generate_key()
 
@@ -310,9 +344,9 @@ async def create_api_key(
     # Create API key record
     api_key = APIKey(
         user_id=current_user.id,
-        key=raw_key,  # In production, hash this key
+        key=hash_api_key(raw_key),
         name=api_key_data.name,
-        scopes=str(api_key_data.scopes),  # Store as JSON string
+        scopes=__import__("json").dumps(api_key_data.scopes),  # Store as JSON string
         expires_at=expires_at,
         is_active=True,
     )
@@ -365,9 +399,7 @@ async def list_api_keys(
             APIKeyResponse(
                 id=api_key.id,
                 name=api_key.name,
-                key=(
-                    "***" + api_key.key[-4:] if api_key.key else "***"
-                ),  # Show only last 4 chars
+                key="***",
                 scopes=scopes,
                 expires_at=api_key.expires_at,
                 created_at=api_key.created_at,
@@ -512,38 +544,6 @@ async def initialize_system(
     current_user: User = Depends(require_permission("system:admin")),
     db: Session = Depends(get_db),
 ):
-    """Initialize system with default roles and admin user."""
-    auth_service = AuthService(db)
-
-    # Create default roles
+    """Initialize role definitions for an already authenticated administrator."""
     create_default_roles(db)
-
-    # Check if admin user exists
-    admin_user = db.query(User).filter(User.username == "admin").first()
-    if not admin_user:
-        # Create admin user
-        hashed_password = auth_service.get_password_hash("admin123")
-        admin_user = User(
-            username="admin",
-            email="admin@alphapulse.local",
-            hashed_password=hashed_password,
-            is_active=True,
-            is_superuser=True,
-        )
-        db.add(admin_user)
-        db.commit()
-        db.refresh(admin_user)
-
-        # Assign admin role
-        admin_role = db.query(Role).filter(Role.name == "admin").first()
-        if admin_role:
-            user_role = UserRole(user_id=admin_user.id, role_id=admin_role.id)
-            db.add(user_role)
-            db.commit()
-
-    return {
-        "message": "System initialized successfully",
-        "admin_username": "admin",
-        "default_password": "admin123",
-        "warning": "Change the admin password immediately!",
-    }
+    return {"message": "Role definitions initialized"}

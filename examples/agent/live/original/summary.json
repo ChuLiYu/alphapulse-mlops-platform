@@ -1,0 +1,44 @@
+[
+  {
+    "symbol": "BTCUSDT",
+    "status": "completed",
+    "error": null,
+    "elapsed_seconds": 108.62,
+    "trace_file": "btcusdt-1.json"
+  },
+  {
+    "symbol": "BTCUSDT",
+    "status": "completed",
+    "error": null,
+    "elapsed_seconds": 138.978,
+    "trace_file": "btcusdt-2.json"
+  },
+  {
+    "symbol": "BTCUSDT",
+    "status": "completed",
+    "error": null,
+    "elapsed_seconds": 139.639,
+    "trace_file": "btcusdt-3.json"
+  },
+  {
+    "symbol": "ETHUSDT",
+    "status": "completed",
+    "error": null,
+    "elapsed_seconds": 121.479,
+    "trace_file": "ethusdt-1.json"
+  },
+  {
+    "symbol": "ETHUSDT",
+    "status": "completed",
+    "error": null,
+    "elapsed_seconds": 122.85,
+    "trace_file": "ethusdt-2.json"
+  },
+  {
+    "symbol": "ETHUSDT",
+    "status": "completed",
+    "error": null,
+    "elapsed_seconds": 144.281,
+    "trace_file": "ethusdt-3.json"
+  }
+]

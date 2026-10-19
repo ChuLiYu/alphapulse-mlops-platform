@@ -21,7 +21,15 @@ spec:
         imagePullPolicy: Always
         env:
         - name: DATABASE_URL
-          value: "postgresql://postgres:postgres@postgres:5432/alphapulse"
+          valueFrom:
+            secretKeyRef:
+              name: alphapulse-db-credentials
+              key: api-database-url
+        - name: SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: alphapulse-app-secrets
+              key: secret-key
         - name: API_VERSION
           value: "v1"
         - name: ROOT_PATH

@@ -1,0 +1,18 @@
+FROM python:3.12-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app/src
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends libpq5 curl \
+    && rm -rf /var/lib/apt/lists/*
+COPY infra/local/requirements-api.txt /tmp/requirements.txt
+RUN python -m pip install --no-cache-dir --upgrade pip==26.2.1 \
+    && python -m pip install --no-cache-dir -r /tmp/requirements.txt
+COPY src/alphapulse /app/src/alphapulse
+COPY infra/local/init_db.py /app/infra/local/init_db.py
+RUN useradd --create-home --uid 10001 appuser && chown -R appuser:appuser /app
+USER appuser
+EXPOSE 8000
+CMD ["sh", "-c", "python /app/infra/local/init_db.py && exec uvicorn alphapulse.main:app --host 0.0.0.0 --port 8000"]

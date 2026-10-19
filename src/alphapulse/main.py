@@ -10,10 +10,7 @@ from decimal import Decimal
 from typing import Any
 
 from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-from pydantic.json import pydantic_encoder
 
 
 # Custom JSON encoder for Decimal types
@@ -21,11 +18,15 @@ def decimal_encoder(obj: Any) -> Any:
     """Custom JSON encoder that converts Decimal to string."""
     if isinstance(obj, Decimal):
         return str(obj)
-    return pydantic_encoder(obj)
+    raise TypeError(f"Object of type {type(obj).__name__} is not JSON serializable")
 
 
 # Get root path from environment (for reverse proxy)
 root_path = os.getenv("ROOT_PATH", "")
+
+from alphapulse.security.auth import signing_key
+
+signing_key()  # Fail startup rather than serving with a missing signing secret.
 
 # Create FastAPI application
 app = FastAPI(
@@ -38,23 +39,21 @@ app = FastAPI(
     redoc_url="/api/redoc",
 )
 
-# Ensure static monitoring directory exists
-os.makedirs("static/monitoring", exist_ok=True)
-
-# Mount static files for Evidently AI reports
-app.mount(
-    "/api/monitoring",
-    StaticFiles(directory="static/monitoring", html=True),
-    name="monitoring",
-)
-
-# Configure CORS
+# Monitoring reports require a separate authenticated delivery path.
+# Do not mount generated reports as public static files.
+origins = [
+    origin.strip()
+    for origin in os.getenv("CORS_ORIGINS", "").split(",")
+    if origin.strip()
+]
+if "*" in origins:
+    raise RuntimeError("CORS_ORIGINS must list explicit origins")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, restrict to specific origins
+    allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
+    allow_headers=["Authorization", "Content-Type"],
 )
 
 # Override default JSON encoder to handle Decimal

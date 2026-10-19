@@ -55,8 +55,12 @@ async def health_detailed(db: Session = Depends(get_db)):
         db.execute(text("SELECT 1"))
         components["database"] = "healthy"
         database_message = "Database connection successful"
-    except Exception as e:
-        database_message = f"Database error: {str(e)}"
+    except Exception:
+        # Database exceptions may include connection URLs, usernames, or other
+        # deployment details. This endpoint is intentionally unauthenticated for
+        # infrastructure probes, so return a fixed message instead of the driver
+        # exception text.
+        database_message = "Database connection failed"
 
     overall_status = (
         "healthy"

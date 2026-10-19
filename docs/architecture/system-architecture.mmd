@@ -1,0 +1,74 @@
+%% README uses exported PNG for viewer compatibility. Regenerate PNG and SVG together after edits (Mermaid 11).
+%%{init: {'theme': 'base', 'themeVariables': {'fontSize': '18px', 'edgeLabelBackground': '#ffffff', 'fontFamily': 'Arial'}, 'flowchart': {'curve': 'basis', 'nodeSpacing': 80, 'rankSpacing': 70}}}%%
+flowchart TD
+    %% --- Styles ---
+    classDef ci fill:#E3F2FD,stroke:#1565C0,stroke-width:2px,color:#0D47A1;
+    classDef infra fill:#E8F5E9,stroke:#2E7D32,stroke-width:2px,color:#1B5E20;
+    classDef k8s fill:#FFF3E0,stroke:#EF6C00,stroke-width:2px,color:#E65100;
+    classDef storage fill:#F3E5F5,stroke:#7B1FA2,stroke-width:2px,color:#4A148C;
+
+    %% --- 1. CI/CD & Infra Layer ---
+    subgraph CICD ["1. CI/CD & Provisioning"]
+        direction TB
+        TF["Terraform<br/>(Infrastructure as Code)"]:::infra
+        GHA["GitHub Actions<br/>(Build & Deploy)"]:::ci
+        TF ~~~ GHA
+    end
+
+    %% --- 2. Production Cluster (Oracle Cloud) ---
+    subgraph PROD ["2. Oracle Cloud (Always Free ARM64)"]
+        direction TB
+        subgraph K3S ["K3s Cluster (Single Node)"]
+            direction TB
+            ING[Traefik Ingress]:::k8s
+            subgraph Apps ["Application Namespace"]
+                AF["Airflow<br/>(Orchestrator)"]:::k8s
+                ML["MLflow<br/>(Model Registry)"]:::k8s
+                API["FastAPI<br/>(Inference)"]:::k8s
+                WEB["Frontend<br/>(React/Vite)"]:::k8s
+                GF["Grafana<br/>(Monitoring)"]:::k8s
+                TR["Trainer<br/>(Training Engine)"]:::k8s
+                OL["Ollama<br/>(LLM Inference)"]:::k8s
+            end
+            subgraph Data ["Data Namespace"]
+                 PG[(PostgreSQL)]:::storage
+                 MI[(MinIO / S3)]:::storage
+            end
+        end
+    end
+
+    %% --- 3. External Storage ---
+    subgraph EXT ["3. External Persistence"]
+        direction LR
+        S3[("AWS S3 / R2")]:::storage
+    end
+
+    %% Keep these edges outside CICD: Mermaid otherwise treats PROD as nested.
+    GHA -- "SSH" --> PROD
+    TF -- "Provision" --> PROD
+
+    %% Subgraph styling supplies hierarchy without competing with node colors.
+    style CICD fill:#F8FAFC,stroke:#94A3B8,stroke-width:1.5px,color:#1E293B
+    style PROD fill:#FFFFFF,stroke:#64748B,stroke-width:1.5px,color:#1E293B
+    style K3S fill:#F8FAFC,stroke:#CBD5E1,stroke-width:1.25px,color:#334155
+    style Apps fill:#FFFFFF,stroke:#CBD5E1,stroke-width:1.25px,color:#334155
+    style Data fill:#FFFFFF,stroke:#CBD5E1,stroke-width:1.25px,color:#334155
+    style EXT fill:#F8FAFC,stroke:#94A3B8,stroke-width:1.5px,color:#1E293B
+
+    %% --- Flows ---
+    ING --> WEB
+    ING --> AF
+    ING --> ML
+    ING --> GF
+    ING --> API
+    AF -- "Triggers" --> TR
+    AF -- "Data" --> PG
+    AF -- "Tasks" --> OL
+    TR -- "Logs" --> ML
+    TR -- "Metrics" --> PG
+    API -- "Inference" --> ML
+    WEB -- "UI" --> API
+    WEB -- "Charts" --> GF
+    ML -.->|Artifacts| MI
+    MI -.->|Backup| S3
+    PG -.->|Backup| S3

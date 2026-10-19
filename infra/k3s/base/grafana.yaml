@@ -11,7 +11,6 @@ data:
     
     [security]
     admin_user = admin
-    admin_password = admin  # Initial password, change on first login or use env vars
     allow_embedding = true
 
     [auth.anonymous]
@@ -41,7 +40,7 @@ spec:
         - name: GF_SECURITY_ADMIN_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: airflow-secrets # Reuse the plain text password we created for Airflow!
+              name: airflow-secrets
               key: password
         volumeMounts:
         - name: grafana-storage
