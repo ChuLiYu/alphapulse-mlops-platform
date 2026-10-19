@@ -1,4 +1,4 @@
-# AlphaPulse — Financial Data & Backend Engineering
+# AlphaPulse — Financial Data & Analytics Application
 
 **Python · FastAPI · PostgreSQL · Data Pipelines · LLM Tool-Calling**
 
