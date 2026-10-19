@@ -13,7 +13,7 @@ from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 from sqlalchemy.orm import Session
 
 from alphapulse.api.database import get_db
@@ -56,8 +56,15 @@ class UserCreate(BaseModel):
 
     username: str = Field(..., min_length=3, max_length=50)
     email: EmailStr
-    password: str = Field(..., min_length=8)
+    password: str = Field(..., min_length=8, max_length=72)
     full_name: Optional[str] = None
+
+    @field_validator("password")
+    @classmethod
+    def password_within_bcrypt_byte_limit(cls, value: str) -> str:
+        if len(value.encode("utf-8")) > 72:
+            raise ValueError("Password exceeds 72 UTF-8 bytes")
+        return value
 
 
 class UserResponse(BaseModel):
@@ -70,15 +77,21 @@ class UserResponse(BaseModel):
     is_superuser: bool
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class LoginRequest(BaseModel):
     """Login request model."""
 
-    username: str
-    password: str
+    username: str = Field(..., min_length=1, max_length=50)
+    password: str = Field(..., min_length=1, max_length=72)
+
+    @field_validator("password")
+    @classmethod
+    def password_within_bcrypt_byte_limit(cls, value: str) -> str:
+        if len(value.encode("utf-8")) > 72:
+            raise ValueError("Password exceeds 72 UTF-8 bytes")
+        return value
 
 
 class APIKeyCreate(BaseModel):
@@ -101,8 +114,7 @@ class APIKeyResponse(BaseModel):
     last_used_at: Optional[datetime]
     is_active: bool
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class RoleCreate(BaseModel):
@@ -122,8 +134,7 @@ class RoleResponse(BaseModel):
     permissions: List[str]
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class RoleSwitchRequest(BaseModel):
@@ -279,9 +290,19 @@ async def refresh_token(body: RefreshRequest, db: Session = Depends(get_db)):
             detail="User not found or inactive",
         )
 
+    if not auth_service.consume_refresh_token(payload, user):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or already used refresh token",
+        )
+
     # Create new tokens
     access_token = auth_service.create_access_token(data={"sub": user.username})
     new_refresh_token = auth_service.create_refresh_token(data={"sub": user.username})
+    # Rotate old and new refresh state in one transaction. A failed signing or
+    # insert rolls back consumption, while concurrent requests still race on
+    # the conditional UPDATE and only one can commit successfully.
+    db.commit()
 
     return Token(
         access_token=access_token, refresh_token=new_refresh_token, expires_in=30 * 60

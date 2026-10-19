@@ -1,0 +1,39 @@
+{
+  "status": "incomplete",
+  "trace": [
+    {
+      "turn": 1,
+      "tool": "evaluate_snapshot",
+      "arguments": {
+        "snapshot_id": "fixture-btc-001"
+      },
+      "result": {
+        "error": "invalid_tool_call",
+        "hint": "Follow tool schema and order."
+      }
+    },
+    {
+      "turn": 2,
+      "event": "premature_final_rejected"
+    },
+    {
+      "turn": 3,
+      "tool": "get_snapshot",
+      "arguments": {
+        "symbol": "BTCUSDT"
+      },
+      "result": {
+        "snapshot_id": "fixture-btc-001",
+        "symbol": "BTCUSDT",
+        "source": "synthetic-fixture",
+        "missing_ratio": 0.02,
+        "drift_psi": 0.31,
+        "age_minutes": 90
+      }
+    }
+  ],
+  "evaluations": [],
+  "error": "model_response_error:TimeoutError",
+  "mode": "ollama",
+  "model": "qwen3:0.6b"
+}

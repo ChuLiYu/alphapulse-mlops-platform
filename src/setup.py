@@ -19,7 +19,7 @@ setup(
         "numpy>=1.24.0",
         "scikit-learn>=1.3.0",
         "evidently>=0.4.0",  # ML monitoring and drift detection
-        "python-jose[cryptography]>=3.3.0",
+        "PyJWT[crypto]>=2.15.1",
         "passlib[bcrypt]>=1.7.4",
         "bcrypt>=4.0,<6",  # Direct hashing API; compatible with existing bcrypt hashes
         "praw>=7.7.0",

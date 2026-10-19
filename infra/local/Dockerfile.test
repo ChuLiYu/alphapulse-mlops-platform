@@ -1,0 +1,23 @@
+FROM python:3.12-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app/src
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends libpq5 curl apache2-utils \
+    && rm -rf /var/lib/apt/lists/*
+COPY infra/local/requirements-test.txt /tmp/requirements.txt
+COPY infra/local/requirements-api.txt /tmp/requirements-api.txt
+RUN python -m pip install --no-cache-dir --upgrade pip==26.2.1 \
+    && python -m pip install --no-cache-dir -r /tmp/requirements.txt
+COPY src/alphapulse /app/src/alphapulse
+COPY tests/agent_poc /app/tests/agent_poc
+COPY tests/security /app/tests/security
+COPY tests/local /app/tests/local
+COPY infra/scripts/generate_k3s_secrets.sh /app/infra/scripts/generate_k3s_secrets.sh
+COPY .github/workflows/deploy-k3s.yml /app/.github/workflows/deploy-k3s.yml
+COPY airflow/plugins/alphapulse_utils /app/airflow/plugins/alphapulse_utils
+COPY infra /app/infra
+ENV PYTHONPATH=/app/src:/app/airflow/plugins
+CMD ["python", "-m", "unittest", "discover", "-s", "tests/agent_poc", "-v"]

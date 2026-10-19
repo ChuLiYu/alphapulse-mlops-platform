@@ -1,0 +1,8 @@
+{
+  "status": "incomplete",
+  "trace": [],
+  "evaluations": [],
+  "error": "model_response_error:TimeoutError",
+  "mode": "ollama",
+  "model": "qwen3:4b"
+}

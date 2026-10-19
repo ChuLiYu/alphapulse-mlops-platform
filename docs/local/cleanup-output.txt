@@ -1,0 +1,17 @@
+Approved local environment cleanup
+Date: 2026-10-18
+
+Pre-removal checks confirmed both exact targets were real directories, not
+symlinks, resolved to their expected paths, and contained regular `pyvenv.cfg`
+files:
+
+- `../quality-env` (26 MB)
+- `../security-env` (196 MB)
+
+After the final OrbStack agent run completed successfully and the full container
+suite passed (30 passed, 1 skipped), removed only those two directories. A
+post-removal check confirmed both paths are absent.
+
+Shared Homebrew runtimes were left in place. `/opt/homebrew/bin/ollama` and
+`/opt/homebrew/bin/node` remain present. Ollama model data was not inspected or
+modified. Python runtimes were not modified.

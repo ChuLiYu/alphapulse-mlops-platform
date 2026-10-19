@@ -8,6 +8,7 @@ for securing API endpoints and data access.
 import os
 import hashlib
 import json
+import secrets
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
@@ -18,12 +19,14 @@ from fastapi.security import (
     HTTPBearer,
     SecurityScopes,
 )
-from jose import JWTError, jwt
+import jwt
+from jwt.exceptions import PyJWTError
 import bcrypt
+from sqlalchemy import update
 from sqlalchemy.orm import Session
 
 from alphapulse.api.database import get_db
-from alphapulse.api.models_user import APIKey, AuditLog, Role, User, UserRole
+from alphapulse.api.models_user import APIKey, AuditLog, RefreshToken, Role, User, UserRole
 
 
 # Security configuration
@@ -95,12 +98,41 @@ class AuthService:
         return encoded_jwt
 
     def create_refresh_token(self, data: Dict[str, Any]) -> str:
-        """Create a JWT refresh token."""
+        """Create a refresh JWT with a persisted one-time-use identifier."""
         to_encode = data.copy()
         expire = datetime.utcnow() + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
-        to_encode.update({"exp": expire, "type": "refresh"})
+        jti = secrets.token_urlsafe(32)
+        to_encode.update({"exp": expire, "type": "refresh", "jti": jti})
         encoded_jwt = jwt.encode(to_encode, signing_key(), algorithm=ALGORITHM)
+        user = self.db.query(User).filter(User.username == data.get("sub")).first()
+        if user is None:
+            raise ValueError("Cannot issue refresh token for an unknown user")
+        self.db.add(
+            RefreshToken(
+                jti_digest=hashlib.sha256(jti.encode()).hexdigest(),
+                user_id=user.id,
+                expires_at=expire,
+            )
+        )
         return encoded_jwt
+
+    def consume_refresh_token(self, payload: Dict[str, Any], user: User) -> bool:
+        """Atomically consume a refresh token so it cannot be replayed."""
+        jti = payload.get("jti")
+        if not isinstance(jti, str) or not 1 <= len(jti) <= 128:
+            return False
+        now = datetime.utcnow()
+        result = self.db.execute(
+            update(RefreshToken)
+            .where(
+                RefreshToken.jti_digest == hashlib.sha256(jti.encode()).hexdigest(),
+                RefreshToken.user_id == user.id,
+                RefreshToken.consumed_at.is_(None),
+                RefreshToken.expires_at > now,
+            )
+            .values(consumed_at=now)
+        )
+        return result.rowcount == 1
 
     def verify_token(self, token: str) -> Optional[Dict[str, Any]]:
         """Verify and decode a JWT token."""
@@ -109,10 +141,10 @@ class AuthService:
                 token,
                 signing_key(),
                 algorithms=[ALGORITHM],
-                options={"require_exp": True, "require_sub": True},
+                options={"require": ["exp", "sub", "type"]},
             )
             return payload
-        except JWTError:
+        except PyJWTError:
             return None
 
     def get_current_user(self, token: str) -> Optional[User]:

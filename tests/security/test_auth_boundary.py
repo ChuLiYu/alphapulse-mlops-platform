@@ -10,12 +10,12 @@ import unittest
 from unittest.mock import patch
 from fastapi import FastAPI, Depends, Security
 from fastapi.testclient import TestClient
-from jose import jwt
+import jwt
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 from alphapulse.api.database import Base, get_db
-from alphapulse.api.models_user import User, APIKey, Role, UserRole
+from alphapulse.api.models_user import User, APIKey, RefreshToken, Role, UserRole
 from alphapulse.security.auth import (
     AuthService,
     get_current_user_from_api_key,
@@ -66,9 +66,9 @@ class AuthenticationTests(unittest.TestCase):
         ):
             return {"username": user.username}
 
-        from alphapulse.api.routes import prices, signals, indicators
+        from alphapulse.api.routes import prices, signals, indicators, ops
 
-        for data_router in (prices.router, signals.router, indicators.router):
+        for data_router in (prices.router, signals.router, indicators.router, ops.router):
             app.include_router(data_router)
         app.include_router(router)
         self.client = TestClient(app)
@@ -101,6 +101,21 @@ class AuthenticationTests(unittest.TestCase):
             ).status_code,
             200,
         )
+        oversized = self.client.post(
+            "/auth/login", json={"username": "viewer", "password": "é" * 37}
+        )
+        self.assertEqual(oversized.status_code, 422)
+
+    def test_jwt_requires_exp_subject_and_type_claims(self):
+        key = signing_key()
+        incomplete_tokens = (
+            jwt.encode({"sub": "viewer", "type": "access"}, key, algorithm="HS256"),
+            jwt.encode({"exp": datetime.utcnow() + timedelta(hours=1), "type": "access"}, key, algorithm="HS256"),
+            jwt.encode({"sub": "viewer", "exp": datetime.utcnow() + timedelta(hours=1)}, key, algorithm="HS256"),
+        )
+        for token in incomplete_tokens:
+            self.assertIsNone(self.service.verify_token(token))
+            self.assertEqual(self.client.get("/protected", headers=self.headers(token)).status_code, 401)
 
     def test_missing_forged_expired_refresh_and_inactive_rejected(self):
         expired = self.service.create_access_token(
@@ -231,6 +246,23 @@ class AuthenticationTests(unittest.TestCase):
         self.db.commit()
         self.assertIsNone(self.service.verify_api_key(raw, ["data:read"]))
 
+    def test_ops_routes_require_access_token(self):
+        for path in (
+            "/ops/pipeline-status",
+            "/ops/models",
+            "/ops/drift-analysis",
+        ):
+            self.assertEqual(self.client.get(path).status_code, 401)
+            self.assertEqual(
+                self.client.get(
+                    path,
+                    headers=self.headers(
+                        self.service.create_access_token({"sub": "viewer"})
+                    ),
+                ).status_code,
+                200,
+            )
+
     def test_refresh_token_requires_json_body(self):
         token = self.service.create_refresh_token({"sub": "viewer"})
         self.assertEqual(
@@ -239,9 +271,22 @@ class AuthenticationTests(unittest.TestCase):
             ).status_code,
             422,
         )
+        first = self.client.post("/auth/refresh", json={"refresh_token": token})
+        self.assertEqual(first.status_code, 200)
+        rotated = first.json()["refresh_token"]
+        replay = self.client.post("/auth/refresh", json={"refresh_token": token})
+        self.assertEqual(replay.status_code, 401)
         self.assertEqual(
-            self.client.post(
-                "/auth/refresh", json={"refresh_token": token}
-            ).status_code,
+            self.client.post("/auth/refresh", json={"refresh_token": rotated}).status_code,
             200,
         )
+
+    def test_refresh_jti_is_only_stored_as_digest_and_consume_is_single_use(self):
+        token = self.service.create_refresh_token({"sub": "viewer"})
+        payload = self.service.verify_token(token)
+        self.assertIsNotNone(payload)
+        self.assertTrue(self.service.consume_refresh_token(payload, self.user))
+        self.assertFalse(self.service.consume_refresh_token(payload, self.user))
+        stored = self.db.query(RefreshToken).one()
+        self.assertEqual(len(stored.jti_digest), 64)
+        self.assertNotEqual(stored.jti_digest, payload["jti"])

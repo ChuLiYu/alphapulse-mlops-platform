@@ -9,7 +9,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Optional
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class PriceBase(BaseModel):
@@ -17,24 +17,24 @@ class PriceBase(BaseModel):
 
     symbol: str = Field(
         ...,
-        example="BTC-USD",
+        examples=["BTC-USD"],
         description="Trading pair symbol (e.g., BTC-USD, ETH-USD)",
     )
     price: Decimal = Field(
         ...,
-        example=Decimal("45123.50"),
+        examples=[Decimal("45123.50")],
         description="Price in USD with Decimal precision (not Float)",
     )
     volume: Decimal = Field(
         ...,
-        example=Decimal("1234567.89"),
+        examples=[Decimal("1234567.89")],
         description="Trading volume with Decimal precision",
     )
     timestamp: datetime = Field(
-        ..., example="2026-01-10T21:55:00Z", description="Timestamp of the price data"
+        ..., examples=["2026-01-10T21:55:00Z"], description="Timestamp of the price data"
     )
 
-    @validator("price", "volume")
+    @field_validator("price", "volume")
     def validate_decimal_precision(cls, v):
         """Validate that Decimal values have appropriate precision."""
         if not isinstance(v, Decimal):
@@ -53,21 +53,20 @@ class PriceBase(BaseModel):
                 v = v.quantize(Decimal("0.00000001"))
         return v
 
-    class Config:
-        """Pydantic configuration for Decimal handling."""
-
-        json_encoders = {
+    model_config = ConfigDict(
+        json_encoders={
             Decimal: lambda v: str(v),  # Serialize Decimal as string
             datetime: lambda v: v.isoformat(),  # Serialize datetime as ISO string
-        }
-        schema_extra = {
+        },
+        json_schema_extra={
             "example": {
                 "symbol": "BTC-USD",
                 "price": "45123.50",
                 "volume": "1234567.89",
                 "timestamp": "2026-01-10T21:55:00Z",
             }
-        }
+        },
+    )
 
 
 class PriceCreate(PriceBase):
@@ -83,10 +82,7 @@ class PriceData(PriceBase):
         ..., example=1, description="Unique identifier for the price record"
     )
 
-    class Config:
-        """Pydantic configuration for response schema."""
-
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class PriceResponse(BaseModel):
@@ -96,10 +92,7 @@ class PriceResponse(BaseModel):
     data: Optional[PriceData] = Field(None, description="Price data")
     message: Optional[str] = Field(None, example="Price data retrieved successfully")
 
-    class Config:
-        """Pydantic configuration."""
-
-        json_encoders = {Decimal: lambda v: str(v), datetime: lambda v: v.isoformat()}
+    model_config = ConfigDict(json_encoders={Decimal: str, datetime: lambda v: v.isoformat()})
 
 
 class PriceListResponse(BaseModel):
@@ -112,7 +105,4 @@ class PriceListResponse(BaseModel):
         None, example=100, description="Total records available"
     )
 
-    class Config:
-        """Pydantic configuration."""
-
-        json_encoders = {Decimal: lambda v: str(v), datetime: lambda v: v.isoformat()}
+    model_config = ConfigDict(json_encoders={Decimal: str, datetime: lambda v: v.isoformat()})

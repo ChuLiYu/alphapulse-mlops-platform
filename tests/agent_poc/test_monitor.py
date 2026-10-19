@@ -139,6 +139,9 @@ class AgentTests(unittest.TestCase):
         self.assertNotIn("secret", json.dumps(result))
 
     def test_ollama_payload_and_thinking_is_not_recorded(self):
+        with patch.dict(os.environ, {}, clear=False):
+            os.environ.pop("OLLAMA_NUM_THREAD", None)
+            client = OllamaClient("test", "http://localhost:11434")
         with patch("alphapulse.agents.monitor.request_json") as request:
             request.return_value = {
                 "message": {
@@ -147,11 +150,63 @@ class AgentTests(unittest.TestCase):
                     "thinking": "hidden",
                 }
             }
-            message = OllamaClient("test", "http://localhost:11434").chat([], [])
+            message = client.chat([], [])
         payload = request.call_args.args[2]
         self.assertEqual(payload["model"], "test")
+        self.assertIs(payload["think"], False)
         self.assertFalse(payload["stream"])
+        self.assertEqual(payload["options"], {"temperature": 0, "num_predict": 1024})
         self.assertNotIn("thinking", message)
+
+    def test_ollama_num_thread_is_optional_and_bounded(self):
+        with patch.dict(os.environ, {"OLLAMA_NUM_THREAD": ""}):
+            client = OllamaClient("test", "http://localhost:11434")
+            with patch("alphapulse.agents.monitor.request_json") as request:
+                request.return_value = {"message": {"role": "assistant"}}
+                client.chat([], [])
+            self.assertNotIn("num_thread", request.call_args.args[2]["options"])
+
+        for value in ("1", "2", "32"):
+            with self.subTest(value=value), patch.dict(
+                os.environ, {"OLLAMA_NUM_THREAD": value}
+            ):
+                client = OllamaClient("test", "http://localhost:11434")
+                with patch("alphapulse.agents.monitor.request_json") as request:
+                    request.return_value = {"message": {"role": "assistant"}}
+                    client.chat([], [])
+                self.assertEqual(
+                    request.call_args.args[2]["options"]["num_thread"], int(value)
+                )
+
+        for value in ("0", "33", "2.0", "-1", "abc", "２"):
+            with self.subTest(value=value), patch.dict(
+                os.environ, {"OLLAMA_NUM_THREAD": value}
+            ), self.assertRaises(ValueError):
+                OllamaClient("test", "http://localhost:11434")
+
+    def test_ollama_thinking_markers_are_removed_without_losing_tool_calls(self):
+        tool_calls = [call("get_snapshot", symbol="BTCUSDT")]
+        cases = [
+            ("prefix<think>private text</think>final answer", "final answer"),
+            ("private text</think>final answer", "final answer"),
+            ("<think>private text without closing", ""),
+        ]
+        for raw_content, expected in cases:
+            with self.subTest(expected=expected), patch(
+                "alphapulse.agents.monitor.request_json",
+                return_value={
+                    "message": {
+                        "role": "assistant",
+                        "content": raw_content,
+                        "tool_calls": tool_calls,
+                    }
+                },
+            ):
+                message = OllamaClient(
+                    "test", "http://localhost:11434"
+                ).chat([], [])
+            self.assertEqual(message["content"], expected)
+            self.assertEqual(message["tool_calls"], tool_calls)
 
     @unittest.skipUnless(
         os.getenv("ALPHAPULSE_LIVE_AGENT") == "1", "opt-in real Ollama run"

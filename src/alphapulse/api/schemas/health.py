@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class HealthStatus(BaseModel):
@@ -12,7 +12,7 @@ class HealthStatus(BaseModel):
     redis: Optional[str] = None
     message: Optional[str] = None
 
-    model_config = {"json_encoders": {datetime: lambda v: v.isoformat()}}
+    model_config = ConfigDict(json_encoders={datetime: lambda value: value.isoformat()})
 
 
 class HealthDetailed(BaseModel):
@@ -22,4 +22,4 @@ class HealthDetailed(BaseModel):
     uptime: Optional[float] = None
     message: Optional[str] = None
 
-    model_config = {"json_encoders": {datetime: lambda v: v.isoformat()}}
+    model_config = ConfigDict(json_encoders={datetime: lambda value: value.isoformat()})

@@ -16,7 +16,11 @@ from alphapulse.api.schemas.ops import (
 )
 from alphapulse.security.auth import get_current_user_from_token
 
-router = APIRouter(prefix="/ops", tags=["mlops"])
+router = APIRouter(
+    prefix="/ops",
+    tags=["mlops"],
+    dependencies=[Depends(get_current_user_from_token)],
+)
 
 import random
 

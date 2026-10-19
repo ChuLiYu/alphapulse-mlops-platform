@@ -26,11 +26,17 @@ spec:
           - "--port"
           - "5000"
           - "--backend-store-uri"
-          - "postgresql://postgres:postgres@postgres:5432/mlflow"
+          - "$(MLFLOW_BACKEND_STORE_URI)"
           - "--default-artifact-root"
           - "/mlflow/artifacts"
         ports:
         - containerPort: 5000
+        env:
+        - name: MLFLOW_BACKEND_STORE_URI
+          valueFrom:
+            secretKeyRef:
+              name: alphapulse-db-credentials
+              key: mlflow-database-url
         resources:
           limits:
             cpu: "500m"

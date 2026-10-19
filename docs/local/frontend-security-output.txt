@@ -1,0 +1,19 @@
+Frontend dependency security update
+Date: 2026-10-18
+
+Audit evidence
+- Baseline, in node:22-alpine before updates: 35 advisories (25 high, 9 moderate, 1 low, 0 critical) across 412 dependency nodes.
+- `npm audit fix` resolved compatible updates; 18 advisories remained (13 high, 5 moderate), because the remaining fixes required major upgrades to Tailwind CSS, Vite, and React Router, plus a newer typescript-eslint line.
+- After major upgrades and compatibility updates, clean `npm ci` + `npm audit --json` in node:22-alpine: 0 advisories (0 high, 0 moderate, 0 low, 0 critical), 322 packages installed.
+
+Dependency updates
+- Upgraded `@typescript-eslint/eslint-plugin` and `@typescript-eslint/parser` to 8.71.2.
+- Upgraded `react-router-dom` to 7.18.4, `vite` to 8.3.4, and `@vitejs/plugin-react` to 6.1.2.
+- Upgraded Tailwind CSS to 4.3.3 and added `@tailwindcss/postcss` 4.3.3; changed the PostCSS plugin and CSS entry to Tailwind 4 syntax.
+- The lockfile also received compatible transitive security updates through npm audit fix.
+
+Validation
+- `npm ci`: passed in node:22-alpine.
+- `npm audit --json`: passed, zero vulnerabilities.
+- `npm run build`: passed with Vite 8.3.4.
+- Build reports the pre-existing runtime `/config.js` script cannot be bundled without `type="module"`, and warns that the minified main chunk is 928.62 kB (500 kB advisory threshold). Both are warnings; the build succeeds. The `/config.js` script is loaded at runtime for deployment configuration.

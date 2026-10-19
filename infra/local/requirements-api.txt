@@ -1,0 +1,12 @@
+# Minimal dependencies for the existing FastAPI routes. Keep this separate from
+# src/setup.py, which installs the legacy ML and training stack.
+fastapi==0.146.0
+uvicorn[standard]==0.34.0
+SQLAlchemy==2.0.38
+psycopg2-binary==2.9.10
+pydantic[email]==2.12.5
+PyJWT[crypto]==2.15.1
+pyasn1==0.6.4
+starlette==1.9.0
+bcrypt==4.3.0
+psutil==7.0.0

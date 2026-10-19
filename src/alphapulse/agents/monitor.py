@@ -78,24 +78,47 @@ class OllamaClient:
     def __init__(self, model, host):
         self.model = model
         self.host = local_endpoint(host)
+        configured_threads = os.getenv("OLLAMA_NUM_THREAD")
+        if configured_threads in (None, ""):
+            self.num_thread = None
+        elif (
+            not configured_threads.isascii()
+            or not configured_threads.isdecimal()
+            or not 1 <= int(configured_threads) <= 32
+        ):
+            raise ValueError("OLLAMA_NUM_THREAD must be an integer from 1 to 32")
+        else:
+            self.num_thread = int(configured_threads)
 
     def chat(self, messages, tools):
+        options = {"temperature": 0, "num_predict": 1024}
+        if self.num_thread is not None:
+            options["num_thread"] = self.num_thread
         result = request_json(
             self.host,
             "/api/chat",
             {
                 "model": self.model,
+                "think": False,
                 "messages": messages,
                 "tools": tools,
                 "stream": False,
-                "options": {"temperature": 0, "num_predict": 1024},
+                "options": options,
             },
         )
         # Persist only observable actions and content, not model thinking fields.
         message = result["message"]
+        content = message.get("content", "")
+        if isinstance(content, str):
+            opening = content.rfind("<think>")
+            closing = content.rfind("</think>")
+            if opening > closing:
+                content = ""
+            elif closing >= 0:
+                content = content[closing + len("</think>"):].strip()
         return {
             "role": "assistant",
-            "content": message.get("content", ""),
+            "content": content,
             "tool_calls": message.get("tool_calls", []),
         }
 

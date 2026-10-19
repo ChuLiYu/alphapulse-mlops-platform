@@ -9,7 +9,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Optional
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class IndicatorBase(BaseModel):
@@ -47,7 +47,7 @@ class IndicatorBase(BaseModel):
         None, description="Average True Range (14 period)", ge=Decimal("0")
     )
 
-    @validator(
+    @field_validator(
         "sma_20",
         "ema_12",
         "macd",
@@ -76,11 +76,7 @@ class IndicatorData(IndicatorBase):
 
     id: int = Field(..., description="Unique identifier")
 
-    class Config:
-        """Pydantic configuration."""
-
-        orm_mode = True
-        json_encoders = {Decimal: str}
+    model_config = ConfigDict(from_attributes=True, json_encoders={Decimal: str})
 
 
 class IndicatorResponse(BaseModel):

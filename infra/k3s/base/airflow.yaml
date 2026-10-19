@@ -5,9 +5,7 @@ metadata:
   namespace: alphapulse
 data:
   AIRFLOW__CORE__EXECUTOR: "LocalExecutor"
-  AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: "postgresql+psycopg2://postgres:postgres@postgres:5432/airflow"
   AIRFLOW__CORE__LOAD_EXAMPLES: "False"
-  AIRFLOW__CORE__FERNET_KEY: "afrRCi0qTwZEvSfVJVGoNbkAWdiSqsXDq-ijdSaIs5g="
   AIRFLOW__WEBSERVER__BASE_URL: "https://alphapulse.luichu.dev/airflow"
 ---
 apiVersion: apps/v1

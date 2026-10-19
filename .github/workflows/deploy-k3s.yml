@@ -1,23 +1,25 @@
 name: Deploy to K3s (Production)
 
+# A source merge never deploys historical cloud infrastructure automatically.
 on:
-  workflow_run:
-    workflows: ["Python Test & Deploy"]
-    types:
-      - completed
-    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   deploy:
     name: Deploy to Oracle Cloud K3s
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    environment: production
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Setup SSH for Oracle VM
+        env:
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.PROD_HOST }}
@@ -34,7 +36,7 @@ jobs:
 
             # 3. 自動生成並套用 Admin Secret (關鍵自動化步驟)
             chmod +x infra/scripts/generate_k3s_secrets.sh
-            ADMIN_PASSWORD="${{ secrets.ADMIN_PASSWORD }}" ./infra/scripts/generate_k3s_secrets.sh --apply
+            ./infra/scripts/generate_k3s_secrets.sh --apply
 
             # 4. 執行 Kustomize 部署
             kubectl apply -k infra/k3s/base

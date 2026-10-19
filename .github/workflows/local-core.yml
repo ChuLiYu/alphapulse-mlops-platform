@@ -1,0 +1,24 @@
+name: Containerized core and dependency security
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main, feat/llm-tool-calling-poc]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  core:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use the same isolated Compose workflow as local development
+        run: docker context create orbstack --docker host=unix:///var/run/docker.sock
+      - run: ./alphapulse setup
+      - run: ./alphapulse test
+      - name: Audit installed image packages and frontend lock
+        run: ./alphapulse audit
+      - name: Remove containers, preserve volume semantics
+        if: always()
+        run: ./alphapulse down

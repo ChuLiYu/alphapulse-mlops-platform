@@ -21,7 +21,10 @@ spec:
         imagePullPolicy: Always
         env:
         - name: DATABASE_URL
-          value: "postgresql://postgres:postgres@postgres:5432/alphapulse"
+          valueFrom:
+            secretKeyRef:
+              name: alphapulse-db-credentials
+              key: trainer-database-url
         - name: MLFLOW_TRACKING_URI
           value: "http://mlflow:5000"
         - name: MODEL_OUTPUT_DIR

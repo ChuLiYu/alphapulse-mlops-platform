@@ -1,0 +1,89 @@
+OrbStack engine: linux/aarch64
+ Container alphapulse-local-frontend-1 Running 
+ Container alphapulse-local-postgres-1 Running 
+ Container alphapulse-local-api-1 Recreate 
+ Container alphapulse-local-api-1 Recreated 
+ Container alphapulse-local-postgres-1 Waiting 
+ Container alphapulse-local-postgres-1 Healthy 
+ Container alphapulse-local-api-1 Starting 
+ Container alphapulse-local-api-1 Started 
+ Container alphapulse-local-api-1 Waiting 
+ Container alphapulse-local-api-1 Healthy 
+ Container alphapulse-local-api-1 Waiting 
+ Container alphapulse-local-frontend-1 Waiting 
+ Container alphapulse-local-postgres-1 Waiting 
+ Container alphapulse-local-api-1 Healthy 
+ Container alphapulse-local-frontend-1 Healthy 
+ Container alphapulse-local-postgres-1 Healthy 
+ Container alphapulse-local-test-run-2aeadd669bc4 Creating 
+ Container alphapulse-local-test-run-2aeadd669bc4 Created 
+test_bad_model_response_and_transport_error_fail_closed (test_monitor.AgentTests.test_bad_model_response_and_transport_error_fail_closed) ... ok
+test_budgets_bound_loop_and_large_tool_batches (test_monitor.AgentTests.test_budgets_bound_loop_and_large_tool_batches) ... ok
+test_dependent_tools_receive_results_on_separate_turns (test_monitor.AgentTests.test_dependent_tools_receive_results_on_separate_turns) ... ok
+test_fabricated_snapshot_is_rejected (test_monitor.AgentTests.test_fabricated_snapshot_is_rejected) ... ok
+test_healthy_fixture (test_monitor.AgentTests.test_healthy_fixture) ... ok
+test_live_ollama_tool_chain (test_monitor.AgentTests.test_live_ollama_tool_chain) ... skipped 'opt-in real Ollama run'
+test_ollama_num_thread_is_optional_and_bounded (test_monitor.AgentTests.test_ollama_num_thread_is_optional_and_bounded) ... ok
+test_ollama_payload_and_thinking_is_not_recorded (test_monitor.AgentTests.test_ollama_payload_and_thinking_is_not_recorded) ... ok
+test_ollama_thinking_markers_are_removed_without_losing_tool_calls (test_monitor.AgentTests.test_ollama_thinking_markers_are_removed_without_losing_tool_calls) ... ok
+test_premature_final_and_empty_summary_never_complete (test_monitor.AgentTests.test_premature_final_and_empty_summary_never_complete) ... ok
+test_reject_unknown_tool_malformed_arguments_and_scope_escape (test_monitor.AgentTests.test_reject_unknown_tool_malformed_arguments_and_scope_escape) ... ok
+test_same_turn_dependency_is_rejected_then_recovers (test_monitor.AgentTests.test_same_turn_dependency_is_rejected_then_recovers) ... ok
+test_endpoint_validation (test_safety.SafetyTests.test_endpoint_validation) ... ok
+test_evaluator_keeps_failures_and_requires_fresh_directory (test_safety.SafetyTests.test_evaluator_keeps_failures_and_requires_fresh_directory) ... {"symbol": "BTCUSDT", "status": "incomplete", "error": "timeout", "elapsed_seconds": 0.0, "trace_file": "btcusdt-1.json"}
+{"symbol": "BTCUSDT", "status": "incomplete", "error": "timeout", "elapsed_seconds": 0.0, "trace_file": "btcusdt-2.json"}
+ok
+test_evidence_does_not_overwrite_or_follow_symlinks (test_safety.SafetyTests.test_evidence_does_not_overwrite_or_follow_symlinks) ... ok
+test_redirects_and_oversized_responses_rejected (test_safety.SafetyTests.test_redirects_and_oversized_responses_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 16 tests in 0.016s
+
+OK (skipped=1)
+ Container alphapulse-local-test-run-06871668c99e Creating 
+ Container alphapulse-local-test-run-06871668c99e Created 
+test_api_key_database_stores_digest_and_legacy_keys_fail_closed (test_auth_boundary.AuthenticationTests.test_api_key_database_stores_digest_and_legacy_keys_fail_closed) ... /app/src/alphapulse/security/auth.py:160: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+  api_key_record.last_used_at = datetime.utcnow()
+ok
+test_data_routes_and_api_key_scopes_enforce_owner_permissions (test_auth_boundary.AuthenticationTests.test_data_routes_and_api_key_scopes_enforce_owner_permissions) ... /app/src/alphapulse/security/auth.py:91: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+  expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+ok
+test_initialization_never_creates_known_admin_or_returns_password (test_auth_boundary.AuthenticationTests.test_initialization_never_creates_known_admin_or_returns_password) ... ok
+test_missing_and_known_signing_secrets_fail_closed (test_auth_boundary.AuthenticationTests.test_missing_and_known_signing_secrets_fail_closed) ... ok
+test_missing_forged_expired_refresh_and_inactive_rejected (test_auth_boundary.AuthenticationTests.test_missing_forged_expired_refresh_and_inactive_rejected) ... /app/src/alphapulse/security/auth.py:89: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+  expire = datetime.utcnow() + expires_delta
+/app/tests/security/test_auth_boundary.py:112: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+  "exp": datetime.utcnow() + timedelta(hours=1),
+/app/src/alphapulse/security/auth.py:100: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+  expire = datetime.utcnow() + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
+ok
+test_password_hashing_and_login (test_auth_boundary.AuthenticationTests.test_password_hashing_and_login) ... ok
+test_refresh_token_requires_json_body (test_auth_boundary.AuthenticationTests.test_refresh_token_requires_json_body) ... ok
+test_local_ports_and_no_default_passwords_or_public_bucket (test_compose.ComposeSafetyTests.test_local_ports_and_no_default_passwords_or_public_bucket) ... ok
+test_host_redirect_proxy_and_size_boundaries (test_sentiment_validation.SentimentTests.test_host_redirect_proxy_and_size_boundaries) ... Sentiment provider output rejected; article remains unscored
+Sentiment provider output rejected; article remains unscored
+ok
+test_invalid_provider_data_is_unscored_not_neutral (test_sentiment_validation.SentimentTests.test_invalid_provider_data_is_unscored_not_neutral) ... Sentiment provider output rejected; article remains unscored
+Sentiment provider output rejected; article remains unscored
+Sentiment provider output rejected; article remains unscored
+Sentiment provider output rejected; article remains unscored
+Sentiment provider output rejected; article remains unscored
+ok
+test_valid_schema_keeps_scores (test_sentiment_validation.SentimentTests.test_valid_schema_keeps_scores) ... ok
+
+----------------------------------------------------------------------
+Ran 11 tests in 1.788s
+
+OK
+ Container alphapulse-local-test-run-a76a6499368c Creating 
+ Container alphapulse-local-test-run-a76a6499368c Created 
+test_api_health_and_protected_route (test_stack_smoke.LocalStackSmokeTests.test_api_health_and_protected_route) ... ok
+test_authenticated_price_round_trip_uses_database_and_decimal (test_stack_smoke.LocalStackSmokeTests.test_authenticated_price_round_trip_uses_database_and_decimal)
+Authenticate a disposable DB user, then insert/read a synthetic price. ... ok
+test_database_can_write_and_read_disposable_row (test_stack_smoke.LocalStackSmokeTests.test_database_can_write_and_read_disposable_row) ... ok
+test_frontend_serves_built_application (test_stack_smoke.LocalStackSmokeTests.test_frontend_serves_built_application) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 1.012s
+
+OK

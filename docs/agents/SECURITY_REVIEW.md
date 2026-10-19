@@ -3,7 +3,8 @@
 A dedicated read-only security reviewer inspected the new agent plus related
 existing authentication, API, Compose, and sentiment code. The implementation
 was then revised and regression-tested. This is a scoped source review, not a
-penetration test, dependency audit, Git history secret scan, or certification.
+penetration test, Git history secret scan, or certification. A subsequent scoped
+container dependency audit is recorded in [local security remediation](../local/SECURITY_REMEDIATION.zh-TW.md).
 
 ## Findings addressed in this branch
 
@@ -41,7 +42,10 @@ only to existing API installations; no deployment was performed by this change.
    If any previous database copy was exposed, revoke/reissue keys instead.
    Existing bcrypt password hashes remain compatible; hashing now uses bcrypt
    directly rather than the deprecated Passlib compatibility layer.
-3. If this is a new installation, initialize the DB schema first, then run
+3. Existing installations must also create the new `refresh_tokens` table before
+   starting this API; see [schema and Secret migration](../../infra/k3s/README.md).
+   Prior refresh tokens without persisted identifiers must be reissued by login.
+   If this is a new installation, initialize the DB schema first, then run
    `PYTHONPATH=src python -m alphapulse.security.bootstrap` on the trusted host.
    It prompts for an operator-chosen username/email/password without echoing the
    password. It refuses when a superuser already exists. Run only one bootstrap
@@ -65,12 +69,13 @@ only to existing API installations; no deployment was performed by this change.
 
 ## Verification and remaining scope
 
-Eleven security tests exercise missing/forged/expired/refresh JWT rejection,
+Seventeen security tests exercise missing/forged/expired/refresh JWT rejection,
 inactive users, permission boundaries, real password hashing/login, JSON refresh,
 API-key header/scope checks and idempotent legacy migration, safe initialization,
 sentiment validation, and parsed Compose policies. Agent tests cover networking,
-artifacts, failure recording and the multi-turn protocol. Full API deployment,
-Postgres migrations, Docker startup and the ML suite were not exercised here.
+artifacts, failure recording and the multi-turn protocol. The ML suite and historical cloud deployment were not exercised here. The subsequent
+OrbStack core verification covers Docker startup and PostgreSQL HTTP refresh/replay
+and Decimal round-trip checks; see [local verification](../local/VERIFICATION.zh-TW.md).
 
 The application still contains demo endpoints/data and historical deployment
 configuration. Do not treat these changes as making the whole platform ready for
@@ -80,10 +85,17 @@ future deployment. RSS prompt delimiters and validation reduce malformed output;
 they cannot guarantee semantic resistance to prompt injection. No customer or
 production data was used in the agent traces.
 
-Refresh tokens still lack server-side single-use rotation/revocation (`jti` storage).
-A stolen refresh token can be replayed until expiry; implement transactional
-rotation/reuse detection before exposing authentication to untrusted networks.
-This is an explicit remaining deployment blocker, not a completed security fix.
+Refresh tokens now carry a random `jti`; only its SHA-256 digest is stored. The
+refresh endpoint consumes the digest with a conditional database update and
+stores the replacement token in the same transaction. Replays are rejected,
+and concurrent requests can consume a given token only once. This does not
+revoke already-issued access tokens; they remain valid until their 30-minute
+expiry.
+
+Login still has no shared per-account or per-client rate limit. A worker-local
+limit would reset across workers and restarts, so deployment must provide a
+shared rate-limiting control (for example at the ingress or through a shared
+store) before exposing password authentication to untrusted networks.
 
 The existing full-platform CI also stops at dependency resolution (`pandas<2.2`
 versus currently available `pandas-ta` NumPy requirements), before unit tests.

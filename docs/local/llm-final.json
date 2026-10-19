@@ -1,0 +1,82 @@
+{
+  "status": "completed",
+  "trace": [
+    {
+      "turn": 1,
+      "tool": "get_snapshot",
+      "arguments": {
+        "symbol": "BTCUSDT"
+      },
+      "result": {
+        "snapshot_id": "fixture-btc-001",
+        "symbol": "BTCUSDT",
+        "source": "synthetic-fixture",
+        "missing_ratio": 0.02,
+        "drift_psi": 0.31,
+        "age_minutes": 90
+      }
+    },
+    {
+      "turn": 2,
+      "tool": "evaluate_snapshot",
+      "arguments": {
+        "snapshot_id": "fixture-btc-001"
+      },
+      "result": {
+        "snapshot_id": "fixture-btc-001",
+        "source": "synthetic-fixture",
+        "status": "review",
+        "checks": [
+          {
+            "metric": "missing_ratio",
+            "observed": 0.02,
+            "threshold": 0.01,
+            "breached": true
+          },
+          {
+            "metric": "drift_psi",
+            "observed": 0.31,
+            "threshold": 0.2,
+            "breached": true
+          },
+          {
+            "metric": "age_minutes",
+            "observed": 90,
+            "threshold": 60,
+            "breached": true
+          }
+        ]
+      }
+    }
+  ],
+  "evaluations": [
+    {
+      "snapshot_id": "fixture-btc-001",
+      "source": "synthetic-fixture",
+      "status": "review",
+      "checks": [
+        {
+          "metric": "missing_ratio",
+          "observed": 0.02,
+          "threshold": 0.01,
+          "breached": true
+        },
+        {
+          "metric": "drift_psi",
+          "observed": 0.31,
+          "threshold": 0.2,
+          "breached": true
+        },
+        {
+          "metric": "age_minutes",
+          "observed": 90,
+          "threshold": 60,
+          "breached": true
+        }
+      ]
+    }
+  ],
+  "answer": "The monitoring health for BTCUSDT (snapshot ID: fixture-btc-001) shows the following status and metrics:\n\n**Status**: Review  \n**Observed Metrics**:\n- `missing_ratio`: 0.02 (threshold: 0.01) → **Breached**\n- `drift_psi`: 0.31 (threshold: 0.2) → **Breached**\n- `age_minutes`: 90 (threshold: 60) → **Breached**\n\nAll critical metrics exceed their defined thresholds, triggering a \"review\" status. This is synthetic data from the AlphaPulse monitoring system.",
+  "mode": "ollama",
+  "model": "qwen3:4b"
+}

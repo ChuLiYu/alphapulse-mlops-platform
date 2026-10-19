@@ -1,21 +1,11 @@
 name: Python Test & Deploy
 
+# Historical full ML pipeline: run explicitly while its dependency migration is pending.
 on:
-  push:
-    branches: [main, develop]
-    paths:
-      - "src/**"
-      - "tests/**"
-      - "infra/**"
-      - "requirements*.txt"
-      - "src/setup.py"
-      - ".github/workflows/python-test-and-deploy.yml"
-  pull_request:
-    branches: [main, develop]
-    paths:
-      - "src/**"
-      - "tests/**"
-      - "infra/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 env:
   PYTHON_VERSION: "3.12"

@@ -1,0 +1,100 @@
+name: alphapulse-local
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?Run ./alphapulse setup first}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Run ./alphapulse setup first}
+      POSTGRES_DB: alphapulse
+    volumes:
+      - alphapulse_local_postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d alphapulse"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+    restart: unless-stopped
+
+  api:
+    build:
+      context: ../..
+      dockerfile: infra/local/Dockerfile.api
+    environment:
+      SECRET_KEY: ${SECRET_KEY:?Run ./alphapulse setup first}
+      DATABASE_URL: postgresql://${POSTGRES_USER:?Run ./alphapulse setup first}:${POSTGRES_PASSWORD:?Run ./alphapulse setup first}@postgres:5432/alphapulse
+      CORS_ORIGINS: http://127.0.0.1:${FRONTEND_PORT:-3000}
+    ports:
+      - "127.0.0.1:${API_PORT:-8000}:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8000/health"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ../..
+      dockerfile: infra/local/Dockerfile.frontend
+    ports:
+      - "127.0.0.1:${FRONTEND_PORT:-3000}:80"
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1/ || exit 1"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+    restart: unless-stopped
+
+  test:
+    build:
+      context: ../..
+      dockerfile: infra/local/Dockerfile.test
+    environment:
+      SECRET_KEY: ${SECRET_KEY:?Run ./alphapulse setup first}
+      DATABASE_URL: postgresql://${POSTGRES_USER:?Run ./alphapulse setup first}:${POSTGRES_PASSWORD:?Run ./alphapulse setup first}@postgres:5432/alphapulse
+      API_URL: http://api:8000
+      FRONTEND_URL: http://frontend
+    depends_on:
+      postgres:
+        condition: service_healthy
+      api:
+        condition: service_healthy
+      frontend:
+        condition: service_healthy
+    profiles: [tools]
+    command: ["python", "-m", "unittest", "discover", "-s", "tests/agent_poc", "-v"]
+
+  ollama:
+    image: ollama/ollama:0.40.6
+    volumes:
+      - alphapulse_local_ollama:/root/.ollama
+    profiles: [agent]
+    restart: unless-stopped
+
+  agent:
+    image: alphapulse-local-test
+    build:
+      context: ../..
+      dockerfile: infra/local/Dockerfile.test
+    network_mode: service:ollama
+    environment:
+      OLLAMA_HOST: http://127.0.0.1:11434
+      OLLAMA_NUM_THREAD: ${OLLAMA_NUM_THREAD:-2}
+    depends_on:
+      - ollama
+    profiles: [agent]
+    entrypoint: ["python", "-m", "alphapulse.agents.monitor"]
+    command: ["--mode", "ollama", "--model", "${OLLAMA_MODEL:-qwen3:4b}", "--symbol", "BTCUSDT"]
+
+volumes:
+  alphapulse_local_postgres:
+    name: alphapulse_local_postgres
+  alphapulse_local_ollama:
+    name: alphapulse_local_ollama

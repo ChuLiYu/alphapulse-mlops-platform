@@ -11,8 +11,6 @@ from typing import Any
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-from pydantic.json import pydantic_encoder
 
 
 # Custom JSON encoder for Decimal types
@@ -20,7 +18,7 @@ def decimal_encoder(obj: Any) -> Any:
     """Custom JSON encoder that converts Decimal to string."""
     if isinstance(obj, Decimal):
         return str(obj)
-    return pydantic_encoder(obj)
+    raise TypeError(f"Object of type {type(obj).__name__} is not JSON serializable")
 
 
 # Get root path from environment (for reverse proxy)

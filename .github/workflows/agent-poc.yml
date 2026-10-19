@@ -9,6 +9,8 @@ on:
       - 'src/alphapulse/api/**'
       - 'src/alphapulse/main.py'
       - 'infra/docker-compose.yml'
+      - 'infra/local/**'
+      - 'infra/scripts/generate_k3s_secrets.sh'
       - 'airflow/plugins/alphapulse_utils/sentiment_analyzer.py'
       - '.github/workflows/agent-poc.yml'
   push:
@@ -20,6 +22,8 @@ on:
       - 'src/alphapulse/api/**'
       - 'src/alphapulse/main.py'
       - 'infra/docker-compose.yml'
+      - 'infra/local/**'
+      - 'infra/scripts/generate_k3s_secrets.sh'
       - 'airflow/plugins/alphapulse_utils/sentiment_analyzer.py'
       - '.github/workflows/agent-poc.yml'
 permissions:
@@ -42,5 +46,5 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: pip install fastapi sqlalchemy 'python-jose[cryptography]' 'bcrypt>=4,<6' httpx email-validator psutil pandas requests pyyaml
+      - run: pip install -r infra/local/requirements-test.txt
       - run: PYTHONPATH=src python -m unittest discover -s tests/security -v

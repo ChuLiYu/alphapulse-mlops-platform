@@ -1,0 +1,134 @@
+#!/bin/sh
+set -eu
+
+ROOT=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+ENV_FILE="$ROOT/.env.orbstack.local"
+COMPOSE_FILE="$ROOT/infra/local/compose.yml"
+MODEL=${OLLAMA_MODEL:-qwen3:4b}
+
+dc() {
+    docker --context orbstack compose -p alphapulse-local \
+        --env-file "$ENV_FILE" -f "$COMPOSE_FILE" "$@"
+}
+
+make_env() {
+    docker --context orbstack run --rm -v "$ROOT:/workspace" -w /workspace python:3.12-slim \
+        python -c 'import os,pathlib,secrets; os.umask(0o077); p=pathlib.Path(".env.orbstack.local"); assert not p.is_symlink(); p=p.resolve(strict=False); assert p.parent==pathlib.Path("/workspace");
+if not p.exists():
+ t=p.with_name(".env.orbstack.local.tmp-"+secrets.token_hex(8)); fd=os.open(t,os.O_WRONLY|os.O_CREAT|os.O_EXCL,0o600); f=os.fdopen(fd,"w"); f.write("POSTGRES_USER=alphapulse\nPOSTGRES_PASSWORD="+secrets.token_hex(32)+"\nSECRET_KEY="+secrets.token_hex(32)+"\nAPI_PORT=8000\nFRONTEND_PORT=3000\nOLLAMA_MODEL=qwen3:4b\n"); f.close(); os.chmod(t,0o600); os.link(t,p); t.unlink()
+assert p.is_file() and not p.is_symlink(); os.chmod(p,0o600)'
+}
+
+require_env() {
+    if [ ! -f "$ENV_FILE" ] || [ -L "$ENV_FILE" ]; then
+        echo "Private settings are missing or unsafe. Run ./alphapulse setup first." >&2
+        exit 1
+    fi
+    chmod 600 "$ENV_FILE"
+}
+
+ensure_context() {
+    context=$(docker --context orbstack info --format '{{.OSType}}/{{.Architecture}}') || {
+        echo "OrbStack Docker context is unavailable. Start OrbStack and retry." >&2
+        exit 1
+    }
+    case "$context" in
+        linux/*) echo "OrbStack engine: $context" ;;
+        *) echo "Expected OrbStack Linux engine, got: $context" >&2; exit 1 ;;
+    esac
+}
+
+ensure_core_up() {
+    if [ ! -f "$ENV_FILE" ]; then
+        make_env
+    fi
+    require_env
+    dc up -d --wait postgres api frontend
+}
+
+usage() {
+    cat <<'EOF'
+AlphaPulse OrbStack local environment
+
+  ./alphapulse setup    Check OrbStack, create private settings, build images
+  ./alphapulse up       Start PostgreSQL, API, and frontend; wait for health
+  ./alphapulse test     Run agent/security regression and stack smoke tests
+  ./alphapulse audit    Scan installed Python images and frontend dependency lock
+  ./alphapulse agent    Pull/run a real Ollama tool-calling model (default qwen3:4b)
+  ./alphapulse status   Show only this project's service status
+  ./alphapulse logs     Follow logs for this project's services
+  ./alphapulse down     Stop/remove this project's containers; preserve volumes
+
+Set API_PORT, FRONTEND_PORT, or OLLAMA_MODEL in .env.orbstack.local to override
+the defaults. Agent inference defaults to 2 threads; set OLLAMA_NUM_THREAD in
+the shell before `./alphapulse agent` to override it (allowed range: 1–32).
+No project Python or Node packages are installed on the host.
+EOF
+}
+
+command=${1:-help}
+case "$command" in
+    setup)
+        ensure_context
+        make_env
+        dc build api frontend test
+        ;;
+    up)
+        ensure_context
+        ensure_core_up
+        ;;
+    test)
+        ensure_context
+        ensure_core_up
+        dc run --rm --no-deps test python -m unittest discover -s tests/agent_poc -v
+        dc run --rm --no-deps test python -m unittest discover -s tests/security -v
+        dc run --rm --no-deps test python -m unittest discover -s tests/local -v
+        ;;
+    audit)
+        ensure_context
+        require_env
+        docker --context orbstack run --rm -v "$ROOT/frontend:/app:ro" -w /app \
+            node:22-alpine npm audit --audit-level=moderate
+        for service in api test; do
+            dc run --rm --no-deps --user 0 --entrypoint sh "$service" -c \
+                'python -m pip freeze --all > /tmp/installed.txt && python -m venv /tmp/auditor && /tmp/auditor/bin/pip install --no-cache-dir pip-audit && /tmp/auditor/bin/pip-audit --disable-pip --no-deps -r /tmp/installed.txt'
+        done
+        ;;
+    agent)
+        ensure_context
+        make_env
+        MODEL=${OLLAMA_MODEL:-$(sed -n 's/^OLLAMA_MODEL=//p' "$ENV_FILE")}
+        MODEL=${MODEL:-qwen3:4b}
+        dc --profile agent up -d ollama
+        ready=0
+        i=0
+        while [ "$i" -lt 60 ]; do
+            if dc --profile agent exec -T ollama ollama list >/dev/null 2>&1; then ready=1; break; fi
+            i=$((i + 1))
+            sleep 2
+        done
+        if [ "$ready" -ne 1 ]; then echo "Ollama did not become ready" >&2; exit 1; fi
+        dc --profile agent exec -T ollama ollama pull "$MODEL"
+        dc --profile agent run --rm agent --mode ollama --model "$MODEL" --symbol BTCUSDT --include-trace
+        ;;
+    status)
+        require_env
+        dc ps
+        ;;
+    logs)
+        require_env
+        dc logs --tail=100 -f
+        ;;
+    down)
+        require_env
+        dc --profile '*' down
+        ;;
+    help|-h|--help)
+        usage
+        ;;
+    *)
+        echo "Unknown command: $command" >&2
+        usage >&2
+        exit 2
+        ;;
+esac
